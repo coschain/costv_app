@@ -97,3 +97,6 @@ build/
 **/ios/fastlane/screenshots
 **/ios/Podfile
 signature_util.dart
+constant.dart
+request_manager.dart
+lib/bean
