@@ -1,0 +1,26 @@
+var commonRu = {
+  "title": "COS.TV",
+  "httpErrorDefault": "Интернет-соединение нестабильно",
+  "httpErrorCancel": "Отменить запрос",
+  "httpErrorConnectTimeout": "Время соединения вышло",
+  "httpErrorReceiveTimeout": "Время соединения вышло",
+  "httpErrorResponse": "Ошибка сервера",
+  "httpError": "Неизвестная ошибка",
+  "cancel": "Отменить",
+  "carryOn": "Продолжить",
+  "back": "Назад",
+  "close": "Открыть",
+  "noMoreData": "Больше нет данных",
+  "playCount": "Просмотров",
+  "confirm": "Подтверждать",
+  "netError": "У вас нет интернета,Пожалуйста, проверьте ваше интернет-соединение.",
+  "notLogInTips": "Вы еще не входили",
+  "subscriptionLogInTips": "Войдите, чтобы увидеть свои подписки",
+  "watchHistoryLogInTips": "Войдите, чтобы увидеть историю просмотров",
+  "netRequestFailTips": "Ошибка подключения к интернету",
+  "netRequestFailDesc": "Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
+  "reloadData": "Перезагружается",
+  "updateTitle": "Обновить до \${version}?",
+  "updateConfirm": "Обновление"
+}
+;
