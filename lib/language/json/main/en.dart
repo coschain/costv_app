@@ -1,9 +1,10 @@
 var mainEn = {
   "videoDetail": {
-    "homeTitle": "Homepage",
+    "homeTitle": "Home",
     "homePopularTitle": "Trending",
-    "homeMySubscriptionTitle": "My Subscriptions",
-    "homeSeeHistoryTitle": "Watching History",
+    "homeMySubscriptionTitle": "Subscriptions",
+    "homeMessage": "Notifications",
+    "homeSeeHistoryTitle": "History",
     "noMoreOperateVideo": "No more videos"
   },
   "followingList": {
@@ -65,5 +66,10 @@ var mainEn = {
     "minutes": "\${minutes} minutes",
     "hours": "\${hours} hours",
     "days": "\${days} days"
+  },
+  "message": {
+    "commentTitle": "Comment",
+    "commentNoVideo": "The video is deleted",
+    "commentNoComment": "The comment is deleted"
   }
 };

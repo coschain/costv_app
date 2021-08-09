@@ -1,8 +1,9 @@
 var mainPtBr = {
   "videoDetail": {
-    "homeTitle": "Página principal",
+    "homeTitle": "Início",
     "homePopularTitle": "Em alta",
-    "homeMySubscriptionTitle": "Minhas assinaturas",
+    "homeMySubscriptionTitle": "Inscrições",
+    "homeMessage": "Notificações",
     "homeSeeHistoryTitle": "Histórico",
     "noMoreOperateVideo": "Não há mais vídeos"
   },
@@ -65,5 +66,10 @@ var mainPtBr = {
     "minutes": "\${minutes} minutos",
     "hours": "\${hours} horas",
     "days": "\${days} dias"
+  },
+  "message": {
+    "commentTitle": "Comentário",
+    "commentNoVideo": "O vídeo foi excluído",
+    "commentNoComment": "O comentário foi excluído"
   }
 };

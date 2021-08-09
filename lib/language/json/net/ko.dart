@@ -207,5 +207,15 @@ var netKo = {
     "910002": "포인트 추첨 공제 실패",
     "910003": "비디오 적립 포인트 활동 중에 포인트를 획득하지 못했습니다",
     "910004": "사용자가 당일에 얻을 수있는 포인트가 도착했습니다"
+  },
+  "commentError": {
+    "400": "Parameter Error",
+    "500": "Internal Error",
+    "1600001": "Video ID does not exist",
+    "1600002": "The video has been deleted",
+    "1600003": "The video is no longer available",
+    "1600004": "The video is private, only the creator can view",
+    "1600005": "The scheduled video is not viewable now",
+    "1600006": "The transcoded video is not viewable now"
   }
 };

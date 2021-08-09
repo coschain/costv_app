@@ -203,5 +203,15 @@ var netPtBr = {
     "910002": "Falha na dedução do sorteio de pontos",
     "910003": "Falha ao ganhar pontos durante a atividade de ganho de pontos de vídeo",
     "910004": "Chegaram os pontos que os usuários podem obter no dia"
+  },
+  "commentError": {
+    "400": "Erro de Parâmetro",
+    "500": "Erro Interno",
+    "1600001": "A ID do Vídeo não Existe",
+    "1600002": "O vídeo foi excluído",
+    "1600003": "O vídeo não está mais disponível",
+    "1600004": "O vídeo é privado, apenas o criador pode ver",
+    "1600005": "O vídeo programado não pode ser visto agora",
+    "1600006": "O vídeo transcodificado não pode ser visto agora"
   }
 };

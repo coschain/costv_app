@@ -206,5 +206,15 @@ var netTr = {
     "910002": "Puan beraberinde kesinti yapılamadı",
     "910003": "Video kazanma puanı etkinliği sırasında puan kazanılamadı",
     "910004": "Kullanıcıların o gün alabilecekleri puanlar geldi"
+  },
+  "commentError": {
+    "400": "Parameter Error",
+    "500": "Internal Error",
+    "1600001": "Video ID does not exist",
+    "1600002": "The video has been deleted",
+    "1600003": "The video is no longer available",
+    "1600004": "The video is private, only the creator can view",
+    "1600005": "The scheduled video is not viewable now",
+    "1600006": "The transcoded video is not viewable now"
   }
 };

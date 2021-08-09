@@ -1,15 +1,14 @@
-import 'dart:math';
-
 import 'package:common_utils/common_utils.dart';
+import 'package:cosdart/types.dart';
+import 'package:costv_android/bean/exchange_rate_info.dart';
 import 'package:costv_android/constant.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/utils/global_util.dart';
+import 'package:costv_android/utils/revenue_calculation_util.dart';
+import 'package:costv_android/widget/animation/video_add_money_widget.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
-import 'package:decimal/decimal.dart';
-import 'package:costv_android/utils/revenue_calculation_util.dart';
-import 'package:costv_android/bean/exchange_rate_info.dart';
-import 'package:cosdart/types.dart';
 
 const String tokenErrCode = "11011";
 
@@ -159,6 +158,9 @@ class Common {
     for (int i = 0; i < length; i++) {
       if (double.parse(listNetVersion[i]) > double.parse(listLocalVersion[i])) {
         return true;
+      } else if (double.parse(listNetVersion[i]) <
+          double.parse(listLocalVersion[i])) {
+        return false;
       }
     }
     return false;
@@ -209,7 +211,8 @@ class Common {
   }
 
   static bool checkIsSimplifiedChinese(String lan) {
-    if (lan.startsWith("zh") && (lan.startsWith("zh_Hans") || lan.startsWith("zh_CN"))) {
+    if (lan.startsWith("zh") &&
+        (lan.startsWith("zh_Hans") || lan.startsWith("zh_CN"))) {
       return true;
     }
     return false;
@@ -249,7 +252,7 @@ class Common {
       } else if (lan.startsWith("zh")) {
         //人民币符号
         if (lan.startsWith("zh_Hans") || lan.startsWith("zh_CN")) {
-          return "￥";
+          return "¥";
         }
         //台币符号
         return "NT\$";
@@ -366,11 +369,38 @@ class Common {
     return "en";
   }
 
+  /// 系统是否是英语
   static bool isEn() {
     String lan = curLanguage;
     if (lan == null || lan.startsWith("en")) {
       return true;
     } else {
+      return false;
+    }
+  }
+
+  /// 是否显示pop
+  /// 巴西、越南、俄语、中文简体、中文繁体，显示
+  static bool isShowPop() {
+    String lan = curLanguage;
+    if (lan != null) {
+      if (lan.startsWith("vi")) {
+        //越南
+        return true;
+      } else if (lan.startsWith("pt")) {
+        //巴西葡萄牙
+        return true;
+      } else if (lan.startsWith("ru")) {
+        //俄罗斯
+        return true;
+      } else if (lan.startsWith("zh")) {
+        //中文简体、中文繁体
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      //默认语言为英语所以不显示pop
       return false;
     }
   }
@@ -381,8 +411,8 @@ class Common {
     }
     int pIdx = amount.indexOf(".");
     if (pIdx != -1) {
-      String pre = amount.substring(0,pIdx);
-      String suffix = amount.substring(pIdx,amount.length);
+      String pre = amount.substring(0, pIdx);
+      String suffix = amount.substring(pIdx, amount.length);
       pre = pre.replaceAllMapped(
           new RegExp(r"(\d)(?=(?:\d{3})+\b)"), (match) => "${match.group(1)},");
       return pre + suffix;
@@ -416,14 +446,15 @@ class Common {
     return Decimal.fromInt(0);
   }
 
-  static String getAddedWorth(AccountInfo acctInfo, ExchangeRateInfoData exchangeRateInfoData,
-   chainStateBean, bool isVideo) {
+  static String getAddedWorth(AccountInfo acctInfo,
+      ExchangeRateInfoData exchangeRateInfoData, chainStateBean, bool isVideo) {
     Decimal maxPower = getUserMaxPower(acctInfo);
     print("maxPower is ${maxPower.toString()}");
     double settlementBonusVest = RevenueCalculationUtil.getVideoRevenueVest(
         maxPower.toStringAsFixed(0), chainStateBean?.dgpo);
     if (!isVideo) {
-      settlementBonusVest = RevenueCalculationUtil.getReplyVestByPower(maxPower.toStringAsFixed(0), chainStateBean?.dgpo);
+      settlementBonusVest = RevenueCalculationUtil.getReplyVestByPower(
+          maxPower.toStringAsFixed(0), chainStateBean?.dgpo);
     }
     double val = RevenueCalculationUtil.vestToRevenue(
         settlementBonusVest, exchangeRateInfoData);
@@ -451,10 +482,10 @@ class Common {
       int digitNum = len - 1 - pIdx;
       //大于1时，保留digit位小数
       if (val >= 1.0) {
-         if (digitNum < digit) {
-           return valStr;
-         }
-         return decimal.toStringAsFixed(2);
+        if (digitNum < digit) {
+          return valStr;
+        }
+        return decimal.toStringAsFixed(2);
       } else {
         //小于1时,保留digit位有效数字
         int nonZeroIdx = pIdx + 1;
@@ -467,7 +498,7 @@ class Common {
         if (nonZeroIdx < len) {
           int lessDigit = nonZeroIdx + digit - len;
           if (lessDigit <= 0) {
-             return decimal.toStringAsFixed(nonZeroIdx);
+            return decimal.toStringAsFixed(nonZeroIdx);
           } else {
             for (int j = 0; j < lessDigit; j++) {
               valStr += "0";
@@ -478,48 +509,109 @@ class Common {
           return valStr;
         }
       }
-
     }
     return "0";
   }
 
-  static String calcVideoAddedIncome(AccountInfo acctInfo,
+  static String calcVideoAddedIncome(
+      AccountInfo acctInfo,
       ExchangeRateInfoData exchangeRateInfoData,
-      ChainState chainStateBean,String oldPower,String giftVest) {
-    if (acctInfo != null && exchangeRateInfoData != null && chainStateBean != null
-        && oldPower != null && giftVest != null) {
-        double oldVest = RevenueCalculationUtil.getTotalRevenueVest(oldPower, giftVest, chainStateBean.dgpo);
-        double oldVal = RevenueCalculationUtil.vestToRevenue(oldVest, exchangeRateInfoData);
-        Decimal maxPower = getUserMaxPower(acctInfo);
-        Decimal oldPowerDec = Decimal.parse(oldPower);
-        Decimal newPowerDec = (maxPower + oldPowerDec);
-        double newVest =  RevenueCalculationUtil.getTotalRevenueVest(newPowerDec.toStringAsFixed(0), giftVest, chainStateBean.dgpo);
-        double newVal = RevenueCalculationUtil.vestToRevenue(newVest, exchangeRateInfoData);
-        double diff = newVal - oldVal;
-        if (diff > 0) {
-          return formatDecimalDigit(diff, 2);
-        }
+      ChainState chainStateBean,
+      String oldPower,
+      String giftVest) {
+    if (acctInfo != null &&
+        exchangeRateInfoData != null &&
+        chainStateBean != null &&
+        oldPower != null &&
+        giftVest != null) {
+      double oldVest = RevenueCalculationUtil.getTotalRevenueVest(
+          oldPower, giftVest, chainStateBean.dgpo);
+      double oldVal =
+          RevenueCalculationUtil.vestToRevenue(oldVest, exchangeRateInfoData);
+      Decimal maxPower = getUserMaxPower(acctInfo);
+      Decimal oldPowerDec = Decimal.parse(oldPower);
+      Decimal newPowerDec = (maxPower + oldPowerDec);
+      double newVest = RevenueCalculationUtil.getTotalRevenueVest(
+          newPowerDec.toStringAsFixed(0), giftVest, chainStateBean.dgpo);
+      double newVal =
+          RevenueCalculationUtil.vestToRevenue(newVest, exchangeRateInfoData);
+      double diff = newVal - oldVal;
+      if (diff > 0) {
+        return formatDecimalDigit(diff, 2);
+      }
     }
     return "";
   }
 
-  static String calcCommentAddedIncome(AccountInfo acctInfo,
+  static String calcCommentAddedIncome(
+      AccountInfo acctInfo,
       ExchangeRateInfoData exchangeRateInfoData,
-      ChainState chainStateBean,String oldPower) {
-    if (acctInfo != null && exchangeRateInfoData != null && chainStateBean != null
-        && oldPower != null) {
-        double oldVest = RevenueCalculationUtil.getReplyVestByPower(oldPower, chainStateBean.dgpo);
-        double oldVal = RevenueCalculationUtil.vestToRevenue(oldVest, exchangeRateInfoData);
-        Decimal maxPower = getUserMaxPower(acctInfo);
-        Decimal oldPowerDec = Decimal.parse(oldPower);
-        Decimal newPowerDec = (maxPower + oldPowerDec);
-        double newVest =  RevenueCalculationUtil.getReplyVestByPower(newPowerDec.toStringAsFixed(0),chainStateBean.dgpo);
-        double newVal = RevenueCalculationUtil.vestToRevenue(newVest, exchangeRateInfoData);
-        double diff = newVal - oldVal;
-        if (diff > 0) {
-          return formatDecimalDigit(diff, 2);
-        }
+      ChainState chainStateBean,
+      String oldPower) {
+    if (acctInfo != null &&
+        exchangeRateInfoData != null &&
+        chainStateBean != null &&
+        oldPower != null) {
+      double oldVest = RevenueCalculationUtil.getReplyVestByPower(
+          oldPower, chainStateBean.dgpo);
+      double oldVal =
+          RevenueCalculationUtil.vestToRevenue(oldVest, exchangeRateInfoData);
+      Decimal maxPower = getUserMaxPower(acctInfo);
+      Decimal oldPowerDec = Decimal.parse(oldPower);
+      Decimal newPowerDec = (maxPower + oldPowerDec);
+      double newVest = RevenueCalculationUtil.getReplyVestByPower(
+          newPowerDec.toStringAsFixed(0), chainStateBean.dgpo);
+      double newVal =
+          RevenueCalculationUtil.vestToRevenue(newVest, exchangeRateInfoData);
+      double diff = newVal - oldVal;
+      if (diff > 0) {
+        return formatDecimalDigit(diff, 2);
+      }
     }
     return "";
+  }
+
+  static GlobalObjectKey<VideoAddMoneyWidgetState> getAddMoneyViewKeyFromSymbol(
+      String symbol) {
+    if (!Common.checkIsNotEmptyStr(symbol)) {
+      return GlobalObjectKey<VideoAddMoneyWidgetState>("default");
+    }
+    return GlobalObjectKey<VideoAddMoneyWidgetState>(symbol);
+  }
+
+  static List<List<T>> splitList<T>(List<T> list, int len, [int firstLen]) {
+    if (ObjectUtil.isEmptyList(list)) {
+      return null;
+    }
+    List<T> listData;
+    List<List<T>> result = [];
+    if (firstLen != null && firstLen > 0) {
+      if (firstLen < list.length) {
+        result.add(list.take(firstLen).toList());
+        listData = list.sublist(firstLen);
+      } else {
+        result.add(list);
+        return result;
+      }
+    } else {
+      listData = list;
+    }
+    if (len <= 0) {
+      result.add(listData);
+      return result;
+    }
+    int index = 1;
+    while (true) {
+      if (index * len < listData.length) {
+        List<T> temp = listData.skip((index - 1) * len).take(len).toList();
+        result.add(temp);
+        index++;
+        continue;
+      }
+      List<T> temp = listData.skip((index - 1) * len).toList();
+      result.add(temp);
+      break;
+    }
+    return result;
   }
 }

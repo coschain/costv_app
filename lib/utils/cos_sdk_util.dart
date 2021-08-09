@@ -4,6 +4,7 @@ import 'package:cosdart/cosdart.dart';
 import 'package:cosdart/types.dart';
 
 typedef CosSDKFailCallBack = void Function(String error);
+typedef LoadTimeCallBack = void Function(int milliseconds);
 
 class CosSdkUtil {
   static CosSdkUtil _instance;
@@ -37,8 +38,9 @@ class CosSdkUtil {
     return bean;
   }
 
-  Future<GetChainStateResponse> getChainState({CosSDKFailCallBack fallCallBack}) async {
+  Future<GetChainStateResponse> getChainState({CosSDKFailCallBack fallCallBack, LoadTimeCallBack loadTimeCallBack}) async {
     GetChainStateResponse bean;
+    int sTime = DateTime.now().millisecondsSinceEpoch;
     try {
       bean = await _client.getChainState();
       CosLogUtil.log("CosSdkUtil getChainState bean: " + bean.writeToJson());
@@ -47,6 +49,11 @@ class CosSdkUtil {
       if (fallCallBack != null) {
         fallCallBack("CosSdkUtil getChainState error: " + e.toString());
       }
+    }
+    int eTime = DateTime.now().millisecondsSinceEpoch;
+    int loadTime = eTime - sTime;
+    if (loadTimeCallBack != null) {
+      loadTimeCallBack(loadTime);
     }
     return bean;
   }

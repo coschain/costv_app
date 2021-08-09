@@ -17,7 +17,8 @@ class AppUpdateDialog {
   String _googlePlayUrl;
 
   Future<void> initData(AppUpdateVersionDataBean bean) async {
-    _googlePlayUrl = 'market://details?id=${await PlatformUtil.getPackageName()}';
+    _googlePlayUrl =
+        'market://details?id=${await PlatformUtil.getPackageName()}';
     if (bean != null) {
       if (bean.type != AppUpdateVersionDataBean.typeForceUpdate) {
         _isForceUpdate = false;
@@ -39,62 +40,75 @@ class AppUpdateDialog {
   }
 
   Widget _buildAppUpdateBody(BuildContext context) {
-    Widget body = Container(
-      color: AppColors.color_transparent,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Image.asset('assets/images/ic_update_app_top_bg.png'),
-          Container(
-              color: AppColors.color_ffffff,
-              padding: EdgeInsets.all(AppDimens.margin_16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    _title??'',
-                    style: AppStyles.text_style_000000_bold_15,
+    Widget body = Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        color: AppColors.color_transparent,
+        width: MediaQuery.of(context).size.width - AppDimens.margin_20,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Image.asset(
+                    'assets/images/ic_update_app_top_bg.png',
+                    fit: BoxFit.fitWidth,
                   ),
-                  Container(
-                    padding: EdgeInsets.only(
-                        top: AppDimens.margin_10, bottom: AppDimens.margin_10),
-                    child: Text(
-                      _message??'',
-                      style: AppStyles.text_style_666666_14,
+                )
+              ],
+            ),
+            Container(
+                color: AppColors.color_ffffff,
+                padding: EdgeInsets.all(AppDimens.margin_16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      _title ?? '',
+                      style: AppStyles.text_style_000000_bold_15,
                     ),
-                  ),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: MaterialButton(
-                          height: AppDimens.item_size_40,
-                          color: AppColors.color_3ac1e9,
-                          child: Text(
-                            InternationalLocalizations.updateConfirm,
-                            style: AppStyles.text_style_ffffff_15,
-                          ),
-                          onPressed: () async {
-                            if (!ObjectUtil.isEmptyString(_downloadUrl)) {
-                              if (await canLaunch(_downloadUrl)) {
-                                await launch(_downloadUrl);
+                    Container(
+                      padding: EdgeInsets.only(
+                          top: AppDimens.margin_10, bottom: AppDimens.margin_10),
+                      child: Text(
+                        _message ?? '',
+                        style: AppStyles.text_style_666666_14,
+                      ),
+                    ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: MaterialButton(
+                            height: AppDimens.item_size_40,
+                            color: AppColors.color_3ac1e9,
+                            child: Text(
+                              InternationalLocalizations.updateConfirm,
+                              style: AppStyles.text_style_ffffff_15,
+                            ),
+                            onPressed: () async {
+                              if (!ObjectUtil.isEmptyString(_downloadUrl)) {
+                                if (await canLaunch(_downloadUrl)) {
+                                  await launch(_downloadUrl);
+                                } else {
+                                  if (await canLaunch(_googlePlayUrl)) {
+                                    await launch(_googlePlayUrl);
+                                  }
+                                }
                               } else {
                                 if (await canLaunch(_googlePlayUrl)) {
                                   await launch(_googlePlayUrl);
                                 }
                               }
-                            } else {
-                              if (await canLaunch(_googlePlayUrl)) {
-                                await launch(_googlePlayUrl);
-                              }
-                            }
-                          },
-                        ),
-                      )
-                    ],
-                  )
-                ],
-              )),
-        ],
+                            },
+                          ),
+                        )
+                      ],
+                    )
+                  ],
+                )),
+          ],
+        ),
       ),
     );
     if (_isForceUpdate) {
@@ -119,7 +133,7 @@ class AppUpdateDialog {
     Widget body;
     if (!_isForceUpdate) {
       body = Scaffold(
-        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomInset: false,
         backgroundColor: AppColors.color_transparent,
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -131,7 +145,7 @@ class AppUpdateDialog {
       );
     } else {
       body = Scaffold(
-        resizeToAvoidBottomPadding: false,
+        resizeToAvoidBottomInset: false,
         backgroundColor: AppColors.color_transparent,
         body: widget,
       );

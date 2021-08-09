@@ -3,6 +3,7 @@ var mainZhCn = {
     "homeTitle": "首页",
     "homePopularTitle": "热门内容",
     "homeMySubscriptionTitle": "我的订阅",
+    "homeMessage": "消息",
     "homeSeeHistoryTitle": "观看历史",
     "noMoreOperateVideo": "没有更多视频数据"
   },
@@ -40,9 +41,7 @@ var mainZhCn = {
     "deleteVideoTips": "是否删除视频",
     "problemFeedback": "问题反馈"
   },
-  "liked": {
-    "likedVideoTitle": "已点赞视频"
-  },
+  "liked": {"likedVideoTitle": "已点赞视频"},
   "search": {
     "searchInputHint": "搜索",
     "searchHistory": "历史记录",
@@ -65,5 +64,10 @@ var mainZhCn = {
     "minutes": "\${minutes}分钟",
     "hours": "\${hours}小时",
     "days": "\${days}天"
+  },
+  "message": {
+    "commentTitle": "评论",
+    "commentNoVideo": "相关视频已删除",
+    "commentNoComment": "相关评论已删除"
   }
 };

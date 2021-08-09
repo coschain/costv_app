@@ -8,6 +8,7 @@ var commonZh = {
   "httpError": "未知錯誤",
   "cancel": "取消",
   "carryOn": "繼續",
+  "delete": "刪除",
   "back": "返回",
   "close": "關閉",
   "noMoreData": "沒有更多數據",
@@ -16,10 +17,19 @@ var commonZh = {
   "netError": "您尚未連接網路，請確認網路連結",
   "notLogInTips": "您尚未登入",
   "subscriptionLogInTips": "登入後即可查看訂閱內容",
+  "messageLogInTips": "登入後即可查看通知",
   "watchHistoryLogInTips": "登入後即可查看觀看紀錄",
   "netRequestFailTips": "網路連接失敗",
   "netRequestFailDesc": "請檢查您的網路，重新載入網頁",
   "reloadData": "重新載入網頁",
   "updateTitle": "是否升級到\${version}版本？",
-  "updateConfirm": "升級"
+  "updateConfirm": "升級",
+  "messageNoData": "目前沒有通知",
+  "lightModeDesc": "日間模式",
+  "darkModeDesc": "夜間模式",
+  "emoji": {
+    "emojiUnlockTitle": "如何獲得 Voepa 專屬全套 emoji",
+    "emojiUnlockHint": "贈送 Voepa 禮物票累計達到 100 張，即可獲得 Voepa 專屬表情包\"Epamoji\"的全套表情。",
+    "emojiUnlockGo": "（註：APP暫不支援禮物票贈送，請前往網頁版參與贈送哦）"
+  }
 };

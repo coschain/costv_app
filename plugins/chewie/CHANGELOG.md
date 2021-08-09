@@ -1,6 +1,11 @@
 # Changelog
 
+## 0.10.0
+
+* Changed wakelock plugin from `flutter_screen` to `wakelock` due to lack of maintenance of `flutter_screen`. 
+
 ## 0.9.8+1
+
   * Require latest flutter stable version
 
 ## 0.9.8

@@ -3,6 +3,7 @@ var mainKo = {
     "homeTitle": "메인화면",
     "homePopularTitle": "인기있는 영상",
     "homeMySubscriptionTitle": "내 구독",
+    "homeMessage": "Notifications",
     "homeSeeHistoryTitle": "시청 기록",
     "noMoreOperateVideo": "영상 데이터가 없습니다"
   },
@@ -65,5 +66,10 @@ var mainKo = {
     "minutes": "\${minutes}분",
     "hours": "\${hours}시간",
     "days": "\${days}일"
+  },
+  "message": {
+    "commentTitle": "Comment",
+    "commentNoVideo": "The video is deleted",
+    "commentNoComment": "The comment is deleted"
   }
 };

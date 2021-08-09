@@ -101,3 +101,4 @@ constant.dart
 request_manager.dart
 lib/bean
 local.properties
+plugins/tvc_upload

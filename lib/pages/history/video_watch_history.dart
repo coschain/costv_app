@@ -8,6 +8,7 @@ import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/widget/custom_app_bar.dart';
 import 'package:costv_android/widget/history_video_item.dart';
@@ -19,7 +20,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cosdart/types.dart';
-
+import 'package:costv_android/utils/video_report_util.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 Color itemColor = Common.getColorFromHexString("3F3F3F3F", 0.05);
 final pageLogPrefix = "WatchVideoHistoryPage";
@@ -41,11 +43,15 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
   GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   int _pageSize = 20;
   bool _hasNextPage = false, _isFetching = false, _isShowLoading = true,
-      _isDeleting = false, _isSuccessLoad = true;
+      _isDeleting = false, _isSuccessLoad = true, _isScrolling = false;
   String _lastKey = "0";
   List<GetVideoListNewDataListBean> _videoList = [];
   ExchangeRateInfoData _rateInfo;
   dynamic_properties _chainDgpo;
+  Map<int,double> _visibleFractionMap = {};
+  SlidableController _slidableController = SlidableController();
+
+
   @override
   void initState() {
     _reloadData();
@@ -82,11 +88,17 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
         child: NetRequestFailTipsView(
           key: _failTipsKey,
           baseWidget: Container(
-            color: Common.getColorFromHexString("3F3F3F3F", 0.05),
+            color: AppThemeUtil.setDifferentModeColor(
+              lightColor: Common.getColorFromHexString("3F3F3F3F", 0.05),
+              darkColorStr: DarkModelBgColorUtil.pageBgColorStr
+            ),
             padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
             child: RefreshAndLoadMoreListView(
               itemCount: _videoList?.length ?? 0,
               itemBuilder: (BuildContext context, int position) {
+                if (!_isScrolling) {
+                  _visibleFractionMap[position] = 1;
+                }
                 return _getHistoryVideoItem(position);
               },
               isHaveMoreData: _hasNextPage,
@@ -97,6 +109,18 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
               isRefreshEnable: true,
               isLoadMoreEnable: true,
               bottomMessage: InternationalLocalizations.noMoreHistoryVideo,
+              scrollStatusCallBack: (scrollNotification) {
+                if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
+                  _isScrolling = true;
+                } else if (scrollNotification is ScrollEndNotification) {
+                  _isScrolling = false;
+                  Future.delayed(Duration(milliseconds: 500), () {
+                    if (!_isScrolling) {
+                      _reportVideoExposure();
+                    }
+                  });
+                }
+              },
             ),
           ),
         ),
@@ -119,7 +143,7 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
       reqList = [_loadWatchedVideoList(false),
         CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
     }
-    Future.wait(
+    await Future.wait(
       reqList,
     ).then((valList) {
       if (valList != null && mounted) {
@@ -149,7 +173,11 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
           _videoList = videoList;
           _isSuccessLoad = true;
           setState(() {
-
+            Future.delayed(Duration(seconds: 1), () {
+              if (!_isScrolling) {
+                _reportVideoExposure();
+              }
+            });
           });
         } else if (_isShowLoading && _isSuccessLoad) {
           _isSuccessLoad = false;
@@ -274,6 +302,7 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
       return HistoryVideoItem(
         source: HistoryItemPageSource.watchVideoHistoryPage,
         video: _videoList[idx],
+        index: idx,
         exchangeRate: _rateInfo,
         dgpoBean: _chainDgpo,
         deleteCallBack: (String uid,String vid) {
@@ -283,6 +312,14 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
             CosLogUtil.log("$pageLogPrefix: fail to delete video,the uid is $uid, the vid is $vid");
           }
         },
+        visibilityChangedCallback: (int index, double visibleFraction) {
+          if (_visibleFractionMap == null) {
+            _visibleFractionMap  = {};
+          }
+          _visibleFractionMap[index] = visibleFraction;
+        },
+        radius: 0,
+        controller: _slidableController,
       );
     }
     return HistoryVideoItem();
@@ -294,4 +331,33 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
     }
   }
 
+  List<int> _getVisibleItemIndex() {
+    List<int> idxList = [];
+    _visibleFractionMap.forEach((int key,double val) {
+      if (val > 0) {
+        idxList.add(key);
+      }
+    });
+    return idxList;
+  }
+
+  //视频曝光上报
+  void _reportVideoExposure() {
+    if (_videoList == null || _videoList.isEmpty) {
+      return;
+    }
+    List<int> visibleList = _getVisibleItemIndex();
+    if (visibleList.isNotEmpty) {
+      for (int i = 0; i < visibleList.length; i++) {
+        int idx = visibleList[i];
+        if (idx >= 0 && idx < _videoList.length) {
+          GetVideoListNewDataListBean bean = _videoList[idx];
+          VideoReportUtil.reportVideoExposure(
+              VideoExposureType.HistoryType,bean.id ?? '', bean.uid ?? ''
+          );
+        }
+      }
+
+    }
+  }
 }

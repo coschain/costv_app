@@ -30,6 +30,7 @@ import 'package:costv_android/language/json/net/tr.dart';
 import 'package:costv_android/language/json/net/vi.dart';
 import 'package:costv_android/language/json/net/zh.dart';
 import 'package:costv_android/language/json/net/zh_ch.dart';
+import 'package:costv_android/language/json/upload/zh_ch.dart';
 import 'package:costv_android/language/json/user/en.dart';
 import 'package:costv_android/language/json/user/ko.dart';
 import 'package:costv_android/language/json/user/pt_br.dart';
@@ -46,6 +47,13 @@ import 'package:costv_android/language/json/videoDetail/tr.dart';
 import 'package:costv_android/language/json/videoDetail/vi.dart';
 import 'package:costv_android/language/json/videoDetail/zh.dart';
 import 'package:costv_android/language/json/videoDetail/zh_ch.dart';
+import 'package:costv_android/language/json/upload/en.dart';
+import 'package:costv_android/language/json/upload/ko.dart';
+import 'package:costv_android/language/json/upload/pt_br.dart';
+import 'package:costv_android/language/json/upload/ru.dart';
+import 'package:costv_android/language/json/upload/tr.dart';
+import 'package:costv_android/language/json/upload/vi.dart';
+import 'package:costv_android/language/json/upload/zh.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/time_util.dart';
 
@@ -78,6 +86,7 @@ class InternationalLocalizations {
   static Map<String, dynamic> _mapNetValue = {};
   static Map<String, dynamic> _mapVideoDetailValue = {};
   static Map<String, dynamic> _userValue = {};
+  static Map<String, dynamic> _mapVideoUploadValue = {};
 
   InternationalLocalizations(this.locale);
 
@@ -90,6 +99,7 @@ class InternationalLocalizations {
       _mapNetValue = netKo;
       _mapVideoDetailValue = videoDetailKo;
       _userValue= userKo;
+      _mapVideoUploadValue = uploadKo;
     } else if (languageCode == languageCodePt_Br) {
       _mapCommonValue = commonPtBr;
       _mapLoginValue = loginPtBr;
@@ -97,6 +107,7 @@ class InternationalLocalizations {
       _mapNetValue = netPtBr;
       _mapVideoDetailValue = videoDetailPtBr;
       _userValue= userPtBr;
+      _mapVideoUploadValue = uploadPtBr;
     } else if (languageCode == languageCodeRu) {
       _mapCommonValue = commonRu;
       _mapLoginValue = loginRu;
@@ -104,6 +115,7 @@ class InternationalLocalizations {
       _mapNetValue = netRu;
       _mapVideoDetailValue = videoDetailRu;
       _userValue= userRu;
+      _mapVideoUploadValue = uploadRu;
     }  else if (languageCode == languageCodeTr) {
       _mapCommonValue = commonTr;
       _mapLoginValue = loginTr;
@@ -111,6 +123,7 @@ class InternationalLocalizations {
       _mapNetValue = netTr;
       _mapVideoDetailValue = videoDetailTr;
       _userValue= userTr;
+      _mapVideoUploadValue = uploadTr;
     } else if (languageCode == languageCodeVi) {
       _mapCommonValue = commonVi;
       _mapLoginValue = loginVi;
@@ -118,6 +131,7 @@ class InternationalLocalizations {
       _mapNetValue = netVi;
       _mapVideoDetailValue = videoDetailVi;
       _userValue= userVi;
+      _mapVideoUploadValue = uploadVi;
     } else if (languageCode == languageCodeZh_Cn) {
       _mapCommonValue = commonZhCh;
       _mapLoginValue = loginZhCn;
@@ -125,6 +139,7 @@ class InternationalLocalizations {
       _mapNetValue = netZhCn;
       _mapVideoDetailValue = videoDetailZhCn;
       _userValue= userZhCn;
+      _mapVideoUploadValue = uploadZhCn;
     } else if (languageCode == languageCodeZh) {
       _mapCommonValue = commonZh;
       _mapLoginValue = loginZh;
@@ -132,6 +147,7 @@ class InternationalLocalizations {
       _mapNetValue = netZh;
       _mapVideoDetailValue = videoDetailZh;
       _userValue= userZh;
+      _mapVideoUploadValue = uploadZh;
     } else {
       _mapCommonValue = commonEn;
       _mapLoginValue = loginEn;
@@ -139,6 +155,7 @@ class InternationalLocalizations {
       _mapNetValue = netEn;
       _mapVideoDetailValue = videoDetailEn;
       _userValue= userEn;
+      _mapVideoUploadValue = uploadEn;
     }
   }
 
@@ -181,6 +198,10 @@ class InternationalLocalizations {
     return _mapCommonValue['carryOn'];
   }
 
+  static get delete {
+    return _mapCommonValue['delete'];
+  }
+
   static get back {
     return _mapCommonValue['back'];
   }
@@ -213,6 +234,10 @@ class InternationalLocalizations {
     return _mapCommonValue['subscriptionLogInTips'];
   }
 
+  static get messageLogInTips {
+    return _mapCommonValue['messageLogInTips'];
+  }
+
   static get watchHistoryLogInTips {
     return _mapCommonValue['watchHistoryLogInTips'];
   }
@@ -237,6 +262,30 @@ class InternationalLocalizations {
     return _mapCommonValue['updateConfirm'];
   }
 
+  static get messageNoData {
+    return _mapCommonValue['messageNoData'];
+  }
+
+  static get lightModeDesc {
+    return _mapCommonValue["lightModeDesc"];
+  }
+
+  static get darkModeDesc {
+    return _mapCommonValue["darkModeDesc"];
+  }
+
+  static get emojiUnlockTitle {
+    return _mapCommonValue['emoji']["emojiUnlockTitle"];
+  }
+
+  static get emojiUnlockHint {
+    return _mapCommonValue['emoji']["emojiUnlockHint"];
+  }
+
+  static get emojiUnlockGo {
+    return _mapCommonValue['emoji']["emojiUnlockGo"];
+  }
+
   // end通用
 
   // begin主页
@@ -250,6 +299,10 @@ class InternationalLocalizations {
 
   static get homeMySubscriptionTitle {
     return _mapMainValue['videoDetail']['homeMySubscriptionTitle'];
+  }
+
+  static get homeMessage {
+    return _mapMainValue['videoDetail']['homeMessage'];
   }
 
   static get homeSeeHistoryTitle {
@@ -295,8 +348,8 @@ class InternationalLocalizations {
     return _mapVideoDetailValue['videoDetail']['videoTimeSort'];
   }
 
-  static get videoInputMsgHint {
-    return _mapVideoDetailValue['videoDetail']['videoInputMsgHint'];
+  static get videoCommentInputHint {
+    return _mapVideoDetailValue['videoDetail']['videoCommentInputHint'];
   }
 
   static get videoRecommendation {
@@ -388,6 +441,58 @@ class InternationalLocalizations {
             .replaceAll('\${minutes}', minutes);
       };
 
+  static get autoPlayDesc {
+    return _mapVideoDetailValue['videoDetail']['autoPlayDesc'];
+  }
+
+  static get aboutToPlay {
+    return _mapVideoDetailValue["videoDetail"]["aboutToPaly"];
+  }
+
+  static get playNow {
+    return _mapVideoDetailValue["videoDetail"]["playNow"];
+  }
+
+  static get replay {
+    return _mapVideoDetailValue["videoDetail"]["replay"];
+  }
+
+  static get autoPlayFunctionDesc {
+    return _mapVideoDetailValue["videoDetail"]["autoPlayFunctionDesc"];
+  }
+
+  static get refreshList {
+    return _mapVideoDetailValue["videoDetail"]["refreshList"];
+  }
+
+  static get loadFail {
+    return _mapVideoDetailValue["videoDetail"]["loadFail"];
+  }
+
+  static get recommendCountDownTips {
+    return _mapVideoDetailValue["videoDetail"]["recommendCountDownTips"];
+  }
+
+  static get countDownSeconds => (String second) {
+    return _mapVideoDetailValue["videoDetail"]["countDownSeconds"].replaceAll('\${second}', second);
+  };
+
+  static get videoCreator {
+    return _mapVideoDetailValue["videoDetail"]["videoCreator"];
+  }
+
+  //viewReply
+  static get viewReply => (String num) {
+    return _mapVideoDetailValue["videoDetail"]["viewReply"].replaceAll('\${num}', num);
+  };
+
+  static get lookComment {
+    return _mapVideoDetailValue["videoDetail"]["lookComment"];
+  }
+
+  static get commentHint {
+    return _mapVideoDetailValue["videoDetail"]["commentHint"];
+  }
   // end视频详情页
 
   // begin举报
@@ -444,6 +549,33 @@ class InternationalLocalizations {
   }
 
   // end举报
+
+  // begin评论删除
+  static get commentDeleteTitle {
+    return _mapVideoDetailValue['commentDelete']['commentDeleteTitle'];
+  }
+
+  static get commentDeleteSuccess {
+    return _mapVideoDetailValue['commentDelete']['commentDeleteSuccess'];
+  }
+
+  static get commentDeleteTypeCodeList {
+    return _mapVideoDetailValue['commentDelete']['commentDeleteTypeCodeList'];
+  }
+
+  static get commentDeleteTypeNameList {
+    return _mapVideoDetailValue['commentDelete']['commentDeleteTypeNameList'];
+  }
+
+  static get commentDeleteTips {
+    return _mapVideoDetailValue["commentDelete"]["commentDeleteTips"];
+  }
+
+  static get commentDeleteSuccessTips {
+    return _mapVideoDetailValue["commentDelete"]["commentDeleteSuccessTips"];
+  }
+
+  // end评论删除
 
   // begin订阅列表(follow列表)页
   static get followingListPageTitle {
@@ -658,6 +790,20 @@ class InternationalLocalizations {
 
   // end时间格式
 
+  // begin信息中心
+  static get commentTitle {
+    return _mapMainValue['message']['commentTitle'];
+  }
+
+  static get commentNoVideo {
+    return _mapMainValue['message']['commentNoVideo'];
+  }
+
+  static get commentNoComment {
+    return _mapMainValue['message']['commentNoComment'];
+  }
+  // end信息中心
+
   //begin登录
   static get logInFail {
     return _mapLoginValue['logInFail'];
@@ -671,6 +817,10 @@ class InternationalLocalizations {
 
   static get followSelfErrorTips {
     return _mapNetValue['remoteResError']['90029'];
+  }
+
+  static get networkErrorTips {
+    return _mapNetValue["nodeResError"]["networkError"];
   }
 
   //begin user相关
@@ -699,4 +849,170 @@ class InternationalLocalizations {
   }
 
 //end user相关
+
+  // begin 视频上传
+  
+  static get uploadRetry {
+    return _mapVideoUploadValue['retry'];
+  }
+
+  static get uploadAppbarBack {
+    return _mapVideoUploadValue['appbarBack'];
+  }
+
+  static get uploadAppbarPublish {
+    return _mapVideoUploadValue['appbarPublish'];
+  }
+
+  static get uploadProgressUploading {
+    return _mapVideoUploadValue['progressUploading'];
+  }
+
+  static get uploadProgressUploadFailed {
+    return _mapVideoUploadValue['progressUploadFailed'];
+  }
+
+  static get uploadProgressUploadOK {
+    return _mapVideoUploadValue['progressUploadOK'];
+  }
+
+  static get uploadCoverChange {
+    return _mapVideoUploadValue['coverChange'];
+  }
+
+  static get uploadCoverCrop {
+    return _mapVideoUploadValue['coverCrop'];
+  }
+
+  static get uploadTitleCaption {
+    return _mapVideoUploadValue['titleCaption'];
+  }
+
+  static get uploadTitleHint {
+    return _mapVideoUploadValue['titleHint'];
+  }
+
+  static get uploadCategoryCaption {
+    return _mapVideoUploadValue['categoryCaption'];
+  }
+
+  static get uploadCategoryHint {
+    return _mapVideoUploadValue['categoryHint'];
+  }
+
+  static get uploadAdultCaption {
+    return _mapVideoUploadValue['adultCaption'];
+  }
+
+  static get uploadAdultHint {
+    return _mapVideoUploadValue['adultHint'];
+  }
+
+  static get uploadAdultOptionForAdults {
+    return _mapVideoUploadValue['adultOptionForAdults'];
+  }
+
+  static get uploadAdultOptionForAll {
+    return _mapVideoUploadValue['adultOptionForAll'];
+  }
+
+  static get uploadTagCaption {
+    return _mapVideoUploadValue['tagCaption'];
+  }
+
+  static get uploadTagHint {
+    return _mapVideoUploadValue['tagHint'];
+  }
+
+  static get uploadTagInputHint {
+    return _mapVideoUploadValue['tagInputHint'];
+  }
+
+  static get uploadTagAdd {
+    return _mapVideoUploadValue['tagAdd'];
+  }
+
+  static get uploadTagRecommends {
+    return _mapVideoUploadValue['tagRecommends'];
+  }
+
+  static get uploadTagSelected {
+    return _mapVideoUploadValue['tagSelected'];
+  }
+
+  static get uploadMoreOptions {
+    return _mapVideoUploadValue['moreOptions'];
+  }
+
+  static get uploadDescCaption {
+    return _mapVideoUploadValue['descCaption'];
+  }
+
+  static get uploadDescHint {
+    return _mapVideoUploadValue['descHint'];
+  }
+
+  static get uploadLanguageCaption {
+    return _mapVideoUploadValue['languageCaption'];
+  }
+
+  static get uploadPrivacyCaption {
+    return _mapVideoUploadValue['privacyCaption'];
+  }
+
+  static get uploadPrivacyOptionPublic {
+    return _mapVideoUploadValue['privacyOptionPublic'];
+  }
+
+  static get uploadPrivacyOptionPrivate {
+    return _mapVideoUploadValue['privacyOptionPrivate'];
+  }
+
+  static get uploadPublishFailedTips {
+    return _mapVideoUploadValue['publishFailedTips'];
+  }
+
+  static get uploadExitAlertTitle {
+    return _mapVideoUploadValue['exitAlertTitle'];
+  }
+
+  static get uploadExitAlertContent {
+    return _mapVideoUploadValue['exitAlertContent'];
+  }
+
+  static get videoUploadLogInTips {
+    return _mapVideoUploadValue['videoUploadLogInTips'];
+  }
+
+  static get videoUploadSuccess {
+    return _mapVideoUploadValue['videoUploadSuccess'];
+  }
+
+  static get videoUploadSuccessDesc {
+    return _mapVideoUploadValue['videoUploadSuccessDesc'];
+  }
+
+  static get videoUploadSuccessBtn {
+    return _mapVideoUploadValue['videoUploadSuccessBtn'];
+  }
+
+  static get myUploadedVideos {
+    return _mapVideoUploadValue['myUploadedVideos'];
+  }
+
+  static get uploadVideoAuditInProgress {
+    return _mapVideoUploadValue['auditStatusInProgress'];
+  }
+
+  static get uploadVideoAuditApproved {
+    return _mapVideoUploadValue['auditStatusApproved'];
+  }
+
+  static get uploadVideoAuditRefused {
+    return _mapVideoUploadValue['auditStatusRefused'];
+  }
+
+  // end 视频上传
+
+
 }

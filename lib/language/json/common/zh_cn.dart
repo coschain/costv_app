@@ -8,6 +8,7 @@ var commonZhCh = {
   "httpError": "未知错误",
   "cancel": "取消",
   "carryOn": "继续",
+  "delete": "删除",
   "back": "返回",
   "close": "关闭",
   "noMoreData": "没有更多数据",
@@ -16,10 +17,19 @@ var commonZhCh = {
   "netError": "您没有互联网，请检查网络链接",
   "notLogInTips": "您还未登录",
   "subscriptionLogInTips": "登录后即可查看自己订阅的内容",
+  "messageLogInTips": "登录后即可查看消息内容",
   "watchHistoryLogInTips": "登录后即可查看自己的观看历史",
   "netRequestFailTips": "网络请求失败",
   "netRequestFailDesc": "请检查您的网络，重新加载",
   "reloadData": "重新加载",
   "updateTitle": "是否升级到\${version}版本？",
-  "updateConfirm": "升级"
+  "updateConfirm": "升级",
+  "messageNoData": "当前没有消息",
+  "lightModeDesc": "日间模式",
+  "darkModeDesc": "暗夜模式",
+  "emoji": {
+    "emojiUnlockTitle": "如何获取 Voepa 专属全套emoji",
+    "emojiUnlockHint": "赠送 Voepa 礼物票累计达到 100 张，即可获得 Voepa 专属表情包\"Epamoji\"的全套表情。",
+    "emojiUnlockGo": "（注：APP 暂不支持礼物票赠送，请去网页端参与赠送哦）"
+  }
 };

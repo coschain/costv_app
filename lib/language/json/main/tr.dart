@@ -3,6 +3,7 @@ var mainTr = {
     "homeTitle": "Ana Sayfa",
     "homePopularTitle": "Trendler",
     "homeMySubscriptionTitle": "Aboneliklerim",
+    "homeMessage": "Notifications",
     "homeSeeHistoryTitle": "İzleme Geçmişi",
     "noMoreOperateVideo": "Daha fazla video yok"
   },
@@ -64,5 +65,10 @@ var mainTr = {
     "minutes": "\${minutes} dakikalar",
     "hours": "\${hours} saatler",
     "days": "\${days} günler"
+  },
+  "message": {
+    "commentTitle": "Comment",
+    "commentNoVideo": "The video is deleted",
+    "commentNoComment": "The comment is deleted"
   }
 };

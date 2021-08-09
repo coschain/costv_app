@@ -3,6 +3,7 @@ var mainZh = {
     "homeTitle": "首頁",
     "homePopularTitle": "熱門影片",
     "homeMySubscriptionTitle": "我的訂閱",
+    "homeMessage": "通知",
     "homeSeeHistoryTitle": "觀看紀錄",
     "noMoreOperateVideo": "沒有更多影片數據"
   },
@@ -65,5 +66,10 @@ var mainZh = {
     "minutes": "\${minutes}分鐘",
     "hours": "\${hours}小時",
     "days": "\${days}天"
+  },
+  "message": {
+    "commentTitle": "留言",
+    "commentNoVideo": "相關影片已刪除",
+    "commentNoComment": "相關留言已刪除"
   }
 };

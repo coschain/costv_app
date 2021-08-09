@@ -8,7 +8,7 @@ var videoDetailEn = {
     "videoNoMoreComment": "No more comments",
     "videoHotSort": "Sort by engagement",
     "videoTimeSort": "Sort by time",
-    "videoInputMsgHint": "Hi, let's chat!",
+    "videoCommentInputHint": "Leave a comment...",
     "videoRecommendation": "Recommended Videos",
     "videoCommentCount": " comments",
     "videoCommentReply": "Comment",
@@ -31,7 +31,20 @@ var videoDetailEn = {
     "videoLoginPop": "Sign in to earn POP",
     "videoLinkFinishHint": "The billing period has ended, you ca n’t like it",
     "videoClickMoreComment": "View more replies",
-    "energyNotEnoughTips": "Your current energy value is less than 3.3%, so you can't press like. The energy value will recover after \${minutes} minutes. Please wait a little."
+    "energyNotEnoughTips": "Your current energy value is less than 3.3%, so you can't press like. The energy value will recover after \${minutes} minutes. Please wait a little.",
+    "autoPlayDesc": "AutoPlay",
+    "aboutToPaly": "Up Next:",
+    "playNow": "Play Now",
+    "replay": "Replay",
+    "autoPlayFunctionDesc": "When the AutoPlay is on, we’ll automatically play another",
+    "refreshList":"Refresh",
+    "loadFail":"Failed to load",
+    "recommendCountDownTips":"Will play another video by the creator: ",
+    "countDownSeconds":"\${second} seconds",
+    "videoCreator":"Creator",
+    "viewReply": "View \${num} replies",
+    "lookComment": "View reply",
+    "commentHint": "Let’s chat! Leave a comment and tell everyone what you think ~"
   },
   "videoReport": {
     "reportInformVideo": "Report",
@@ -69,5 +82,26 @@ var videoDetailEn = {
       "Caption issues",
       "Other problems"
     ]
+  },
+  "commentDelete": {
+    "commentDeleteTitle": "Hide comment",
+    "commentDeleteSuccess": "The comment has been hidden successfully. Please refresh the page.",
+    "commentDeleteAuthor": "Only the original creator can hide the comments",
+    "commentDeleteTypeCodeList": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "commentDeleteTypeNameList": [
+      "Advertising or spam comment",
+      "Sexual content",
+      "Child abuse",
+      "Violence or hateful speech",
+      "Harassment or bullying"
+    ],
+    "commentDeleteTips": "After deleting the comment, all the replies under this comment will be deleted too",
+    "commentDeleteSuccessTips": "Comment successfully deleted"
   }
 };

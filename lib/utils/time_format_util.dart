@@ -10,7 +10,7 @@ class TimeFormatUtil {
 
   String formatTime(int timeMillis, {int locTimeMillis}) {
     return TimelineUtil.format(timeMillis,
-        locTimeMillis: locTimeMillis, dayFormat: _dayFormat);
+        locTimeMs: locTimeMillis, dayFormat: _dayFormat);
   }
 }
 
@@ -19,7 +19,7 @@ class ZHTimelineFullInfo implements TimelineInfo {
 
   String suffixAfter() => '';
 
-  String lessThanTenSecond() => InternationalLocalizations.justNow;
+  String lessThanOneMinute() => InternationalLocalizations.justNow;
 
   String customYesterday() => InternationalLocalizations.yesterday;
 
@@ -40,4 +40,9 @@ class ZHTimelineFullInfo implements TimelineInfo {
   String days(int days) => InternationalLocalizations.days(days);
 
   DayFormat dayFormat() => DayFormat.Simple;
+
+  int maxJustNowSecond() => 30;
+
+  String weeks(int week) => '';
+
 }

@@ -10,6 +10,7 @@ class CosTVVideoProgressBar extends StatefulWidget {
         this.onDragEnd,
         this.onDragStart,
         this.onDragUpdate,
+        this.isEnableDrag = true,
       }) : colors = colors ?? ChewieProgressColors();
 
   final VideoPlayerController controller;
@@ -17,6 +18,7 @@ class CosTVVideoProgressBar extends StatefulWidget {
   final Function() onDragStart;
   final Function() onDragEnd;
   final Function() onDragUpdate;
+  bool isEnableDrag;
 
   @override
   _CosTVVideoProgressBarState createState() {
@@ -27,7 +29,11 @@ class CosTVVideoProgressBar extends StatefulWidget {
 class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
   _CosTVVideoProgressBarState() {
     listener = () {
-      setState(() {});
+      if (mounted) {
+        if (controller.value.isPlaying) {
+          setState(() {});
+        }
+      }
     };
   }
 
@@ -68,6 +74,7 @@ class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
             painter: _ProgressBarPainter(
               controller.value,
               widget.colors,
+              isShowHandle: widget.isEnableDrag,
             ),
           ),
         ),
@@ -115,10 +122,11 @@ class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
 }
 
 class _ProgressBarPainter extends CustomPainter {
-  _ProgressBarPainter(this.value, this.colors);
+  _ProgressBarPainter(this.value, this.colors, {this.isShowHandle = true});
 
   VideoPlayerValue value;
   ChewieProgressColors colors;
+  bool isShowHandle;
 
   @override
   bool shouldRepaint(CustomPainter painter) {
@@ -129,13 +137,16 @@ class _ProgressBarPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final height = 2.0;
 
+    double startY = isShowHandle ? (size.height / 2) : 0;
+    double endY = isShowHandle ? (size.height / 2 + height) : size.height;
+    double radius = isShowHandle ? 4.0 : 0.0;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromPoints(
-          Offset(0.0, size.height / 2),
-          Offset(size.width, size.height / 2 + height),
+          Offset(0.0, startY),
+          Offset(size.width, endY),
         ),
-        Radius.circular(4.0),
+        Radius.circular(radius),
       ),
       colors.backgroundPaint,
     );
@@ -152,10 +163,10 @@ class _ProgressBarPainter extends CustomPainter {
       canvas.drawRRect(
         RRect.fromRectAndRadius(
           Rect.fromPoints(
-            Offset(start, size.height / 2),
-            Offset(end, size.height / 2 + height),
+            Offset(start, startY),
+            Offset(end, endY),
           ),
-          Radius.circular(4.0),
+          Radius.circular(radius),
         ),
         colors.bufferedPaint,
       );
@@ -163,17 +174,20 @@ class _ProgressBarPainter extends CustomPainter {
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromPoints(
-          Offset(0.0, size.height / 2),
-          Offset(playedPart, size.height / 2 + height),
+          Offset(0.0, startY),
+          Offset(playedPart, endY),
         ),
-        Radius.circular(4.0),
+        Radius.circular(radius),
       ),
       colors.playedPaint,
     );
-    canvas.drawCircle(
-      Offset(playedPart, size.height / 2 + height / 2),
-      height * 3,
-      colors.handlePaint,
-    );
+
+    if (this.isShowHandle) {
+      canvas.drawCircle(
+        Offset(playedPart, size.height / 2 + height / 2),
+        height * 3,
+        colors.handlePaint,
+      );
+    }
   }
 }

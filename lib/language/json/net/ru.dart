@@ -205,5 +205,15 @@ var netRu = {
     "910002": "Не удалось удержать очки",
     "910003": "Не удалось заработать баллы во время действия по зарабатыванию видео",
     "910004": "Очки, которые пользователи могут получить в день, прибыли"
+  },
+  "commentError": {
+    "400": "Parameter Error",
+    "500": "Internal Error",
+    "1600001": "Video ID does not exist",
+    "1600002": "The video has been deleted",
+    "1600003": "The video is no longer available",
+    "1600004": "The video is private, only the creator can view",
+    "1600005": "The scheduled video is not viewable now",
+    "1600006": "The transcoded video is not viewable now"
   }
 };

@@ -8,7 +8,7 @@ var videoDetailRu = {
     "videoNoMoreComment": "Больше нет комментариев",
     "videoHotSort": "Сортировать по популярности",
     "videoTimeSort": "Сортировать по времени",
-    "videoInputMsgHint": "Давайте поговорим",
+    "videoCommentInputHint": "Оставить комментарий...",
     "videoRecommendation": "Рекомендуемые видео",
     "videoCommentCount": "Комментарии",
     "videoCommentReply": "Ответить",
@@ -31,7 +31,20 @@ var videoDetailRu = {
     "videoLoginPop": "Войдите, чтобы заработать POP",
     "videoLinkFinishHint": "Платежный период закончился, вам не понравится",
     "videoClickMoreComment": "Посмотреть больше ответов",
-    "energyNotEnoughTips": "Ваша текущая энергия составляет менее 3,3%, вы не можете поставить лайк, значение энергии восстановится через \${minutes} мин., пожалуйста, подождите немного"
+    "energyNotEnoughTips": "Ваша текущая энергия составляет менее 3,3%, вы не можете поставить лайк, значение энергии восстановится через \${minutes} мин., пожалуйста, подождите немного",
+    "autoPlayDesc": "Автозапуск видео",
+    "aboutToPaly": "Следующее:",
+    "playNow": "Смотреть",
+    "replay": "Повтор",
+    "autoPlayFunctionDesc": "Включить Включить автозапуск видео",
+    "refreshList":"Обновить",
+    "loadFail":"Загрузка не удалась",
+    "recommendCountDownTips":"Следующее видео: ",
+    "countDownSeconds":"\${second}секунд",
+    "videoCreator":"Автор",
+    "viewReply": "Просмотреть \${num} ответов",
+    "lookComment": "Посмотреть ответ",
+    "commentHint": "Приходите и поговорите! Оставьте комментарий и расскажите всем, что вы думаете ~"
   },
   "videoReport": {
     "reportInformVideo": "Жаловаться видео",
@@ -69,5 +82,26 @@ var videoDetailRu = {
       "Опишите проблему",
       "Другая проблема"
     ]
+  },
+  "commentDelete": {
+    "commentDeleteTitle": "Удалить комментарий",
+    "commentDeleteSuccess": "Комментарий успешно удален, обновите страницу",
+    "commentDeleteAuthor": "Только автор видео может удалять комментарии ~",
+    "commentDeleteTypeCodeList": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "commentDeleteTypeNameList": [
+      "Реклама или спам-комментарии",
+      "порнография",
+      "Жестокое обращение с детьми",
+      "Насилие или ненавистная речь",
+      "Домогательство или издевательства"
+    ],
+    "commentDeleteTips": "Удаление комментария удалит все ответы под комментарием",
+    "commentDeleteSuccessTips": "Комментарий успешно удален"
   }
 };

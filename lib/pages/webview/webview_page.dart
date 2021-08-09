@@ -13,10 +13,12 @@ import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dar
 import 'package:costv_android/pages/video/video_details_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
+import 'package:costv_android/utils/global_util.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter_fix/webview_flutter.dart';
-import 'package:costv_android/widget/app_bar_back_widget.dart';
 
 const String kNavigationExamplePage = '''
 <!DOCTYPE html><html>
@@ -72,102 +74,164 @@ class _WebViewState extends State<WebViewPage> {
   Widget build(BuildContext context) {
     CosLogUtil.log("WebViewPage: url is ${widget._url}");
     return WillPopScope(
-      child: Scaffold(
-        appBar: AppBar(
-          // This drop down menu demonstrates that Flutter widgets can be shown over the web view.
-          actions: <Widget>[
-            GestureDetector(
-              child: Image.asset('assets/images/ic_close_black.png'),
-              onTap: () {
-                Navigator.of(context).pop();
-              },
-            ),
-//            NavigationControls(_controller.future),
-          ],
-          leading: AppBarBackWidget(),
-          centerTitle: true,
-          title: Text(
-              widget.title ?? "",
-              style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 15
-              )
-          ),
-          backgroundColor: Common.getColorFromHexString("FFFFFF", 1.0),
-          elevation: 0,
-        ),
-        body: Builder(builder: (BuildContext context) {
-          return Column(
-            children: <Widget>[
-              //进度条
-              WebViewProgressBar(
-                key: _progressKey,
-              ),
-              //webView
-              Expanded(
-                child: WebView(
-                  initialUrl: widget._url,
-                  javascriptMode: JavascriptMode.unrestricted,
-//          debuggingEnabled: true,
-                  onWebViewCreated: (WebViewController webViewController) {
-                    _webViewController = webViewController;
-                    _controller.complete(webViewController);
-                    CosLogUtil.log('$tag onWebViewCreated');
-                  },
-                  // TODO(iskakaushik): Remove this when collection literals makes it to stable.
-                  // ignore: prefer_collection_literals
-                  javascriptChannels: <JavascriptChannel>[
-                    _toasterJavascriptChannel(context),
-                    _clientJavascriptChannel(context),
-                  ].toSet(),
-                  navigationDelegate: (NavigationRequest request) {
-                    if (request.url.startsWith(Constant.costvWebOrigin)) {
-                      Uri uri;
-                      try {
-                        uri = Uri.parse(request.url);
-                      } catch (error) {
-                        CosLogUtil.log('$tag Parse web url error: $error');
-                        return NavigationDecision.prevent;
-                      }
-
-                      if (uri != null &&
-                          uri.path.startsWith(
-                              Constant.webPageVideoPlayPathLeading) &&
-                          uri.pathSegments.length ==
-                              Constant.webPageVideoPlayPathSegmentsLength) {
-                        String vid = uri.pathSegments[2];
-                        if (!TextUtil.isEmpty(vid)) {
-                          CosLogUtil.log(
-                              '$tag blocking navigation to $request');
-                          Navigator.of(context)
-                              .push(MaterialPageRoute(builder: (_) {
-                            return VideoDetailsPage(
-                                VideoDetailPageParamsBean.createInstance(
-                                    vid: vid));
-                          }));
-                          return NavigationDecision.prevent;
-                        }
-                      }
-                    }
-
-                    CosLogUtil.log('$tag allowing navigation to $request');
-                    return NavigationDecision.navigate;
-                  },
-                  onPageFinished: (String url) {
-                    CosLogUtil.log('$tag Page finished loading: $url');
-                  },
-                  onProgressChanged: (int progress) {
-                    CosLogUtil.log('$tag Page onProgressChanged: $progress');
-                    if (_progressKey != null &&
-                        _progressKey.currentState != null) {
-                      _progressKey.currentState.updateProgress(progress);
-                    }
+      child: Stack(
+        children: <Widget>[
+          Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              // This drop down menu demonstrates that Flutter widgets can be shown over the web view.
+              actions: <Widget>[
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  child: Image.asset('assets/images/ic_close_black.png'),
+                  onTap: () {
+                    Navigator.of(context).pop();
                   },
                 ),
+//            NavigationControls(_controller.future),
+              ],
+              leading: Material(
+                child: Ink(
+                  color: Common.getColorFromHexString("FFFFFFFF", 1.0),
+                  child: InkWell(
+                    onTap: () async {
+                      bool canGoBack = await _webViewController.canGoBack();
+                      if (canGoBack) {
+                        _webViewController.goBack();
+                      } else {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: <Widget>[
+                        Container(
+                            margin: EdgeInsets.only(left: 16),
+                            child: GestureDetector(
+                              child: Image.asset(
+                                'assets/images/ic_back.png',
+                                width: 7,
+                                height: 14,
+                                fit: BoxFit.cover,
+                              ),
+                            )),
+
+//              Container(
+//                margin: EdgeInsets.only(left: 8),
+//                constraints: BoxConstraints(
+//                  maxWidth: 35,
+//                ),
+//                child: Text(
+//                  InternationalLocalizations.back,
+//                  overflow: TextOverflow.ellipsis,
+//                  style: TextStyle(
+//                    color: Colors.black,
+//                    fontSize: 15,
+//                  ),
+//                ),
+//              )
+                      ],
+                    ),
+                  ),
+                ),
               ),
-            ],
-          );
-        }),
+              centerTitle: true,
+              title: Text(widget.title ?? "",
+                  style: TextStyle(color: Colors.black, fontSize: 15)),
+              backgroundColor: Common.getColorFromHexString("FFFFFF", 1.0),
+              elevation: 0,
+            ),
+            body: Builder(builder: (BuildContext context) {
+              return Column(
+                children: <Widget>[
+                  //进度条
+                  WebViewProgressBar(
+                    key: _progressKey,
+                  ),
+                  //webView
+                  Expanded(
+                    child: WebView(
+                      initialUrl: widget._url,
+                      javascriptMode: JavascriptMode.unrestricted,
+//          debuggingEnabled: true,
+                      onWebViewCreated: (WebViewController webViewController) {
+                        _webViewController = webViewController;
+                        _controller.complete(webViewController);
+                        CosLogUtil.log('$tag onWebViewCreated');
+                      },
+                      // TODO(iskakaushik): Remove this when collection literals makes it to stable.
+                      // ignore: prefer_collection_literals
+                      javascriptChannels: <JavascriptChannel>[
+                        _toasterJavascriptChannel(context),
+                        _clientJavascriptChannel(context),
+                      ].toSet(),
+                      navigationDelegate: (NavigationRequest request) {
+                        if (request.url.startsWith(Constant.costvWebOrigin)) {
+                          Uri uri;
+                          try {
+                            uri = Uri.parse(request.url);
+                          } catch (error) {
+                            CosLogUtil.log('$tag Parse web url error: $error');
+                            return NavigationDecision.prevent;
+                          }
+
+                          if (uri != null &&
+                              uri.path.startsWith(
+                                  Constant.webPageVideoPlayPathLeading) &&
+                              uri.pathSegments.length ==
+                                  Constant.webPageVideoPlayPathSegmentsLength) {
+                            String vid = uri.pathSegments[2];
+                            if (!TextUtil.isEmpty(vid)) {
+                              CosLogUtil.log(
+                                  '$tag blocking navigation to $request');
+                              Navigator.of(context).push(SlideAnimationRoute(
+                                builder: (_) {
+                                  return VideoDetailsPage(
+                                      VideoDetailPageParamsBean.createInstance(
+                                        vid: vid,
+                                        enterSource: VideoDetailsEnterSource
+                                            .VideoDetailsEnterSourceH5LikeRewardVideo,
+                                      ));
+                                },
+                                settings: RouteSettings(name: videoDetailPageRouteName),
+                                isCheckAnimation: true,
+                              ));
+                              return NavigationDecision.prevent;
+                            }
+                          }
+                        }
+
+                        CosLogUtil.log('$tag allowing navigation to $request');
+                        return NavigationDecision.navigate;
+                      },
+                      onPageFinished: (String url) {
+                        CosLogUtil.log('$tag Page finished loading: $url');
+                      },
+                      onProgressChanged: (int progress) {
+                        CosLogUtil.log(
+                            '$tag Page onProgressChanged: $progress');
+                        if (_progressKey != null &&
+                            _progressKey.currentState != null) {
+                          _progressKey.currentState.updateProgress(progress);
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ),
+          IgnorePointer(
+            ignoring: true,
+            child: Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                color: AppThemeUtil.setDifferentModeColor(
+                  lightColor: Colors.transparent,
+                  darkColor: Common.getColorFromHexString("000000", 0.4),
+                )),
+          ),
+        ],
       ),
       onWillPop: () async {
         bool canGoBack = await _webViewController.canGoBack();
@@ -251,6 +315,9 @@ class _WebViewState extends State<WebViewPage> {
               } finally {
                 await loginInfoDbProvider.close();
               }
+
+              usrAutoPlaySetting = false;
+
               EventBusHelp.getInstance()
                   .fire(LoginStatusEvent(LoginStatusEvent.typeLogoutSuccess));
               Navigator.pop(context);
@@ -258,12 +325,18 @@ class _WebViewState extends State<WebViewPage> {
             case WebPageApiDataBean.actionOpenVideoPlayPage:
               WebPageApiVideoIdBean webPageApiVideoIdBean =
                   WebPageApiVideoIdBean.fromJson(json.decode(data));
-              String vid = webPageApiVideoIdBean.vid;
-
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-                return VideoDetailsPage(
-                    VideoDetailPageParamsBean.createInstance(vid: vid));
-              }));
+              Navigator.of(context).push(SlideAnimationRoute(
+                builder: (_) {
+                  return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
+                    vid: webPageApiVideoIdBean?.vid ?? '',
+                    uid: webPageApiVideoIdBean?.fuid ?? '',
+                    enterSource: VideoDetailsEnterSource
+                        .VideoDetailsEnterSourceH5WorksOrDynamic,
+                  ));
+                },
+                settings: RouteSettings(name: videoDetailPageRouteName),
+                isCheckAnimation: true,
+              ));
               break;
             case WebPageApiDataBean.actionHideTextInput:
               SystemChannels.textInput.invokeMethod('TextInput.hide');

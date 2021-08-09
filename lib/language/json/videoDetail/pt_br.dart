@@ -8,7 +8,7 @@ var videoDetailPtBr = {
     "videoNoMoreComment": "Não há mais comentários",
     "videoHotSort": "Ordenar por engajamento",
     "videoTimeSort": "Ordenar por tempo",
-    "videoInputMsgHint": "Olá, vamos conversar!",
+    "videoCommentInputHint": "Deixar um comentário...",
     "videoRecommendation": "Vídeos Recomendados",
     "videoCommentCount": " comentários",
     "videoCommentReply": "Comentário",
@@ -30,8 +30,21 @@ var videoDetailPtBr = {
     "videoPopFinish": "Concluído",
     "videoLoginPop": "Faça login para ganhar POP",
     "videoLinkFinishHint": "O período de cobrança terminou, você não gosta",
-    "videoClickMoreComment": "Visualizar mais respostas.",
-    "energyNotEnoughTips": "Seu valor atual de energia é inferior a 3,3%, então você não pode pressionar como. O valor da energia se recuperará após \${minutes} minutos. Por favor, espere um pouco."
+    "videoClickMoreComment": "Visualizar mais respostas",
+    "energyNotEnoughTips": "Seu valor atual de energia é inferior a 3,3%, então você não pode pressionar como. O valor da energia se recuperará após \${minutes} minutos. Por favor, espere um pouco.",
+    "autoPlayDesc": "AutoPlay",
+    "aboutToPaly": "A seguir:",
+    "playNow": "Tocar agora",
+    "replay": "Tocar de novo",
+    "autoPlayFunctionDesc": "Quando o AutoPlay está ligado nós automaticamente passamos outro vídeo com base no seu histórico de visualização",
+    "refreshList":"Atualizar",
+    "loadFail":"Falha ao carregar",
+    "recommendCountDownTips":"Tocará outro vídeo do criador: ",
+    "countDownSeconds":"\${second} segundos",
+    "videoCreator":"Criador",
+    "viewReply": "Ver \${num} respostas",
+    "lookComment": "Ver resposta",
+    "commentHint": "Vamos conversar! Deixe um comentário e diga a todos o que você pensa ~"
   },
   "videoReport": {
     "reportInformVideo": "Denunciar",
@@ -69,5 +82,26 @@ var videoDetailPtBr = {
       "Problemas de descrição",
       "Outros problemas"
     ]
+  },
+  "commentDelete": {
+    "commentDeleteTitle": "Esconder comentário",
+    "commentDeleteSuccess": "O comentário foi escondido com sucesso. Por favor atualize a página.",
+    "commentDeleteAuthor": "Apenas o criador original pode esconder os comentários",
+    "commentDeleteTypeCodeList": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "commentDeleteTypeNameList": [
+      "Comentário de anúncio ou spam",
+      "Conteúdo sexual",
+      "Abuso infantil",
+      "Discurso de violência ou de ódio",
+      "Assédio ou bullying"
+    ],
+    "commentDeleteTips": "Após apagar esse comentário, todas as respostas relacionadas a esse comentário serão apagadas também",
+    "commentDeleteSuccessTips": "Comentário apagado com sucesso"
   }
 };

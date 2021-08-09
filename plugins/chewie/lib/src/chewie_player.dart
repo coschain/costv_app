@@ -5,8 +5,9 @@ import 'package:chewie/src/player_with_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
-import 'package:screen/screen.dart';
+import 'package:wakelock/wakelock.dart';
 import 'package:video_player/video_player.dart';
+import 'package:costv_android/utils/global_util.dart';
 
 typedef Widget ChewieRoutePageBuilder(
     BuildContext context,
@@ -80,7 +81,7 @@ class ChewieState extends State<Chewie> {
       Animation<double> animation,
       _ChewieControllerProvider controllerProvider) {
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+      resizeToAvoidBottomInset: false,
       body: Container(
         alignment: Alignment.center,
         color: Colors.black,
@@ -123,12 +124,12 @@ class ChewieState extends State<Chewie> {
   Future<dynamic> _pushFullScreenWidget(BuildContext context) async {
     final isAndroid = Theme.of(context).platform == TargetPlatform.android;
     final TransitionRoute<Null> route = PageRouteBuilder<Null>(
-      settings: RouteSettings(isInitialRoute: false),
+      settings: RouteSettings(),
       pageBuilder: _fullScreenRoutePageBuilder,
     );
 
     SystemChrome.setEnabledSystemUIOverlays([]);
-    final isPortraitVideo = (widget.controller.aspectRatio ?? 1) < 1;
+    final isPortraitVideo = false;
 
     // 全屏播放宽视频时，才需要转
     if (!isPortraitVideo) {
@@ -151,17 +152,18 @@ class ChewieState extends State<Chewie> {
       }
     }
 
-    if (!widget.controller.allowedScreenSleep) {
-      Screen.keepOn(true);
-    }
+    bool wakeLockEnabled = await Wakelock.isEnabled;
 
-    await Navigator.of(context, rootNavigator: true).push(route);
+    if (!widget.controller.allowedScreenSleep) {
+      Wakelock.enable();
+    }
+    await Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(route, ModalRoute.withName(videoDetailPageRouteName));
+
     _isFullScreen = false;
     widget.controller.exitFullScreen();
 
-    bool isKeptOn = await Screen.isKeptOn;
-    if (isKeptOn) {
-      Screen.keepOn(false);
+    if (!wakeLockEnabled) {
+      Wakelock.disable();
     }
 
     SystemChrome.setEnabledSystemUIOverlays(
@@ -210,6 +212,7 @@ class ChewieController extends ChangeNotifier {
       DeviceOrientation.landscapeRight,
     ],
     this.routePageBuilder = null,
+    this.isInitFullScreen = false,
   }) : assert(videoPlayerController != null,
             'You must provide a controller to play a video') {
     _initialize();
@@ -289,9 +292,11 @@ class ChewieController extends ChangeNotifier {
   /// Defines a custom RoutePageBuilder for the fullscreen
   final ChewieRoutePageBuilder routePageBuilder;
 
+  final bool isInitFullScreen;
+
   static ChewieController of(BuildContext context) {
     final chewieControllerProvider =
-        context.inheritFromWidgetOfExactType(_ChewieControllerProvider)
+        context.dependOnInheritedWidgetOfExactType(aspect:_ChewieControllerProvider)
             as _ChewieControllerProvider;
 
     return chewieControllerProvider.controller;
@@ -341,6 +346,13 @@ class ChewieController extends ChangeNotifier {
   void exitFullScreen() {
     _isFullScreen = false;
     notifyListeners();
+  }
+
+  void autoExitFullScreen(BuildContext context) {
+    if (_isFullScreen) {
+      Navigator.of(context, rootNavigator: true).pop();
+      _isFullScreen = false;
+    }
   }
 
   void toggleFullScreen() {

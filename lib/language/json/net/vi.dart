@@ -207,5 +207,15 @@ var netVi = {
     "910002": "Điểm trừ không thành công",
     "910003": "Không thể kiếm được điểm trong hoạt động kiếm điểm video",
     "910004": "Những điểm mà người dùng có thể nhận được trong ngày đã đến"
+  },
+  "commentError": {
+    "400": "Lỗi tham số",
+    "500": "Lỗi nội bộ",
+    "1600001": "Vid của video không tồn tại",
+    "1600002": "Đã xóa video",
+    "1600003": "Đã ẩn video",
+    "1600004": "Tình trạng video riêng tư, Không thể xem nếu không phải là chủ sở hữu",
+    "1600005": "Không thể xem được video lịch trình",
+    "1600006": "Không thể xem được video chuyển mã"
   }
 };

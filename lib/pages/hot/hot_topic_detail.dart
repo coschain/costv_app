@@ -7,6 +7,7 @@ import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/global_util.dart';
 import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/widget/custom_app_bar.dart';
@@ -15,6 +16,7 @@ import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
 import 'package:costv_android/widget/single_video_item.dart';
 import 'package:flutter/material.dart';
 import 'package:cosdart/types.dart';
+import 'package:costv_android/utils/video_report_util.dart';
 
 class HotTopicDetailPage extends StatefulWidget {
   final HotTopicModel topicModel;
@@ -29,7 +31,7 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
   static const String tag = '_HotTopicDetailPageState';
   final logPrefix = "HotTopicDetailPage";
   int _pageSize = 10 , _curPage = 1;
-  bool _isFetching = false, _hasNextPage = false, _isShowLoading = true;
+  bool _isFetching = false, _hasNextPage = false, _isShowLoading = true, _isScrolling = false;
   List<GetVideoListNewDataListBean> _videoList = [];
   String _operateVid = '';
   List<String> tmpOpVid = [];
@@ -37,6 +39,8 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
   ExchangeRateInfoData rateInfo;
   dynamic_properties chainDgpo;
   _HotTopicDetailPageState({this.rateInfo});
+  Map<int,double> _visibleFractionMap = {};
+
 
   @override
   void didUpdateWidget(HotTopicDetailPage oldWidget) {
@@ -76,12 +80,18 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
       child:  Scaffold(
         appBar: CustomAppBar(title: widget.topicModel?.desc ?? ""),
         body: Container(
-          color: Common.getColorFromHexString("3F3F3F3F", 0.05),
+          color: AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("3F3F3F3F", 0.05),
+            darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
+          ),
 //          padding: EdgeInsets.only(top: 10),
           child: RefreshAndLoadMoreListView(
             contentTopPadding: 10,
             itemCount: _videoList?.length ?? 0,
             itemBuilder: (BuildContext context, int position) {
+              if (!_isScrolling) {
+                _visibleFractionMap[position] = 1;
+              }
               return _getSingleVideoItem(position);
             },
             bottomMessage: InternationalLocalizations.moMoreHotData,
@@ -92,6 +102,18 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
             pageSize: _pageSize,
             onLoadMore: () {
               _loadNextPageData();
+            },
+            scrollStatusCallBack: (scrollNotification) {
+              if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
+                _isScrolling = true;
+              } else if (scrollNotification is ScrollEndNotification) {
+                _isScrolling = false;
+                Future.delayed(Duration(milliseconds: 500), () {
+                  if (!_isScrolling) {
+                    _reportVideoExposure();
+                  }
+                });
+              }
             },
           ),
         ),
@@ -108,7 +130,14 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
         videoData: _videoList[idx],
         exchangeRate: rateInfo,
         dgpoBean: chainDgpo,
-        source: EnterSource.HotDetail,
+        source: _getEnterSource(),
+        index: idx,
+        visibilityChangedCallback: (int index, double visibleFraction) {
+          if (_visibleFractionMap == null) {
+            _visibleFractionMap  = {};
+          }
+          _visibleFractionMap[index] = visibleFraction;
+        },
       );
     }
     return SingleVideoItem();
@@ -163,7 +192,7 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
             }
           }
 
-          if (videoList != null && rateData != null && dgpo != null) {
+          if (videoList != null) {
             _curPage = 1;
             VideoUtil.clearHistoryVidMap(_historyVideoMap);
             VideoUtil.addNewVidToHistoryVidMapFromList(videoList, _historyVideoMap);
@@ -171,6 +200,11 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
             setState(() {
               _isShowLoading = false;
               _isFetching = false;
+              Future.delayed(Duration(seconds: 1), () {
+                if (!_isScrolling) {
+                  _reportVideoExposure();
+                }
+              });
             });
           }
         }
@@ -251,4 +285,47 @@ class _HotTopicDetailPageState extends State<HotTopicDetailPage> with RouteAware
     });
     return list;
   }
+
+  List<int> _getVisibleItemIndex() {
+    List<int> idxList = [];
+    _visibleFractionMap.forEach((int key,double val) {
+      if (val > 0) {
+        idxList.add(key);
+      }
+    });
+    return idxList;
+  }
+
+  //视频曝光上报
+  void _reportVideoExposure() {
+    if (_videoList == null || _videoList.isEmpty) {
+      return;
+    }
+    List<int> visibleList = _getVisibleItemIndex();
+    if (visibleList.isNotEmpty) {
+      for (int i = 0; i < visibleList.length; i++) {
+        int idx = visibleList[i];
+        if (idx >= 0 && idx < _videoList.length) {
+          GetVideoListNewDataListBean bean = _videoList[idx];
+          VideoReportUtil.reportVideoExposure(
+              VideoExposureType.HotTopicType,bean.id ?? '', bean.uid ?? ''
+          );
+        }
+      }
+
+    }
+  }
+
+  EnterSource _getEnterSource() {
+    EnterSource source = EnterSource.HotTopicGame;
+    if (widget.topicModel.topicType == HotTopicType.TopicFun) {
+      source = EnterSource.HotTopicFun;
+    } else if (widget.topicModel.topicType == HotTopicType.TopicCutePets) {
+      source = EnterSource.HotTopicCutePet;
+    } else if (widget.topicModel.topicType == HotTopicType.TopicMusic) {
+      source = EnterSource.HotTopicMusic;
+    }
+    return source;
+  }
+
 }

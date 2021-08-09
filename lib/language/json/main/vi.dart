@@ -3,6 +3,7 @@ var mainVi = {
     "homeTitle": "Trang chủ",
     "homePopularTitle": "Video Hot",
     "homeMySubscriptionTitle": "Theo dõi của tôi",
+    "homeMessage": "Thông báo",
     "homeSeeHistoryTitle": "Lịch sử xem",
     "noMoreOperateVideo": "Không còn thêm video"
   },
@@ -65,5 +66,10 @@ var mainVi = {
     "minutes": "\${minutes} phút",
     "hours": "\${hours} giờ",
     "days": "\${days} ngày"
+  },
+  "message": {
+    "commentTitle": "Bình luận",
+    "commentNoVideo": "Đã xóa video liên quan",
+    "commentNoComment": "Đã xóa bình luận liên quan"
   }
 };

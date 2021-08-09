@@ -8,6 +8,7 @@ var commonEn = {
   "httpError": "Unknown Error",
   "cancel": "Cancel Request",
   "carryOn": "Continue",
+  "delete": "Hide",
   "back": "Back",
   "close": "Close",
   "noMoreData": "No more data is available",
@@ -17,10 +18,19 @@ var commonEn = {
       "Your computer is offline. Please check your Internet connection.",
   "notLogInTips": "You are not logged in",
   "subscriptionLogInTips": "Log in to view the contents",
+  "messageLogInTips": "Log in to see your notifications",
   "watchHistoryLogInTips": "Log in to view the watching history",
   "netRequestFailTips": "Network request failed",
   "netRequestFailDesc": "Please check your Internet connection and try again.",
   "reloadData": "Reload",
   "updateTitle": "Upgrade to \${version}?",
-  "updateConfirm": "Upgrade"
+  "updateConfirm": "Upgrade",
+  "messageNoData": "No Notifications",
+  "lightModeDesc": "Light Mode",
+  "darkModeDesc": "Dark Mode",
+  "emoji": {
+    "emojiUnlockTitle": "How to unlock all stickers in \"Epamoji\"",
+    "emojiUnlockHint": "Send 100 Gifting Votes or more in total to Voepa, to unlock all stickers in \"Epamoji\"",
+    "emojiUnlockGo": "(Note: Please go to COS.TV Web on your phone or computer to try Gifting Votes function)"
+  }
 };

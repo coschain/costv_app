@@ -12,6 +12,7 @@ class AppDimens {
 
   AppDimens._();
 
+  static const double text_size_8 = 8.0;
   static const double text_size_9 = 9.0;
   static const double text_size_10 = 10.0;
   static const double text_size_11 = 11.0;
@@ -29,6 +30,7 @@ class AppDimens {
   static const double text_size_24 = 24.0;
   static const double text_size_26 = 26.0;
 
+  static const double margin_1 = 1.0;
   static const double margin_2 = 2.0;
   static const double margin_2_5 = 2.5;
   static const double margin_3 = 3.0;
@@ -40,6 +42,7 @@ class AppDimens {
   static const double margin_7 = 7.0;
   static const double margin_7_5 = 7.5;
   static const double margin_8 = 8.0;
+  static const double margin_8_5 = 8.5;
   static const double margin_9 = 9.0;
   static const double margin_9_5 = 9.5;
   static const double margin_10 = 10.0;
@@ -50,12 +53,14 @@ class AppDimens {
   static const double margin_13_5 = 13.5;
   static const double margin_14 = 14.0;
   static const double margin_15 = 15.0;
+  static const double margin_15_5 = 15.5;
   static const double margin_16 = 16.0;
   static const double margin_17 = 17.0;
   static const double margin_17_5 = 17.5;
   static const double margin_18 = 18.0;
   static const double margin_20 = 20.0;
   static const double margin_21 = 21.0;
+  static const double margin_23 = 23.0;
   static const double margin_25 = 25.0;
   static const double margin_26 = 26.0;
   static const double margin_27 = 27.0;
@@ -68,9 +73,13 @@ class AppDimens {
   static const double margin_50 = 50.0;
   static const double margin_56 = 56.0;
   static const double margin_58 = 58.0;
+  static const double margin_60 = 60.0;
+  static const double margin_64_5 = 64.5;
   static const double margin_86 = 86.0;
+  static const double margin_97 = 97.0;
   static const double margin_105 = 105.0;
   static const double margin_162 = 162;
+  static const double margin_174 = 174;
   static const double margin_177 = 177;
   static const double margin_211 = 211;
 
@@ -91,31 +100,38 @@ class AppDimens {
   static const double item_size_2 = 2.0;
   static const double item_size_5 = 5.0;
   static const double item_size_6 = 6.0;
+  static const double item_size_9 = 9.0;
   static const double item_size_12_5 = 12.5;
   static const double item_size_10 = 10.0;
   static const double item_size_15 = 15.0;
+  static const double item_size_17 = 17.0;
   static const double item_size_18 = 18.0;
   static const double item_size_20 = 20.0;
   static const double item_size_25 = 25.0;
   static const double item_size_27_5 = 27.5;
   static const double item_size_30 = 30.0;
   static const double item_size_32 = 32.0;
+  static const double item_size_37 = 37.0;
   static const double item_size_40 = 40.0;
   static const double item_size_45 = 45.0;
   static const double item_size_46 = 46.0;
+  static const double item_size_49 = 49.0;
   static const double item_size_50 = 50.0;
   static const double item_size_51_5 = 51.5;
   static const double item_size_55 = 55.0;
   static const double item_size_56 = 56.0;
   static const double item_size_60 = 60.0;
-  static const double item_size_64_5 = 64.5;
+  static const double item_size_65 = 65.0;
+  static const double item_size_67 = 67.0;
   static const double item_size_70 = 70.0;
   static const double item_size_74 = 74.0;
   static const double item_size_80 = 80.0;
   static const double item_size_82 = 82.0;
   static const double item_size_85 = 85.0;
   static const double item_size_85_5 = 85.5;
+  static const double item_size_87 = 87.0;
   static const double item_size_90 = 90.0;
+  static const double item_size_96_5 = 96.5;
   static const double item_size_100 = 100.0;
   static const double item_size_110 = 110.0;
   static const double item_size_115 = 115.0;
@@ -142,6 +158,7 @@ class AppDimens {
   static const double item_size_290 = 290.0;
   static const double item_size_300 = 300.0;
   static const double item_size_332 = 332.0;
+  static const double item_size_380 = 380.0;
   static const double item_size_425 = 425.0;
   static const double item_size_470 = 470.0;
 

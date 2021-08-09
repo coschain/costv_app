@@ -1,4 +1,3 @@
-import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
@@ -8,6 +7,8 @@ import 'package:flutter/material.dart';
 
 typedef Widget ItemBuilder(BuildContext context, int position);
 typedef ScrollEndCallBack = Function(double lastPostion, double curPosition);
+typedef ScrollStartCallBack = Function();
+typedef ScrollStatusCallBack = Function(ScrollNotification notification);
 
 ///带下拉刷新和上拉加载更多的列表控件
 class RefreshAndLoadMoreListView extends StatefulWidget {
@@ -21,6 +22,9 @@ class RefreshAndLoadMoreListView extends StatefulWidget {
   final bool isShowBottomView;
   final double contentTopPadding;
   final ScrollEndCallBack scrollEndCallBack;
+  final ScrollStartCallBack scrollStartCallBack;
+  final ScrollStatusCallBack scrollStatusCallBack;
+  final double scrollPixels;
 
   RefreshAndLoadMoreListView(
       {Key key,
@@ -38,7 +42,10 @@ class RefreshAndLoadMoreListView extends StatefulWidget {
       this.hasTopPadding = true,
       this.isShowBottomView = true,
       this.scrollEndCallBack,
-      this.contentTopPadding = 0})
+      this.contentTopPadding = 0,
+      this.scrollStartCallBack,
+      this.scrollStatusCallBack,
+      this.scrollPixels = 0.0})
       : super(key: key);
 
   @override
@@ -49,14 +56,16 @@ class RefreshAndLoadMoreListView extends StatefulWidget {
 
 class RefreshAndLoadMoreListViewState
     extends State<RefreshAndLoadMoreListView> {
-  ScrollController _listController = new ScrollController();
+  ScrollController _listController;
   double lastPosition = 0;
   bool _isScrollingToTop = false;
 
   @override
   void initState() {
     super.initState();
-    if(widget.bottomMessage == null){
+    _listController =
+        ScrollController(initialScrollOffset: widget.scrollPixels);
+    if (widget.bottomMessage == null) {
       widget.bottomMessage = InternationalLocalizations.noMoreData;
     }
     _listController.addListener(() {
@@ -117,19 +126,30 @@ class RefreshAndLoadMoreListViewState
       itemCount: itemCount,
       controller: _listController,
     );
-    var refreshIndicator;
+    var listViewWidget;
     if (widget.isRefreshEnable) {
-      refreshIndicator = RefreshIndicator(
-//        color: AppColors.color_ffffff,
+      listViewWidget = RefreshIndicator(
+        displacement: 20,
         child: listView,
         onRefresh: widget.onRefresh,
       );
+    } else {
+      listViewWidget = listView;
     }
-    if (widget.isRefreshEnable) {
-      if (widget.scrollEndCallBack != null) {
-        return NotificationListener<ScrollNotification>(
-          onNotification: (scrollNotification) {
+    if (widget.scrollEndCallBack != null ||
+        widget.scrollStartCallBack != null ||
+        widget.scrollStatusCallBack != null) {
+      return NotificationListener<ScrollNotification>(
+        onNotification: (scrollNotification) {
+          if (scrollNotification.metrics.axisDirection == AxisDirection.up ||
+              scrollNotification.metrics.axisDirection == AxisDirection.down) {
+            if (widget.scrollStatusCallBack != null) {
+              widget.scrollStatusCallBack(scrollNotification);
+            }
             if (scrollNotification is ScrollStartNotification) {
+              if (widget.scrollStartCallBack != null) {
+                widget.scrollStartCallBack();
+              }
             } else if (scrollNotification is ScrollUpdateNotification) {
             } else if (scrollNotification is ScrollEndNotification) {
               if (scrollNotification.metrics.axisDirection ==
@@ -145,14 +165,13 @@ class RefreshAndLoadMoreListViewState
                 }
               }
             }
-            return true;
-          },
-          child: refreshIndicator,
-        );
-      }
-      return refreshIndicator;
+          }
+          return true;
+        },
+        child: listViewWidget,
+      );
     }
-    return listView;
+    return listViewWidget;
   }
 
   @override
@@ -165,6 +184,11 @@ class RefreshAndLoadMoreListViewState
     if (_isScrollingToTop) {
       return;
     }
+    if (_listController == null ||
+        _listController.position == null ||
+        _listController.position.pixels == null) {
+      return;
+    }
     if (_listController.position.pixels > 0) {
       _isScrollingToTop = true;
       _listController
@@ -173,6 +197,20 @@ class RefreshAndLoadMoreListViewState
           .whenComplete(() {
         _isScrollingToTop = false;
       });
+    }
+  }
+
+  void scrollTo(double scrollPixels) {
+    if (_isScrollingToTop) {
+      return;
+    }
+    if (_listController == null ||
+        _listController.position == null ||
+        _listController.position.pixels == null) {
+      return;
+    }
+    if (scrollPixels >= 0 && _listController.position.pixels > 0) {
+      _listController.jumpTo(scrollPixels);
     }
   }
 }

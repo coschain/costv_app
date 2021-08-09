@@ -1,4 +1,3 @@
-import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';

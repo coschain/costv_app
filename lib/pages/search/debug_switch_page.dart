@@ -8,6 +8,7 @@ import 'package:costv_android/language/international_localizations_delegate.dart
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/global_util.dart';
 import 'package:costv_android/widget/custom_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -81,7 +82,10 @@ class DebugSwitchState extends State<DebugSwitchPage> with RouteAware {
 //                padding: EdgeInsets.symmetric(vertical: 5),
                 width: screenWidth,
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppThemeUtil.setDifferentModeColor(
+                      lightColor: Colors.white,
+                      darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+                    ),
                     border: Border(
                         bottom: BorderSide(
                             width: 0.5,
@@ -108,7 +112,10 @@ class DebugSwitchState extends State<DebugSwitchPage> with RouteAware {
                   padding: EdgeInsets.fromLTRB(15,5,0,5),
                   width: screenWidth,
                   decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppThemeUtil.setDifferentModeColor(
+                        lightColor: Colors.white,
+                        darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+                      ),
                       border: Border(
                           bottom: BorderSide(
                               width: 0.5,
@@ -142,7 +149,6 @@ class DebugSwitchState extends State<DebugSwitchPage> with RouteAware {
                         ],
                         hint:new Text(_getLanDescByCode(curLanCode)),
                         onChanged: (selectValue){
-                          print("select value is $selectValue");
                           setState(() {
                             curLanCode = selectValue;
                           });
@@ -178,7 +184,6 @@ class DebugSwitchState extends State<DebugSwitchPage> with RouteAware {
         return "Русский";
       } else if (lan.startsWith("zh")) {
         //简体
-        print("lan is $lan");
         if (lan.startsWith("zh_Hans") || lan.startsWith("zh_CN")) {
           return "简体中文";
         }

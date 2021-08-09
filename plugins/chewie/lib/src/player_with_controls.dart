@@ -17,6 +17,7 @@ class PlayerWithControls extends StatelessWidget {
     return Center(
       child: Container(
         width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.width * 9 / 16,
         child: AspectRatio(
           aspectRatio:
               chewieController.aspectRatio ?? _calculateAspectRatio(context),

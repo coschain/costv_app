@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:device_info/device_info.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:get_ip/get_ip.dart';
 import 'package:package_info/package_info.dart';
 
@@ -36,6 +37,10 @@ class PlatformUtil {
   static Future<String> getPackageName() async {
     PackageInfo packageInfo = await PackageInfo.fromPlatform();
     return packageInfo.packageName;
+  }
+
+  static bool isDark(BuildContext context){
+    return MediaQuery.of(context).platformBrightness == Brightness.dark;
   }
 
 }

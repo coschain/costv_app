@@ -8,6 +8,7 @@ var commonPtBr = {
   "httpError": "Erro Desconhecido",
   "cancel": "Cancelar Solicitação",
   "carryOn": "Continuar",
+  "delete": "Esconder",
   "back": "Voltar",
   "close": "Fechar",
   "noMoreData": "Não há mais dados disponíveis",
@@ -16,10 +17,19 @@ var commonPtBr = {
   "netError": "Seu computador está offline",
   "notLogInTips": "Você não está logado",
   "subscriptionLogInTips": "Faça o login para visualizar os conteúdos",
+  "messageLogInTips": "Entre para ver suas notificações",
   "watchHistoryLogInTips": "Faça o login para ver o histórico de visualizações",
   "netRequestFailTips": "A solicitação de rede falhou",
   "netRequestFailDesc": "Por favor verifique sua conexão de internet",
   "reloadData": "Recarregar",
   "updateTitle": "Atualizar para \${version}?",
-  "updateConfirm": "Upgrade"
+  "updateConfirm": "Upgrade",
+  "messageNoData": "Sem Notificações",
+  "lightModeDesc": "Modo Claro",
+  "darkModeDesc": "Modo Escuro",
+  "emoji": {
+    "emojiUnlockTitle": "Como desbloquear \"Epamoji\"",
+    "emojiUnlockHint": "Envie 100 Gifting Votes ou maisno total para Voepa paradesbloquear todos os stickersem \"Epamoji\"",
+    "emojiUnlockGo": "(Observação: Vá para a COS.TV Webno seu telefone ou computador paratestar a função Gifting Votes)"
+  }
 };

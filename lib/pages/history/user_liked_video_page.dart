@@ -8,6 +8,7 @@ import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/widget/custom_app_bar.dart';
 import 'package:costv_android/widget/history_video_item.dart';
@@ -19,6 +20,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:cosdart/types.dart';
+import 'package:costv_android/utils/video_report_util.dart';
 
 Color itemColor = Common.getColorFromHexString("3F3F3F3F", 0.05);
 final pageLogPrefix = "UserLikeVideoPage";
@@ -37,11 +39,13 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
   static const String tag = '_UserLikedVideoPageState';
   GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   int _pageSize = 20, _page = 1;
-  bool _hasNextPage = false, _isFetching = false, _isShowLoading = true,
+  bool _hasNextPage = false, _isFetching = false, _isShowLoading = true, _isScrolling = false,
       _isDeleting = false, _isSuccessLoad = true;
   List<GetVideoListNewDataListBean> _videoList = [];
   ExchangeRateInfoData _rateInfo;
   dynamic_properties _chainDgpo;
+  Map<int,double> _visibleFractionMap = {};
+
   @override
   void initState() {
     _reloadData();
@@ -78,11 +82,17 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
       child: NetRequestFailTipsView(
         key: _failTipsKey,
         baseWidget: Container(
-          color: Common.getColorFromHexString("3F3F3F3F", 0.05),
+          color: AppThemeUtil.setDifferentModeColor(
+              lightColor: Common.getColorFromHexString("3F3F3F3F", 0.05),
+              darkColorStr: DarkModelBgColorUtil.pageBgColorStr
+          ),
           padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
           child: RefreshAndLoadMoreListView(
             itemCount: _videoList?.length ?? 0,
             itemBuilder: (BuildContext context, int position) {
+              if (!_isScrolling) {
+                _visibleFractionMap[position] = 1;
+              }
               return _getHistoryVideoItem(position);
             },
             isHaveMoreData: _hasNextPage,
@@ -93,6 +103,18 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
             isRefreshEnable: true,
             isLoadMoreEnable: true,
             bottomMessage: InternationalLocalizations.noMoreOperateVideo,
+            scrollStatusCallBack: (scrollNotification) {
+              if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
+                _isScrolling = true;
+              } else if (scrollNotification is ScrollEndNotification) {
+                _isScrolling = false;
+                Future.delayed(Duration(milliseconds: 500), () {
+                  if (!_isScrolling) {
+                    _reportVideoExposure();
+                  }
+                });
+              }
+            },
           ),
         ),
       ),
@@ -115,7 +137,7 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
       reqList = [_loadLikedVideoList(false),
         CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
     }
-    Future.wait(
+    await Future.wait(
       reqList,
     ).then((valList) {
       if (valList != null && mounted) {
@@ -146,7 +168,11 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
           _isSuccessLoad = true;
           _page = 1;
           setState(() {
-
+            Future.delayed(Duration(seconds: 1), () {
+              if (!_isScrolling) {
+                _reportVideoExposure();
+              }
+            });
           });
         } else if (_isShowLoading && _isSuccessLoad) {
           _isSuccessLoad = false;
@@ -237,8 +263,16 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
         isEnableDelete: false,
         video: _videoList[idx],
         exchangeRate: _rateInfo,
+        index: idx,
         dgpoBean: _chainDgpo,
         source: HistoryItemPageSource.likedVideoListPage,
+        visibilityChangedCallback: (int index, double visibleFraction) {
+          if (_visibleFractionMap == null) {
+            _visibleFractionMap  = {};
+          }
+          _visibleFractionMap[index] = visibleFraction;
+        },
+        radius: 0,
       );
     }
     return HistoryVideoItem();
@@ -247,6 +281,36 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
   void _showDataLoadFailTips() {
     if (_failTipsKey.currentState != null) {
       _failTipsKey.currentState.showWithAnimation();
+    }
+  }
+
+  List<int> _getVisibleItemIndex() {
+    List<int> idxList = [];
+    _visibleFractionMap.forEach((int key,double val) {
+      if (val > 0) {
+        idxList.add(key);
+      }
+    });
+    return idxList;
+  }
+
+  //视频曝光上报
+  void _reportVideoExposure() {
+    if (_videoList == null || _videoList.isEmpty) {
+      return;
+    }
+    List<int> visibleList = _getVisibleItemIndex();
+    if (visibleList.isNotEmpty) {
+      for (int i = 0; i < visibleList.length; i++) {
+        int idx = visibleList[i];
+        if (idx >= 0 && idx < _videoList.length) {
+          GetVideoListNewDataListBean bean = _videoList[idx];
+          VideoReportUtil.reportVideoExposure(
+              VideoExposureType.UserLikedType,bean.id ?? '', bean.uid ?? ''
+          );
+        }
+      }
+
     }
   }
 }

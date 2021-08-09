@@ -2,36 +2,45 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/get_video_list_new_bean.dart';
 import 'package:costv_android/constant.dart';
 import 'package:costv_android/event/base/event_bus_help.dart';
 import 'package:costv_android/event/login_status_event.dart';
 import 'package:costv_android/event/tab_switch_event.dart';
+import 'package:costv_android/event/video_small_show_status_event.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/history/user_liked_video_page.dart';
 import 'package:costv_android/pages/history/video_watch_history.dart';
+import 'package:costv_android/pages/history/user_uploaded_video_page.dart';
 import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dart';
 import 'package:costv_android/pages/video/video_details_page.dart';
 import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/data_report_util.dart';
 import 'package:costv_android/utils/platform_util.dart';
 import 'package:costv_android/utils/video_util.dart';
+import 'package:costv_android/utils/web_view_util.dart';
+import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
+import 'package:costv_android/widget/dark_mode_switch_entrance.dart';
 import 'package:costv_android/widget/loading_view.dart';
 import 'package:costv_android/widget/net_request_fail_view.dart';
 import 'package:costv_android/widget/page_remind_widget.dart';
 import 'package:costv_android/widget/page_title_widget.dart';
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/event/setting_switch_event.dart';
 import 'package:costv_android/event/watch_video_event.dart';
 import 'package:costv_android/utils/global_util.dart';
 import 'package:costv_android/utils/video_report_util.dart';
+
 
 String videoHistoryLogPrefix = "VideoHistoryPage";
 
@@ -50,7 +59,8 @@ class RecentlyWatchedPage extends StatefulWidget {
   _RecentlyWatchedPageState createState() => _RecentlyWatchedPageState();
 }
 
-class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAware {
+class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
+    with RouteAware {
   GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
       new GlobalKey<NetRequestFailTipsViewState>();
   static const tag = '_RecentlyWatchedPageState';
@@ -92,16 +102,21 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
     routeObserver.subscribe(this, ModalRoute.of(context));
   }
 
+  @override
+  void didPushNext() {
+    super.didPushNext();
+    EventBusHelp.getInstance().fire(VideoSmallShowStatusEvent(false));
+  }
+
   void didPopNext() {
     super.didPopNext();
+    EventBusHelp.getInstance().fire(VideoSmallShowStatusEvent(true));
     if (curTabIndex == BottomTabType.TabWatchHistory.index) {
       if (_checkIsNeedToReloadData()) {
         _isShowLoading = true;
         _reloadData();
         _watchedNewVideo = false;
-        setState(() {
-
-        });
+        setState(() {});
       }
     }
   }
@@ -117,25 +132,38 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
     return Scaffold(
         body: Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
-      color: Common.getColorFromHexString("F6F6F6", 1.0),
+      color: AppThemeUtil.setDifferentModeColor(
+        lightColor: AppColors.color_f6f6f6,
+        darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
+      ),
       child: _getCurPageBody(),
     ));
   }
 
   void _initHistoryVideoItemData() {
+    if (_videoEntranceList == null) {
+      _videoEntranceList = [];
+    } else if (_videoEntranceList.isNotEmpty) {
+      _videoEntranceList.clear();
+    }
     _videoEntranceList.add(HistoryVideoItemModel(
       type: HistoryVideoType.RecentlyWatched,
-      icon: "assets/images/ic_watch_history.png",
+      icon: AppThemeUtil.getUserWatchHistoryIcn(),
       desc: InternationalLocalizations.watchHistory,
     ));
     _videoEntranceList.add(HistoryVideoItemModel(
       type: HistoryVideoType.Liked,
-      icon: "assets/images/ic_liked.png",
+      icon: AppThemeUtil.getUserLikedIcn(),
       desc: InternationalLocalizations.likedVideo,
     ));
     _videoEntranceList.add(HistoryVideoItemModel(
+      type: HistoryVideoType.Uploaded,
+      icon: AppThemeUtil.getUploadIcn(),
+      desc: InternationalLocalizations.myUploadedVideos,
+    ));
+    _videoEntranceList.add(HistoryVideoItemModel(
       type: HistoryVideoType.ProblemFeedback,
-      icon: "assets/images/ic_watch_feedback.png",
+      icon: AppThemeUtil.getFeedbackIcn(),
       desc: InternationalLocalizations.problemFeedback,
     ));
   }
@@ -220,12 +248,15 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
           ),
         );
       }
+      _initHistoryVideoItemData();
       return LoadingView(
         child: Center(
           // Center is a layout widget. It takes a single child and positions it
           // in the middle of the parent.
           child: Container(
-            color: Common.getColorFromHexString("F6F6F6", 1.0),
+            color: AppThemeUtil.setDifferentModeColor(
+                lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
+                darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
             child: Column(
               children: <Widget>[
                 //顶部搜索
@@ -242,6 +273,12 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
                           );
                         }
                         if (index == _getListViewItemCount() - 1) {
+                          //暗夜模式开关
+                          return Container(
+                            margin: EdgeInsets.only(top: AppDimens.margin_10),
+                            child: DarkModeSwitchEntrance(),
+                          );
+                        } else if (index == _getListViewItemCount() - 2) {
                           return Container(
                             margin: EdgeInsets.only(top: AppDimens.margin_10),
                             child: _getEntranceItem(index - 1),
@@ -278,7 +315,9 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
   Widget _getSearchWidget() {
     return Container(
       child: Container(
-        color: Common.getColorFromHexString("FFFFFFFF", 1.0),
+        color: AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
+            darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
         child: PageTitleWidget(tag),
       ),
     );
@@ -304,6 +343,8 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
     if (_videoEntranceList != null && _videoEntranceList.length > 0) {
       cnt += _videoEntranceList.length;
     }
+    //暗夜模式开关
+    cnt += 1;
     return cnt;
   }
 
@@ -337,17 +378,15 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
                 _isShowLoading = true;
                 _reloadData();
                 _watchedNewVideo = false;
-                setState(() {
-
-                });
+                setState(() {});
               }
             }
           } else if (event is SettingSwitchEvent) {
             SettingModel setting = event.setting;
             if (setting.isEnvSwitched || (setting.oldLan != setting.newLan)) {
               _resetPageData();
-              if ((setting.oldLan != setting.newLan)
-                  && _videoEntranceList != null &&
+              if ((setting.oldLan != setting.newLan) &&
+                  _videoEntranceList != null &&
                   _videoEntranceList.isNotEmpty) {
                 _videoEntranceList.clear();
                 _initHistoryVideoItemData();
@@ -358,12 +397,11 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
                   _reloadData();
                 }
               }
-              setState(() {
-              });
+              setState(() {});
             }
           } else if (event is WatchVideoEvent) {
             if (_isLoggedIn) {
-               _watchedNewVideo = true;
+              _watchedNewVideo = true;
             }
           }
         }
@@ -398,11 +436,7 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage> with RouteAwa
 
   ///登录
   void _startLogIn() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-      return WebViewPage(
-        Constant.logInWebViewUrl,
-      );
-    }));
+    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
   }
 
   void _showLoadDataFailTips() {
@@ -428,90 +462,112 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   @override
   Widget build(BuildContext context) {
     double itemWidth = 139, coverHeight = 78.0, fontSize = 11;
+    String imageUrl = widget.video?.videoImageCompress?.videoCompressUrl ?? "";
+    if (ObjectUtil.isEmptyString(imageUrl)) {
+      imageUrl = widget.video?.videoCoverBig ?? '';
+    }
     return Material(
+      color: Colors.transparent,
       child: Ink(
-        color: Common.getColorFromHexString("FFFFFFFF", 1.0),
+        color: AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
+            darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
         child: InkWell(
           onTap: () {},
           child: Container(
-            color: Common.getColorFromHexString("FFFFFFFF", 1.0),
+            color: AppThemeUtil.setDifferentModeColor(
+                lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
+                darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
             width: itemWidth,
             padding: EdgeInsets.only(left: 12),
             child: Material(
+                color: Colors.transparent,
                 child: Ink(
-              color: Common.getColorFromHexString("FFFFFFFF", 1.0),
-              child: InkWell(
-                onTap: () {
-                  _onClickToPlayVideo(widget.video?.id, widget.video?.uid, widget.video?.videosource);
-                },
-                child: Column(
-                  children: <Widget>[
-                    Stack(
+                  color: AppThemeUtil.setDifferentModeColor(
+                      lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
+                      darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+                  child: InkWell(
+                    onTap: () {
+                      _onClickToPlayVideo(widget.video?.id, widget.video?.uid,
+                          widget.video?.videosource);
+                    },
+                    child: Column(
                       children: <Widget>[
+                        Stack(
+                          children: <Widget>[
+                            Container(
+                              width: itemWidth,
+                              height: coverHeight,
+                              decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.all(Radius.circular(3)),
+//                                color: Common.getColorFromHexString("D6D6D6", 1.0),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Common.getColorFromHexString("838383", 1),
+                                    Common.getColorFromHexString("333333", 1),
+                                  ],
+                                ),
+                              ),
+                              child: CachedNetworkImage(
+                                fit: BoxFit.fitHeight,
+                                placeholder:
+                                    (BuildContext context, String url) {
+                                  return Container(
+                                    color: Common.getColorFromHexString(
+                                        "D6D6D6", 1.0),
+                                  );
+                                },
+                                imageUrl: imageUrl,
+                              ),
+                            ),
+                            _getVideoDurationWidget(),
+                          ],
+                        ),
+                        //视频封面
+
+                        //标题
                         Container(
                           width: itemWidth,
-                          height: coverHeight,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.all(Radius.circular(3)),
-//                                color: Common.getColorFromHexString("D6D6D6", 1.0),
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Common.getColorFromHexString("838383", 1),
-                                Common.getColorFromHexString("333333", 1),
-                              ],
-                            ),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(3),
-                            child: CachedNetworkImage(
-                              fit: BoxFit.fitHeight,
-                              placeholder: (BuildContext context, String url) {
-                                return Container(
-                                  color: Common.getColorFromHexString(
-                                      "D6D6D6", 1.0),
-                                );
-                              },
-                              imageUrl: widget.video?.videoCoverBig ?? "",
+                          margin: EdgeInsets.only(top: 10),
+                          child: Text(
+                            widget.video?.title ?? "",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            style: TextStyle(
+                              fontSize: fontSize,
+                              color: AppThemeUtil.setDifferentModeColor(
+                                  lightColor: Common.getColorFromHexString(
+                                      "333333", 1.0),
+                                  darkColorStr: DarkModelTextColorUtil
+                                      .firstLevelBrightnessColorStr),
                             ),
                           ),
                         ),
-                        _getVideoDurationWidget(),
+                        //作者
+                        Container(
+                          margin: EdgeInsets.only(top: 2),
+                          width: itemWidth,
+                          child: Text(
+                            widget.video?.anchorNickname ?? "",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                              fontSize: fontSize,
+                              color: AppThemeUtil.setDifferentModeColor(
+                                  lightColor: Common.getColorFromHexString(
+                                      "858585", 1.0),
+                                  darkColorStr: DarkModelTextColorUtil
+                                      .secondaryBrightnessColorStr),
+                            ),
+                          ),
+                        ),
                       ],
                     ),
-                    //视频封面
-
-                    //标题
-                    Container(
-                      width: itemWidth,
-                      margin: EdgeInsets.only(top: 10),
-                      child: Text(
-                        widget.video?.title ?? "",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                        style: TextStyle(
-                            fontSize: fontSize,
-                            color: Common.getColorFromHexString("333333", 1.0)),
-                      ),
-                    ),
-                    //作者
-                    Container(
-                      margin: EdgeInsets.only(top: 2),
-                      width: itemWidth,
-                      child: Text(
-                        widget.video?.anchorNickname ?? "",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                        style: TextStyle(
-                            fontSize: fontSize,
-                            color: Common.getColorFromHexString("858585", 1.0)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )),
+                  ),
+                )),
           ),
         ),
       ),
@@ -521,8 +577,8 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   Widget _getVideoDurationWidget() {
     if (Common.checkVideoDurationValid(widget.video?.duration)) {
       return Positioned(
-        right: 3,
-        bottom: 3,
+        right: 0,
+        bottom: 0,
         child:
             VideoTimeWidget(Common.formatVideoDuration(widget.video?.duration)),
       );
@@ -544,21 +600,26 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
 //          "due to empty uid");
 //      return;
 //    }
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-      return VideoDetailsPage(
-          VideoDetailPageParamsBean.createInstance(
-              vid: vid,
-              uid: uid,
-              videoSource: videoSource,
-          ));
-    }));
+    Navigator.of(context).push(SlideAnimationRoute(
+      builder: (_) {
+        return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
+            vid: vid,
+            uid: uid,
+            videoSource: videoSource,
+            enterSource:
+            VideoDetailsEnterSource.VideoDetailsEnterSourceWatchHistory));
+      },
+      settings: RouteSettings(name: videoDetailPageRouteName),
+      isCheckAnimation: true,
+    ));
   }
 
   void _reportVideoClick() {
     if (widget?.video?.id != null) {
 //      DataReportUtil.instance.reportData(
 //          eventName: "Click_video", params: {"Click_video": widget.video.id});
-      VideoReportUtil.reportClickVideo(ClickVideoSource.History, widget.video?.id ?? '');
+      VideoReportUtil.reportClickVideo(
+          ClickVideoSource.History, widget.video?.id ?? '');
     }
   }
 }
@@ -583,10 +644,15 @@ class _RecentWatchViewState extends State<RecentWatchView> {
       padding: EdgeInsets.fromLTRB(0, 15, 10, 10),
       width: screenWidth,
       decoration: BoxDecoration(
-        color: Common.getColorFromHexString("FFFFFF", 1.0),
+        color: AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("FFFFFF", 1.0),
+            darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
         border: Border(
             bottom: BorderSide(
-                color: Common.getColorFromHexString("EBEBEB", 1), width: 0.5)),
+                color: AppThemeUtil.setDifferentModeColor(
+                    lightColor: Common.getColorFromHexString("EBEBEB", 1),
+                    darkColorStr: "3E3E3E"),
+                width: 0.5)),
       ),
       child: Column(
         children: <Widget>[
@@ -599,7 +665,11 @@ class _RecentWatchViewState extends State<RecentWatchView> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                   fontSize: 15,
-                  color: Common.getColorFromHexString("333333", 1.0)),
+                  color: AppThemeUtil.setDifferentModeColor(
+                    lightColor: Common.getColorFromHexString("333333", 1.0),
+                    darkColorStr:
+                        DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                  )),
             ),
           ),
           //视频列表
@@ -651,12 +721,15 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
   Widget build(BuildContext context) {
     double itemWidth = MediaQuery.of(context).size.width,
         lIconSize = 16.0,
-        rIconWidth = 5,
+        rIconWidth = 15,
         descLeftMargin = 10,
         itemPadding = 15.0;
     return Material(
+      color: Colors.transparent,
       child: Ink(
-        color: Common.getColorFromHexString("FFFFFFFF", 1.0),
+        color: AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
+            darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
         child: InkWell(
           child: Container(
             width: itemWidth,
@@ -680,7 +753,7 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
                       descLeftMargin -
                       itemPadding * 2 -
                       lIconSize -
-                      15,
+                      17,
                   margin: EdgeInsets.only(left: descLeftMargin),
                   child: Text(
                     widget.data?.desc ?? "",
@@ -688,7 +761,10 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
                     maxLines: 1,
                     style: TextStyle(
                       fontSize: 14,
-                      color: _getDescTextColor(),
+                      color: AppThemeUtil.setDifferentModeColor(
+                          lightColorStr: "333333",
+                          darkColorStr: DarkModelTextColorUtil
+                              .firstLevelBrightnessColorStr),
                     ),
                   ),
                 ),
@@ -696,8 +772,9 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
                 Container(
                   margin: EdgeInsets.only(left: 2),
                   child: Image.asset(
-                    "assets/images/ic_history_more.png",
-//                    width: rIconWidth,
+                    AppThemeUtil.getHistoryEntranceRightIcn(),
+                    width: rIconWidth,
+                    height: rIconWidth,
                     fit: BoxFit.contain,
                   ),
                 )
@@ -712,33 +789,46 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
     );
   }
 
-  Color _getDescTextColor() {
-    HistoryVideoType tp = widget.data?.type;
-    if (tp != null && tp == HistoryVideoType.RecentlyWatched) {
-      return Common.getColorFromHexString("5F6369", 1.0);
+  String _getMoreIcn() {
+    if (AppThemeUtil.checkIsDarkMode()) {
+      return AppThemeUtil.getRightIcn();
     }
-    return Common.getColorFromHexString("333333", 1.0);
+    return "assets/images/ic_history_more.png";
   }
 
   void _onClickEntrance() {
     HistoryVideoType tp = widget.data?.type;
     if (tp != null) {
       if (tp == HistoryVideoType.RecentlyWatched) {
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-          return WatchVideoHistory(
-            uid: widget.uid,
-          );
-        }));
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WatchVideoHistory(
+              uid: widget.uid,
+            );
+          },
+        ));
       } else if (tp == HistoryVideoType.Liked) {
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-          return UserLikedVideoPage(
-            uid: widget.uid,
-          );
-        }));
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return UserLikedVideoPage(
+              uid: widget.uid,
+            );
+          },
+        ));
+      } else if (tp == HistoryVideoType.Uploaded) {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return UploadedVideos(
+              uid: widget.uid,
+            );
+          },
+        ));
       } else if (tp == HistoryVideoType.ProblemFeedback) {
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) {
-          return WebViewPage(Constant.problemFeedbackUrl);
-        }));
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(Constant.problemFeedbackUrl);
+          },
+        ));
       }
     } else {
       CosLogUtil.log("history video type is empty");

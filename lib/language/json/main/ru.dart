@@ -3,6 +3,7 @@ var mainRu = {
     "homeTitle": "Главная страница",
     "homePopularTitle": "Популярные видео",
     "homeMySubscriptionTitle": "Мои подписки",
+    "homeMessage": "Notifications",
     "homeSeeHistoryTitle": "История просмотров",
     "noMoreOperateVideo": "Нет больше данных"
   },
@@ -65,5 +66,10 @@ var mainRu = {
     "minutes": "\${minutes}Минута",
     "hours": "\${hours}Час",
     "days": "\${days} день/дня/дней"
+  },
+  "message": {
+    "commentTitle": "Comment",
+    "commentNoVideo": "The video is deleted",
+    "commentNoComment": "The comment is deleted"
   }
 };

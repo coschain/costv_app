@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:cosdart/types.dart';
 
 typedef GetExchangeRateFailCallBack = void Function(String error);
-
+typedef GetExchangeRateLoadTimeCallBack = void Function(int milliseconds);
 
 /// 热门标签类型
 enum HotTopicType {
@@ -36,6 +36,7 @@ enum HistoryVideoType {
   RecentlyWatched, //最近观看
   Liked, //点过赞的视频，
   GiftTicketReward, //打赏过礼物派票的视频
+  Uploaded, //上传的视频
   ProblemFeedback, //问题反馈
 }
 
@@ -47,8 +48,11 @@ class HistoryVideoItemModel {
 }
 
 class VideoUtil {
-  static Future<ExchangeRateInfoData> requestExchangeRate(String tag, {GetExchangeRateFailCallBack failCallBack}) async {
+  static Future<ExchangeRateInfoData> requestExchangeRate(String tag,
+      {GetExchangeRateFailCallBack failCallBack,
+        GetExchangeRateLoadTimeCallBack loadTimeCallBack}) async {
     ExchangeRateInfoData data;
+    int sTime = DateTime.now().millisecondsSinceEpoch;
     await RequestManager.instance.getExchangeRateInfo(tag).then((response) {
       if (response == null) {
         CosLogUtil.log("fail to request exchange rate info");
@@ -74,6 +78,11 @@ class VideoUtil {
         failCallBack("get ExchangeRate exception: the error is $err");
       }
     }).whenComplete(() {});
+    int eTime = DateTime.now().millisecondsSinceEpoch;
+    int loadTime = eTime - sTime;
+    if (loadTimeCallBack != null) {
+      loadTimeCallBack(loadTime);
+    }
     return data;
   }
 
@@ -137,7 +146,7 @@ class VideoUtil {
       BuildContext context, GetVideoListNewDataListBean video) {
     String desc = "";
     if (Common.checkIsNotEmptyStr(video?.watchNum)) {
-      desc += video.watchNum + InternationalLocalizations.playCount;
+      desc += video.watchNum + " " + InternationalLocalizations.playCount;
     }
     return desc;
   }
@@ -218,7 +227,7 @@ class VideoUtil {
 //  }
 
   static bool checkVideoListIsNotEmpty(
-      List<GetVideoListNewDataListBean> videoList) {
+      List<dynamic> videoList) {
     if (videoList != null && videoList.isNotEmpty) {
       return true;
     }

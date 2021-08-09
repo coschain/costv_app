@@ -8,7 +8,7 @@ var videoDetailZh = {
     "videoNoMoreComment": "沒有更多留言",
     "videoHotSort": "依熱度排序",
     "videoTimeSort": "依時間排序",
-    "videoInputMsgHint": "嗨，來聊天吧～",
+    "videoCommentInputHint": "新增留言",
     "videoRecommendation": "相關影片推薦",
     "videoCommentCount": "則留言",
     "videoCommentReply": "回覆",
@@ -31,7 +31,20 @@ var videoDetailZh = {
     "videoLoginPop": "登錄賺取POP",
     "videoLinkFinishHint": "結算期已結束,不能點贊",
     "videoClickMoreComment": "點擊查看更多留言",
-    "energyNotEnoughTips": "您目前的能量值已不足 3.3% ，不能進行按讚，能量值將在\${minutes}分鐘後恢復，請您稍作等待"
+    "energyNotEnoughTips": "您目前的能量值已不足 3.3% ，不能進行按讚，能量值將在\${minutes}分鐘後恢復，請您稍作等待",
+    "autoPlayDesc": "自動播放",
+    "aboutToPaly": "即將播放:",
+    "playNow": "立即播放",
+    "replay": "重播",
+    "autoPlayFunctionDesc": "啟用自動播放功能後，系統會自動播放下一部推薦的影片",
+    "refreshList":"重整列表",
+    "loadFail":"載入失敗",
+    "recommendCountDownTips":"即將播放該創作者的下一個影片：",
+    "countDownSeconds":"\${second} 秒",
+    "videoCreator":"創作者",
+    "viewReply": "查看\${num}則回覆",
+    "lookComment": "查看回覆",
+    "commentHint": "留下評論，和大家討論你的想法~"
   },
   "videoReport": {
     "reportInformVideo": "舉報影片",
@@ -69,5 +82,26 @@ var videoDetailZh = {
       "字幕問題",
       "其他問題"
     ]
+  },
+  "commentDelete": {
+    "commentDeleteTitle": "刪除評論",
+    "commentDeleteSuccess": "留言刪除成功，重新載入頁面更新留言區",
+    "commentDeleteAuthor": "只有影片創作者可以刪除留言哦~",
+    "commentDeleteTypeCodeList": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "commentDeleteTypeNameList": [
+      "廣告或是垃圾訊息",
+      "色情內容",
+      "虐待兒童",
+      "血腥暴力內容或是仇恨言論",
+      "騷擾或是霸凌內容"
+    ],
+    "commentDeleteTips": "刪除留言後，留言下所有回覆都會被刪除",
+    "commentDeleteSuccessTips": "已刪除留言"
   }
 };

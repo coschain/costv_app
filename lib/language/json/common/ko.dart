@@ -8,6 +8,7 @@ var commonKo = {
   "httpError": "알 수 없는 오류 발생",
   "cancel": "취소",
   "carryOn": "계속",
+  "delete": "삭제",
   "back": "돌아가기",
   "close": "닫기",
   "noMoreData": "데이터가 없습니다",
@@ -16,10 +17,19 @@ var commonKo = {
   "netError": "인터넷 연결을 확인해주세요",
   "notLogInTips": "로그인 해주세요",
   "subscriptionLogInTips": "로그인 후 구독중인 콘텐츠를 확인할 수 있습니다",
+  "messageLogInTips": "Log in to see your notifications",
   "watchHistoryLogInTips": "로그인 후 재생 히스토리를 확인할 수 있습니다",
   "netRequestFailTips": "네트워크 요청 실패",
   "netRequestFailDesc": "네트워크를 확인하시고 새로고침 해주세요",
   "reloadData": "새로고침",
   "updateTitle": "\${version} (으)로 업그레이드 하시겠습니까?",
-  "updateConfirm": "업그레이드"
+  "updateConfirm": "업그레이드",
+  "messageNoData": "No Notifications",
+  "lightModeDesc": "Light Mode",
+  "darkModeDesc": "Dark Mode",
+  "emoji": {
+    "emojiUnlockTitle": "How to unlock all stickers in \"Epamoji\"",
+    "emojiUnlockHint": "Send 100 Gifting Votes or more in total to Voepa, to unlock all stickers in \"Epamoji\"",
+    "emojiUnlockGo": "(Note: Please go to COS.TV Web on your phone or computer to try Gifting Votes function)"
+  }
 };

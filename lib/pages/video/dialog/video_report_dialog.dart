@@ -6,9 +6,10 @@ import 'package:costv_android/constant.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/video/bean/report_radio_bean.dart';
-import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/toast_util.dart';
+import 'package:costv_android/utils/web_view_util.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
@@ -39,9 +40,12 @@ class VideoReportDialog {
   BuildContext _context;
 
   VideoReportDialog(this._tag, this._pageKey, this._dialogSKey) {
-    for (int i = 0; i < InternationalLocalizations.reportTypeCodeList.length; i++) {
+    for (int i = 0;
+        i < InternationalLocalizations.reportTypeCodeList.length;
+        i++) {
       _listReport.add(ReportRadioBean(
-          InternationalLocalizations.reportTypeCodeList[i], InternationalLocalizations.reportTypeNameList[i]));
+          InternationalLocalizations.reportTypeCodeList[i],
+          InternationalLocalizations.reportTypeNameList[i]));
     }
   }
 
@@ -67,7 +71,7 @@ class VideoReportDialog {
           _stateSetter = state;
           return Scaffold(
             key: _dialogSKey,
-            resizeToAvoidBottomPadding: false,
+            resizeToAvoidBottomInset: false,
             backgroundColor: Colors.transparent,
             body: SimpleDialog(
               titlePadding: EdgeInsets.all(0.0),
@@ -95,7 +99,10 @@ class VideoReportDialog {
     return Container(
       width: AppDimens.item_size_290,
       height: AppDimens.item_size_470,
-      color: AppColors.color_ffffff,
+      color: AppThemeUtil.setDifferentModeColor(
+        lightColor: AppColors.color_ffffff,
+        darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
@@ -115,7 +122,13 @@ class VideoReportDialog {
                 ReportRadioBean bean = _listReport[index];
                 return RadioListTile<String>(
                   title:
-                      Text(bean.getName, style: AppStyles.text_style_333333_12),
+                      Text(bean.getName, style: TextStyle(
+                        color: AppThemeUtil.setDifferentModeColor(
+                          lightColor: AppColors.color_333333,
+                          darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                        ),
+                        fontSize: AppDimens.text_size_12,
+                      )),
                   value: bean.getCode,
                   groupValue: _selectCode,
                   onChanged: (value) {
@@ -141,7 +154,10 @@ class VideoReportDialog {
     return Container(
       width: AppDimens.item_size_290,
       height: AppDimens.item_size_425,
-      color: AppColors.color_ffffff,
+      color: AppThemeUtil.setDifferentModeColor(
+        lightColor: AppColors.color_ffffff,
+        darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+      ),
       child: Column(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -163,7 +179,13 @@ class VideoReportDialog {
             ),
             child: Text(
               '${InternationalLocalizations.reportTime}*',
-              style: AppStyles.text_style_333333_12,
+              style: TextStyle(
+                color: AppThemeUtil.setDifferentModeColor(
+                  lightColor: AppColors.color_333333,
+                  darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                ),
+                fontSize: AppDimens.text_size_12,
+              ),
             ),
           ),
           InkWell(
@@ -182,7 +204,13 @@ class VideoReportDialog {
                       children: <Widget>[
                         Text(
                           '${(_dateTime.hour).toString().padLeft(2, '0')}',
-                          style: AppStyles.text_style_333333_20,
+                          style: TextStyle(
+                            color: AppThemeUtil.setDifferentModeColor(
+                              lightColor: AppColors.color_333333,
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                            ),
+                            fontSize: AppDimens.text_size_20,
+                          ),
                         ),
                         Divider(
                           height: AppDimens.item_line_height_1,
@@ -193,7 +221,13 @@ class VideoReportDialog {
                   ),
                   Text(
                     ':',
-                    style: AppStyles.text_style_333333_20,
+                    style: TextStyle(
+                      color: AppThemeUtil.setDifferentModeColor(
+                        lightColor: AppColors.color_333333,
+                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      ),
+                      fontSize: AppDimens.text_size_20,
+                    ),
                   ),
                   SizedBox(
                     width: AppDimens.item_size_30,
@@ -201,7 +235,13 @@ class VideoReportDialog {
                       children: <Widget>[
                         Text(
                           '${(_dateTime.minute % 60).toString().padLeft(2, '0')}',
-                          style: AppStyles.text_style_333333_20,
+                          style: TextStyle(
+                            color: AppThemeUtil.setDifferentModeColor(
+                              lightColor: AppColors.color_333333,
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                            ),
+                            fontSize: AppDimens.text_size_20,
+                          ),
                         ),
                         Divider(
                           height: AppDimens.item_line_height_1,
@@ -212,7 +252,13 @@ class VideoReportDialog {
                   ),
                   Text(
                     ':',
-                    style: AppStyles.text_style_333333_20,
+                    style: TextStyle(
+                      color: AppThemeUtil.setDifferentModeColor(
+                        lightColor: AppColors.color_333333,
+                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      ),
+                      fontSize: AppDimens.text_size_20,
+                    ),
                   ),
                   SizedBox(
                     width: AppDimens.item_size_30,
@@ -220,7 +266,13 @@ class VideoReportDialog {
                       children: <Widget>[
                         Text(
                           '${(_dateTime.second % 60).toString().padLeft(2, '0')}',
-                          style: AppStyles.text_style_333333_20,
+                          style: TextStyle(
+                            color: AppThemeUtil.setDifferentModeColor(
+                              lightColor: AppColors.color_333333,
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                            ),
+                            fontSize: AppDimens.text_size_20,
+                          ),
                         ),
                         Divider(
                           height: AppDimens.item_line_height_1,
@@ -273,9 +325,21 @@ class VideoReportDialog {
                   }
                 },
                 controller: textController,
-                style: AppStyles.text_style_333333_12,
+                style: TextStyle(
+                  color: AppThemeUtil.setDifferentModeColor(
+                    lightColor: AppColors.color_333333,
+                    darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                  ),
+                  fontSize: AppDimens.text_size_12,
+                ),
                 decoration: InputDecoration(
-                  hintStyle: AppStyles.text_style_a0a0a0_12,
+                  hintStyle: TextStyle(
+                    color: AppThemeUtil.setDifferentModeColor(
+                      lightColor: AppColors.color_a0a0a0,
+                      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                    ),
+                    fontSize: AppDimens.text_size_12,
+                  ),
                   hintText: InternationalLocalizations.reportInputMsgHint,
                   border: InputBorder.none,
                 ),
@@ -395,9 +459,9 @@ class VideoReportDialog {
     if (!ObjectUtil.isEmptyString(Constant.uid)) {
       _httpGetVideoInfo();
     } else {
-      Navigator.of(_context).push(MaterialPageRoute(builder: (_) {
-        return WebViewPage(Constant.logInWebViewUrl);
-      })).then((isSuccess) {
+      WebViewUtil.instance
+          .openWebViewResult(Constant.logInWebViewUrl)
+          .then((isSuccess) {
         if (isSuccess != null && isSuccess) {
           _checkAbleVideoReportAdd();
         }
@@ -417,7 +481,14 @@ class VideoReportDialog {
           ),
           child: Text(
             InternationalLocalizations.reportTipsOne,
-            style: AppStyles.text_style_333333_11,
+            style: TextStyle(
+              color: AppThemeUtil.setDifferentModeColor(
+                lightColor: AppColors.color_333333,
+                darkColorStr:
+                    DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+              ),
+              fontSize: AppDimens.text_size_11,
+            ),
           ),
         ),
         Container(
@@ -429,11 +500,21 @@ class VideoReportDialog {
               Expanded(
                   flex: 1,
                   child: Material(
-                    color: AppColors.color_d6d6d6,
+                    color: AppThemeUtil.setDifferentModeColor(
+                      lightColor: AppColors.color_d6d6d6,
+                      darkColorStr: "858585",
+                    ),
                     child: MaterialButton(
                       child: Text(
                         InternationalLocalizations.cancel,
-                        style: AppStyles.text_style_ffffff_14,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: AppThemeUtil.setDifferentModeColor(
+                            lightColor: AppColors.color_ffffff,
+                            darkColorStr: "FFFFFF",
+                          ),
+                          fontSize: AppDimens.text_size_14,
+                        ),
                       ),
                       onPressed: () {
                         Navigator.of(_context).pop();
@@ -444,12 +525,19 @@ class VideoReportDialog {
                   flex: 1,
                   child: Material(
                     color: _isAbleCarryOn
-                        ? AppColors.color_3674ff
-                        : AppColors.color_d6d6d6,
+                        ? AppThemeUtil.setDifferentModeColor(
+                            lightColor: AppColors.color_3674ff,
+                            darkColorStr: "285ED8",
+                          )
+                        : AppThemeUtil.setDifferentModeColor(
+                            lightColor: AppColors.color_d6d6d6,
+                            darkColorStr: "858585",
+                          ),
                     child: MaterialButton(
                       child: Text(
                         InternationalLocalizations.carryOn,
                         style: AppStyles.text_style_ffffff_14,
+                        textAlign: TextAlign.center,
                       ),
                       onPressed: () {
                         if (_isAbleCarryOn) {
@@ -464,7 +552,8 @@ class VideoReportDialog {
                             int seconds = _dateTime.second % 60;
                             String time = '$hours.$minutes.$seconds';
                             if (Common.isTimeCompareMoreThan(time, _duration)) {
-                              ToastUtil.showToast(InternationalLocalizations.reportTimeTips,
+                              ToastUtil.showToast(
+                                  InternationalLocalizations.reportTimeTips,
                                   toast: Toast.LENGTH_LONG);
                             } else {
                               _time =
@@ -487,7 +576,13 @@ class VideoReportDialog {
   Widget _buildCommonTop() {
     return Text(
       InternationalLocalizations.reportInformVideo,
-      style: AppStyles.text_style_333333_16,
+      style: TextStyle(
+        color: AppThemeUtil.setDifferentModeColor(
+          lightColor: AppColors.color_333333,
+          darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+        ),
+        fontSize: AppDimens.text_size_16,
+      ),
     );
   }
 

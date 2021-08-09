@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
 
@@ -25,7 +24,7 @@ class CosTvFullScreenBuilder {
       Animation<double> animation,
       dynamic controllerProvider) {
     return Scaffold(
-      resizeToAvoidBottomPadding: false,
+      resizeToAvoidBottomInset: false,
       body: Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(

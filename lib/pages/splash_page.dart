@@ -4,10 +4,16 @@ import 'package:costv_android/constant.dart';
 import 'package:costv_android/db/login_info_db_bean.dart';
 import 'package:costv_android/db/login_info_db_provider.dart';
 import 'package:costv_android/pages/main_page.dart';
+import 'package:costv_android/utils/cloud_control_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
-import 'package:costv_android/values/app_dimens.dart';
-import 'package:flutter/material.dart';
 import "package:costv_android/utils/data_report_util.dart";
+import 'package:costv_android/utils/global_util.dart';
+import 'package:costv_android/values/app_dimens.dart';
+import 'package:costv_android/values/app_styles.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class SplashPage extends StatefulWidget {
   @override
@@ -26,6 +32,7 @@ class _SplashPageState extends State<SplashPage> {
   void initState() {
     super.initState();
     _initData();
+    CloudControlUtil.instance.fetchCloudControl();
   }
 
   Future _initData() async {
@@ -40,6 +47,10 @@ class _SplashPageState extends State<SplashPage> {
         Constant.uid = loginInfoDbBean.getUid;
         Constant.token = loginInfoDbBean.getToken;
         Constant.accountName = loginInfoDbBean.getChainAccountName;
+        MethodChannel methodChannelLogin =
+            MethodChannel(MainPageState.channelLogin);
+        methodChannelLogin.invokeMethod(
+            MainPageState.loginSetLoginInfo, Constant.uid);
       }
     } catch (e) {
       CosLogUtil.log("$tag: e = $e");
@@ -50,10 +61,15 @@ class _SplashPageState extends State<SplashPage> {
       CosLogUtil.log("$tag time = ${timeEnd - _timeBegin}");
       if ((timeEnd - _timeBegin) < waitTime) {
         CosLogUtil.log("$tag wait");
-        Future.delayed(Duration(milliseconds: waitTime - (timeEnd - _timeBegin)), () {
+        Future.delayed(
+            Duration(milliseconds: waitTime - (timeEnd - _timeBegin)), () {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => MainPage()),
+            SlideAnimationRoute(
+              builder: (_) {
+                return MainPage();
+              },
+            ),
             (route) => route == null,
           );
         });
@@ -61,34 +77,31 @@ class _SplashPageState extends State<SplashPage> {
         CosLogUtil.log("$tag no wait");
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => MainPage()),
+          SlideAnimationRoute(
+            builder: (_) {
+              return MainPage();
+            },
+          ),
           (route) => route == null,
         );
       }
       _reportSplashStart(_timeBegin.toString());
+      _reportStartWithDarkMode();
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    brightnessModel = MediaQuery.of(context).platformBrightness;
     double statusHeight = MediaQuery.of(context).padding.top;
     return Material(
       child: Container(
         margin: EdgeInsets.only(top: statusHeight),
-        child: Stack(
-          alignment: Alignment.topCenter,
-          children: <Widget>[
-            Image.asset(
-              'assets/images/bg_startup_diagram.png',
-              fit: BoxFit.cover,
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height - statusHeight,
-            ),
-            Container(
-              margin: EdgeInsets.only(top: AppDimens.margin_177),
-              child: Image.asset('assets/images/ic_logo.png'),
-            ),
-          ],
+        child: Image.asset(
+          'assets/images/bg_startup_logo.webp',
+          fit: BoxFit.cover,
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height - statusHeight,
         ),
       ),
     );
@@ -100,6 +113,14 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void _reportSplashStart(String startTime) {
-    DataReportUtil.instance.reportData(eventName: "Splash", params: {"start": startTime});
+    DataReportUtil.instance
+        .reportData(eventName: "Splash", params: {"start": startTime});
+  }
+
+  void _reportStartWithDarkMode() {
+    if (brightnessModel == Brightness.dark) {
+      DataReportUtil.instance.reportData(
+          eventName: "Start_darkmode", params: {"Start_darkmode": "1"});
+    }
   }
 }

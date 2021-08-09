@@ -13,7 +13,13 @@ import 'package:flutter/material.dart';
 /// Description:
 
 class AppStyles {
+
   AppStyles._();
+
+  static const TextStyle text_style_ffffff_9 = const TextStyle(
+    color: AppColors.color_ffffff,
+    fontSize: AppDimens.text_size_9,
+  );
 
   static const TextStyle text_style_ffffff_12 = const TextStyle(
     color: AppColors.color_ffffff,
@@ -172,14 +178,35 @@ class AppStyles {
     fontSize: AppDimens.text_size_14,
   );
 
+  static const TextStyle text_style_3674ff_8 = const TextStyle(
+    color: AppColors.color_3674ff,
+    fontSize: AppDimens.text_size_8,
+  );
+
   static const TextStyle text_style_3674ff_9 = const TextStyle(
     color: AppColors.color_3674ff,
     fontSize: AppDimens.text_size_9,
   );
 
+  static const TextStyle text_style_3674ff_10 = const TextStyle(
+    color: AppColors.color_3674ff,
+    fontSize: AppDimens.text_size_10,
+  );
+
   static const TextStyle text_style_3674ff_14 = const TextStyle(
     color: AppColors.color_3674ff,
     fontSize: AppDimens.text_size_14,
+  );
+
+  static const TextStyle text_style_3674ff_bold_14 = const TextStyle(
+    color: AppColors.color_3674ff,
+    fontSize: AppDimens.text_size_14,
+    fontWeight: FontWeight.w700,
+  );
+
+  static const TextStyle text_style_3674ff_15 = const TextStyle(
+    color: AppColors.color_3674ff,
+    fontSize: AppDimens.text_size_15,
   );
 
   static const TextStyle text_style_3674ff_16 = const TextStyle(
@@ -207,6 +234,11 @@ class AppStyles {
   static const TextStyle text_style_666666_14 = const TextStyle(
     color: AppColors.color_666666,
     fontSize: AppDimens.text_size_14,
+  );
+
+  static const TextStyle text_style_c20a0a_12 = const TextStyle(
+    color: AppColors.color_c20a0a,
+    fontSize: AppDimens.text_size_12,
   );
 
 }

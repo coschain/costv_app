@@ -8,6 +8,7 @@ var commonRu = {
   "httpError": "Неизвестная ошибка",
   "cancel": "Отменить",
   "carryOn": "Продолжить",
+  "delete": "Ударить",
   "back": "Назад",
   "close": "Открыть",
   "noMoreData": "Больше нет данных",
@@ -16,11 +17,20 @@ var commonRu = {
   "netError": "У вас нет интернета,Пожалуйста, проверьте ваше интернет-соединение.",
   "notLogInTips": "Вы еще не входили",
   "subscriptionLogInTips": "Войдите, чтобы увидеть свои подписки",
+  "messageLogInTips": "Log in to see your notifications",
   "watchHistoryLogInTips": "Войдите, чтобы увидеть историю просмотров",
   "netRequestFailTips": "Ошибка подключения к интернету",
   "netRequestFailDesc": "Пожалуйста, проверьте ваше интернет-соединение и попробуйте снова.",
   "reloadData": "Перезагружается",
   "updateTitle": "Обновить до \${version}?",
-  "updateConfirm": "Обновление"
+  "updateConfirm": "Обновление",
+  "messageNoData": "No Notifications",
+  "lightModeDesc": "Light Mode",
+  "darkModeDesc": "Dark Mode",
+  "emoji": {
+    "emojiUnlockTitle": "How to unlock all stickers in \"Epamoji\"",
+    "emojiUnlockHint": "Send 100 Gifting Votes or more in total to Voepa, to unlock all stickers in \"Epamoji\"",
+    "emojiUnlockGo": "(Note: Please go to COS.TV Web on your phone or computer to try Gifting Votes function)"
+  }
 }
 ;

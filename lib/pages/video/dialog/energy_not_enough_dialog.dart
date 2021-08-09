@@ -29,7 +29,7 @@ class EnergyNotEnoughDialog {
           _stateSetter = state;
           return Scaffold(
             key: _dialogSKey,
-            resizeToAvoidBottomPadding: false,
+            resizeToAvoidBottomInset: false,
             backgroundColor: Colors.transparent,
             body: SimpleDialog(
               titlePadding: EdgeInsets.all(0.0),

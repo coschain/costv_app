@@ -11,7 +11,7 @@ description: A new Flutter application.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.4
+version: 1.1.5
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -24,37 +24,44 @@ dependencies:
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^0.1.2
-  event_bus: ^1.1.0
-  json_annotation: ^3.0.1
-  shared_preferences: ^0.5.6
-  fluttertoast: ^3.1.3
-  dio: ^3.0.7
-  flutter_picker:
-    git: git://github.com/yangyxd/flutter_picker.git
-  common_utils: ^1.1.3
-  flustars: ^0.2.6+1
-  device_info: ^0.4.1+1
-  cached_network_image: ^2.0.0
-  image_picker: ^0.6.2+3
-  url_launcher: ^5.4.1
-  sqflite: ^1.1.8
-  package_info: ^0.4.0+13
-  share: ^0.6.3+3
-  video_player: ^0.10.5
+  cupertino_icons: 0.1.3
+  event_bus: 1.1.1
+  json_annotation: 4.0.1
+  shared_preferences: 2.0.6
+  fluttertoast: 3.1.3
+  dio: 3.0.10
+  flutter_picker: 1.1.5
+  common_utils: 2.0.2
+  flustars: 2.0.1
+  device_info: 0.4.2+10
+  cached_network_image: 2.5.1
+  image_picker: 0.6.7+22
+  url_launcher: 5.7.6
+  sqflite: 2.0.0+3
+  package_info: 0.4.3+4
+  share: 2.0.4
   chewie:
     path: plugins/chewie
-  permission_handler: ^4.0.0
-  sensors_analytics_flutter_plugin: ^1.0.1
-  encrypt: ^3.3.1
-  get_ip: ^0.3.0
-  flutter_html: ^0.11.0
-  flutter_slidable: ^0.5.4
-  flutter_datetime_picker: ^1.3.1
-  firebase_core: ^0.4.3+2
-  firebase_analytics: ^5.0.9
-  auto_size_text: ^2.1.0
-  wakelock: ^0.1.3+3
+  permission_handler: 4.4.0+hotfix.4
+  sensors_analytics_flutter_plugin: 1.0.6
+  encrypt: 5.0.0
+  get_ip: 0.4.0
+  flutter_slidable: 0.5.7
+  flutter_datetime_picker: 1.5.0
+  firebase_analytics: 5.0.16
+  auto_size_text: 2.1.0
+  wakelock: 0.1.4+2
+  flutter_widgets: 0.1.12
+  flutter_linkify: 3.1.2
+  connectivity: 0.4.9+5
+  flutter_lottie: 0.2.0
+  video_thumbnail: 0.2.5+1
+  path_provider: 2.0.2
+  path: 1.8.0
+  image_cropper: 1.3.1
+  facebook_audience_network: 0.5.0
+  tvc_upload:
+    path: plugins/tvc_upload
   cosdart:
     git:
       url: git://github.com/coschain/cosdart.git
@@ -67,8 +74,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   #json序列化相关
-  build_runner: 1.7.1
-  json_serializable: 3.2.3
+  build_runner: 1.11.1
+  json_serializable: 4.0.2
 
 
 # For information on the generic Dart part of this file, see the
@@ -81,14 +88,36 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  fonts:
+    - family: DIN
+      fonts:
+        - asset: assets/fonts/DIN-Alternate-Bold.ttf
+    - family: Roboto
+      fonts:
+         - asset: assets/fonts/Roboto-Black.ttf
+         - asset: assets/fonts/Roboto-BlackItalic.ttf
+         - asset: assets/fonts/Roboto-Bold.ttf
+         - asset: assets/fonts/Roboto-BoldItalic.ttf
+         - asset: assets/fonts/Roboto-Italic.ttf
+         - asset: assets/fonts/Roboto-Light.ttf
+         - asset: assets/fonts/Roboto-LightItalic.ttf
+         - asset: assets/fonts/Roboto-Medium.ttf
+         - asset: assets/fonts/Roboto-MediumItalic.ttf
+         - asset: assets/fonts/Roboto-Regular.ttf
+         - asset: assets/fonts/Roboto-Thin.ttf
+         - asset: assets/fonts/Roboto-ThinItalic.ttf
+
   assets:
-    - assets/images/bg_label.png
     - assets/images/bg_play_avatar_gold.png
     - assets/images/bg_play_avatar_silver.png
-    - assets/images/bg_startup_diagram.png
+    - assets/images/bg_startup_logo.webp
     - assets/images/bg_top_avatar_gold.png
     - assets/images/bg_top_personal_information.png
     - assets/images/bg_triangle_white.png
+    - assets/images/dark_ic_small_window_video_close.png
+    - assets/images/dark_ic_small_window_video_play.png
+    - assets/images/dark_ic_small_window_video_replay.png
+    - assets/images/dark_ic_small_window_video_stop.png
     - assets/images/ic_attention.png
     - assets/images/ic_attention_all_finish.png
     - assets/images/ic_attention_finish.png
@@ -98,11 +127,17 @@ flutter:
     - assets/images/ic_close_black.png
     - assets/images/ic_comment_first.png
     - assets/images/ic_comment_heart.png
+    - assets/images/ic_comment_input_emoji_drak.png
+    - assets/images/ic_comment_input_emoji.png
+    - assets/images/ic_comment_input_text_drak.png
+    - assets/images/ic_comment_input_text.png
     - assets/images/ic_comment_like_no.png
     - assets/images/ic_comment_like_yes.png
     - assets/images/ic_default_avatar.png
     - assets/images/ic_down_money.png
     - assets/images/ic_down_title.png
+    - assets/images/ic_face_emoji.png
+    - assets/images/ic_face_voepa.png
     - assets/images/ic_gift.png
     - assets/images/ic_gift_count.png
     - assets/images/ic_gift_light.png
@@ -113,10 +148,12 @@ flutter:
     - assets/images/ic_hot_game.png
     - assets/images/ic_hot_music.png
     - assets/images/ic_input_close.png
-    - assets/images/ic_logo.png
     - assets/images/ic_menu.png
+    - assets/images/ic_message.png
+    - assets/images/ic_message_select.png
     - assets/images/ic_my_subscription.png
     - assets/images/ic_my_subscription_select.png
+    - assets/images/ic_no_comment.png
     - assets/images/ic_play_avatar_gold.png
     - assets/images/ic_play_avatar_silver.png
     - assets/images/ic_play_count.png
@@ -136,6 +173,10 @@ flutter:
     - assets/images/ic_see_history.png
     - assets/images/ic_see_history_select.png
     - assets/images/ic_share.png
+    - assets/images/ic_small_window_video_close.png
+    - assets/images/ic_small_window_video_play.png
+    - assets/images/ic_small_window_video_replay.png
+    - assets/images/ic_small_window_video_stop.png
     - assets/images/ic_third.png
     - assets/images/ic_title.png
     - assets/images/ic_title_default_avatar.png
@@ -145,6 +186,10 @@ flutter:
     - assets/images/ic_top_close.png
     - assets/images/ic_top_gift.png
     - assets/images/ic_top_more_msg.png
+    - assets/images/ic_unlock_emoji_body.png
+    - assets/images/ic_unlock_emoji_body_dark.png
+    - assets/images/ic_unlock_emoji_close_white.png
+    - assets/images/ic_unlock_emoji_head.png
     - assets/images/ic_update_app_top_bg.png
     - assets/images/ic_video_like_no.png
     - assets/images/ic_video_like_yes.png
@@ -153,6 +198,7 @@ flutter:
     - assets/images/ic_hot_music.png
     - assets/images/ic_hot_cute_pets.png
     - assets/images/ic_watch_history.png
+    - assets/images/ic_zoom_out_white.png
     - assets/images/ic_liked.png
     - assets/images/ic_gift_ticket_reward.png
     - assets/images/ic_delete.png
@@ -174,6 +220,81 @@ flutter:
     - assets/images/player_fullscreen_replay.png
     - assets/images/player_fullscreen_unlock.png
     - assets/images/img_subscription_projection.png
+    - assets/images/full_screen_replay.png
+    - assets/images/portrait_replay.png
+    - assets/images/icn_arrow_down.png
+    - assets/images/icn_refresh.png
+    - assets/images/icn_recommend_close.png
+    - assets/images/ic_comment_more.png
+    - assets/images/ic_comment_switch.png
+    - assets/images/ic_comment_certification.png
+    - assets/images/img_message_remind.png
+    - assets/images/icn_womens_day.png
+    - assets/images/dark_icn_history_select.png
+    - assets/images/dark_icn_history_unselect.png
+    - assets/images/dark_icn_home_select.png
+    - assets/images/dark_icn_home_unselect.png
+    - assets/images/dark_icn_hot_select.png
+    - assets/images/dark_icn_hot_unselect.png
+    - assets/images/dark_icn_message_select.png
+    - assets/images/dark_icn_message_unselect.png
+    - assets/images/dark_icn_subscription_select.png
+    - assets/images/dark_icn_subscription_unselect.png
+    - assets/images/dark_icn_liked.png
+    - assets/images/dark_icn_pop.png
+    - assets/images/dark_serch_icn.png
+    - assets/images/dark_icn_back.png
+    - assets/images/dark_icn_right.png
+    - assets/images/dark_logo_icn.png
+    - assets/images/dark_icn_watch_history.png
+    - assets/images/dark_icn_video_lieked_no.png
+    - assets/images/dark_icn_report.png
+    - assets/images/dark_icn_share.png
+    - assets/images/dark_icn_arrow_down.png
+    - assets/images/dark_icn_top_more_msg.png
+    - assets/images/dark_ic_down_title.png
+    - assets/images/dark_bg_triangle_black.png
+    - assets/images/dark_icn_search_close.png
+    - assets/images/icn_dark_mode_menu.png
+    - assets/images/icn_light_mode_menu.png
+    - assets/images/dark_mode_toast.png
+    - assets/images/light_mode_toast.png
+    - assets/images/dark_ic_watch_feedback.png
+    - assets/images/dark_icn_comment_like_no.png
+    - assets/images/dark_icn_comment_more.png
+    - assets/images/dark_icn_comment_switch.png
+    - assets/images/icn_video_prev_unable.png
+    - assets/images/icn_video_prev.png
+    - assets/images/icn_video_next.png
+    - assets/images/icn_video_next_unable.png
+    - assets/images/icn_history_right.png
+    - assets/images/icn_video_fullscreen_pause.png
+    - assets/images/icn_video_fullscreen_play.png
+    - assets/images/icn_video_portrait_play.png
+    - assets/images/icn_video_portrait_screen_pause.png
+    - assets/images/ic_upload.png
+    - assets/images/ic_upload_dark.png
+    - assets/images/ic_selected.png
+    - assets/images/ic_more.png
+    - assets/images/img_upload_succ.png
+    - assets/images/img_default_video_cover.png
+    - assets/epamoji/epamoji_agree.png
+    - assets/epamoji/epamoji_agree_lock.png
+    - assets/epamoji/epamoji_amazed.png
+    - assets/epamoji/epamoji_amazed_lock.png
+    - assets/epamoji/epamoji_angry.png
+    - assets/epamoji/epamoji_angry_lock.png
+    - assets/epamoji/epamoji_confuse.png
+    - assets/epamoji/epamoji_confuse_lock.png
+    - assets/epamoji/epamoji_smile_hearts.png
+    - assets/epamoji/epamoji_smile_hearts_lock.png
+    - assets/epamoji/epamoji_tears_of_joy.png
+    - assets/epamoji/epamoji_tears_of_joy_lock.png
+    - assets/epamoji/epamoji_thanks.png
+    - assets/epamoji/epamoji_thanks_lock.png
+    - assets/epamoji/epamoji_thumbs_up.png
+    - assets/epamoji/epamoji_thumbs_up_lock.png
+    - assets/json/animations/play_status_animation.json
 
   # To add assets to your application, add an assets section, like this:
   # assets:

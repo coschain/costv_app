@@ -8,7 +8,7 @@ var videoDetailKo = {
     "videoNoMoreComment": "댓글이 없습니다",
     "videoHotSort": "인기순 정렬",
     "videoTimeSort": "시간순 정렬",
-    "videoInputMsgHint": "우리 채팅해요!",
+    "videoCommentInputHint": "댓글 남기기",
     "videoRecommendation": "관련 영상 추천",
     "videoCommentCount": "댓글 남김",
     "videoCommentReply": "답장",
@@ -31,7 +31,20 @@ var videoDetailKo = {
     "videoLoginPop": "POP를 받으려면 로그인",
     "videoLinkFinishHint": "결제 기간이 종료되었습니다. 마음에 들지 않습니다",
     "videoClickMoreComment": "댓글 조회하기",
-    "energyNotEnoughTips": "현재 에너지가 3.3% 미만이므로 좋아요를 누를 수 없습니다. 에너지는 \${minutes} 분 후 충전되오니 잠시만 기다려주세요."
+    "energyNotEnoughTips": "현재 에너지가 3.3% 미만이므로 좋아요를 누를 수 없습니다. 에너지는 \${minutes} 분 후 충전되오니 잠시만 기다려주세요.",
+    "autoPlayDesc": "자동재생",
+    "aboutToPaly": "곧 재생됩니다:",
+    "playNow": "즉시 재생하기",
+    "replay": "반복재생",
+    "autoPlayFunctionDesc": "자동재생을 사용하실 경우, 시스템이 자동적으로 다음 추천영상을 재생합니다",
+    "refreshList":"새로고침",
+    "loadFail":"로딩 실패",
+    "recommendCountDownTips":"크리에이터의 다음 영상이 곧 재생됩니다: ",
+    "countDownSeconds":"\${second} 초",
+    "videoCreator":"제작자",
+    "viewReply": "답글 \${num}개 보기",
+    "lookComment": "답장보기",
+    "commentHint": "와서 이야기! 의견을 게시하고 모든 사람에게 의견을 말 해주세요 ~"
   },
   "videoReport": {
     "reportInformVideo": "신고 영상",
@@ -69,5 +82,26 @@ var videoDetailKo = {
       "자막 문제",
       "기타"
     ]
+  },
+  "commentDelete": {
+    "commentDeleteTitle": "댓글 삭제",
+    "commentDeleteSuccess": "댓글 삭제 성공, 웹페이지를 새로고침 해주세요",
+    "commentDeleteAuthor": "영상 제작자만 댓글을 삭제할 수 있습니다",
+    "commentDeleteTypeCodeList": [
+      "1",
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "commentDeleteTypeNameList": [
+      "광고성 또는 스팸 콘텐츠",
+      "포르노 컨텐츠",
+      "아동학대",
+      "폭력 또는 유해한 콘텐츠",
+      "성추행 또는 괴롭힘"
+    ],
+    "commentDeleteTips": "댓글을 삭제하면 댓글 아래의 모든 응답이 삭제됩니다",
+    "commentDeleteSuccessTips": "댓글 삭제 성공"
   }
 };

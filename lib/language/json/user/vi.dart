@@ -1,5 +1,5 @@
 var userVi = {
-  "fansNum" : "\${num}người theo dõi",
+  "fansNum" : "\${num} người theo dõi",
   "userHottestVideo": "Video hot nhất",
   "userHotVideo": "Video hot",
   "userNoMoreVideo": "Không còn thêm videos",

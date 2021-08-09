@@ -1,5 +1,6 @@
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/language/international_localizations.dart';
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
@@ -23,7 +24,6 @@ class SearchTitleWidget extends StatefulWidget {
 
 class _SearchTitleWidgetState extends State<SearchTitleWidget> {
   TextEditingController _textController = TextEditingController();
-  FocusNode _focusNode = FocusNode();
   bool _isShowDelete = false;
 
   @override
@@ -33,11 +33,6 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
       _textController.text = widget.searchStr;
       _isShowDelete = true;
     }
-    Future.delayed(Duration(seconds: 1), () {
-      if (mounted) {
-        FocusScope.of(context).requestFocus(_focusNode);
-      }
-    });
   }
 
   @override
@@ -52,7 +47,9 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.color_ffffff,
+      color: AppThemeUtil.setDifferentModeColor(
+          lightColor: AppColors.color_ffffff,
+          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       height: AppDimens.item_size_55,
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -62,7 +59,7 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
           InkWell(
             child: Container(
               padding: EdgeInsets.all(AppDimens.margin_10),
-              child: Image.asset('assets/images/ic_back.png'),
+              child: Image.asset(AppThemeUtil.getBackIcn()),
             ),
             onTap: () {
               Navigator.pop(context);
@@ -77,9 +74,10 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
                 alignment: Alignment.centerRight,
                 children: <Widget>[
                   TextField(
-                    onSubmitted: (value){
+                    onSubmitted: (value) {
                       if (widget.onClickSearch != null &&
-                          !ObjectUtil.isEmptyString(_textController.text.trim())) {
+                          !ObjectUtil.isEmptyString(
+                              _textController.text.trim())) {
                         Navigator.pop(context);
                         widget.onClickSearch(_textController.text.trim());
                       }
@@ -99,12 +97,28 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
                       }
                     },
                     controller: _textController,
-                    focusNode: _focusNode,
-                    style: AppStyles.text_style_333333_14,
+                    style: TextStyle(
+                      color: AppThemeUtil.setDifferentModeColor(
+                        lightColor: AppColors.color_333333,
+                        darkColorStr:
+                            DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      ),
+                      fontSize: AppDimens.text_size_14,
+                    ),
                     decoration: InputDecoration(
-                      fillColor: AppColors.color_ebebeb,
+                      fillColor: AppThemeUtil.setDifferentModeColor(
+                        lightColor: AppColors.color_ebebeb,
+                        darkColorStr: "333333",
+                      ),
                       filled: true,
-                      hintStyle: AppStyles.text_style_858585_14,
+                      hintStyle: TextStyle(
+                        color: AppThemeUtil.setDifferentModeColor(
+                          lightColor: AppColors.color_858585,
+                          darkColorStr: DarkModelTextColorUtil
+                              .firstLevelBrightnessColorStr,
+                        ),
+                        fontSize: AppDimens.text_size_14,
+                      ),
                       hintText: InternationalLocalizations.searchInputHint,
                       contentPadding: EdgeInsets.only(
                           left: AppDimens.margin_10,
@@ -122,6 +136,7 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
                             BorderRadius.circular(AppDimens.radius_size_21),
                       ),
                     ),
+                    autofocus: true,
                   ),
                   Offstage(
                     offstage: !_isShowDelete,
@@ -146,7 +161,7 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
           InkWell(
             child: Container(
               padding: EdgeInsets.all(AppDimens.margin_10),
-              child: Image.asset('assets/images/ic_search.png'),
+              child: Image.asset(AppThemeUtil.getSearchIcn()),
             ),
             onTap: () {
               if (widget.onClickSearch != null &&

@@ -1,4 +1,5 @@
 
+import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/common_util.dart';
@@ -27,7 +28,10 @@ class CustomAppBarState extends State<CustomAppBar> {
         margin: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
         width: screenWidth,
         height: widget.bgHeight,
-        color: Common.getColorFromHexString("FFFFFFFF", 1),
+        color: AppThemeUtil.setDifferentModeColor(
+          lightColor: Common.getColorFromHexString("FFFFFFFF", 1),
+          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -35,7 +39,10 @@ class CustomAppBarState extends State<CustomAppBar> {
             //返回按钮
             Material(
               child: Ink(
-                color: Common.getColorFromHexString("FFFFFFFF", 1.0),
+                color: AppThemeUtil.setDifferentModeColor(
+                  lightColor: Common.getColorFromHexString("FFFFFFFF", 1),
+                  darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+                ),
                 child: InkWell(
                   onTap: () {
                     if (widget.backCallBack != null) {
@@ -48,9 +55,9 @@ class CustomAppBarState extends State<CustomAppBar> {
                           padding: EdgeInsets.fromLTRB(16,12,16,10),
                           child: GestureDetector(
                             child:Image.asset(
-                              'assets/images/ic_back.png',
-//                              width: 7,
-//                              height: 14,
+                              AppThemeUtil.getBackIcn(),
+                              width: 7,
+                              height: 14,
                               fit: BoxFit.cover,
                             ),
                           )
@@ -69,7 +76,10 @@ class CustomAppBarState extends State<CustomAppBar> {
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                   style: TextStyle(
-                      color: Colors.black,
+                      color: AppThemeUtil.setDifferentModeColor(
+                        lightColor: Colors.black,
+                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      ),
                       fontSize: 15
                   )
               ),
