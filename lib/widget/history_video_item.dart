@@ -17,7 +17,7 @@ import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_widgets/flutter_widgets.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 enum HistoryItemPageSource {
   unKnownSource,

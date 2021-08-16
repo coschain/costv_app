@@ -295,9 +295,8 @@ class ChewieController extends ChangeNotifier {
   final bool isInitFullScreen;
 
   static ChewieController of(BuildContext context) {
-    final chewieControllerProvider =
-        context.dependOnInheritedWidgetOfExactType(aspect:_ChewieControllerProvider)
-            as _ChewieControllerProvider;
+    final chewieControllerProvider = context
+        .dependOnInheritedWidgetOfExactType<_ChewieControllerProvider>();
 
     return chewieControllerProvider.controller;
   }

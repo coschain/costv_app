@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:cosdart/types.dart';
 import 'package:costv_android/bean/exchange_rate_info.dart';
-import 'package:costv_android/bean/get_video_list_new_bean.dart';
 import 'package:costv_android/bean/my_video_list_bean.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dart';
@@ -11,14 +10,12 @@ import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/global_util.dart';
-import 'package:costv_android/utils/video_report_util.dart';
-import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import 'package:flutter_widgets/flutter_widgets.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 enum UploadedItemPageSource {
   unKnownSource,

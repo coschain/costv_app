@@ -87,10 +87,10 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
-import 'package:flutter_widgets/flutter_widgets.dart';
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import 'dialog/energy_not_enough_dialog.dart';
 import 'dialog/video_comment_delete_dialog.dart';

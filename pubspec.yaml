@@ -51,7 +51,7 @@ dependencies:
   firebase_analytics: 5.0.16
   auto_size_text: 2.1.0
   wakelock: 0.1.4+2
-  flutter_widgets: 0.1.12
+  visibility_detector: 0.2.0
   flutter_linkify: 3.1.2
   connectivity: 0.4.9+5
   flutter_lottie: 0.2.0
