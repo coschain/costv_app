@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:core';
+import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -29,6 +30,7 @@ import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dar
 import 'package:costv_android/pages/video/dialog/energy_not_enough_dialog.dart';
 import 'package:costv_android/pages/video/dialog/video_comment_delete_dialog.dart';
 import 'package:costv_android/pages/video/video_details_page.dart';
+import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
@@ -363,7 +365,17 @@ class _CommentListPageState extends State<CommentListPage> {
 
   ///登录
   void _startLogIn() {
-    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    if (Platform.isAndroid) {
+      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    } else {
+      Navigator.of(context).push(SlideAnimationRoute(
+        builder: (_) {
+          return WebViewPage(
+            Constant.logInWebViewUrl,
+          );
+        },
+      ));
+    }
   }
 
   void _showLoadDataFailTips() {
@@ -509,14 +521,29 @@ class _CommentListPageState extends State<CommentListPage> {
         }
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleCommentLike(isLike, cid, index);
-          _httpAddWatchHistory();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleCommentLike(isLike, cid, index);
+            _httpAddWatchHistory();
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleCommentLike(isLike, cid, index);
+            _httpAddWatchHistory();
+          }
+        });
+      }
     }
   }
 
@@ -865,14 +892,29 @@ class _CommentListPageState extends State<CommentListPage> {
         _httpVideoComment(Constant.accountName, id, content, vid, uid);
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleVideoComment(id, vid, uid);
-          _httpAddWatchHistory();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoComment(id, vid, uid);
+            _httpAddWatchHistory();
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoComment(id, vid, uid);
+            _httpAddWatchHistory();
+          }
+        });
+      }
     }
   }
 

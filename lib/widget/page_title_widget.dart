@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -255,8 +256,18 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
                     ),
                     onTap: () {
                       if (ObjectUtil.isEmptyString(Constant.uid)) {
-                        WebViewUtil.instance
-                            .openWebView(Constant.logInWebViewUrl);
+                        if (Platform.isAndroid) {
+                          WebViewUtil.instance
+                              .openWebView(Constant.logInWebViewUrl);
+                        } else {
+                          Navigator.of(context).push(SlideAnimationRoute(
+                            builder: (_) {
+                              return WebViewPage(
+                                Constant.logInWebViewUrl,
+                              );
+                            },
+                          ));
+                        }
                       } else {
                         Navigator.of(context).push(SlideAnimationRoute(
                           builder: (_) {

@@ -2,7 +2,7 @@ import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_lottie/flutter_lottie.dart';
+import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
@@ -17,22 +17,24 @@ class VideoPlayerItemWidget extends StatefulWidget {
 }
 
 class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
-    with WidgetsBindingObserver {
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   VideoPlayerController controller;
   ChewieController chewieController;
   VideoPlayerValue _latestValue;
-  LottieController _lottieController;
+  AnimationController _lottieController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+    _lottieController = AnimationController(vsync: this);
   }
 
   @override
   void dispose() {
     _dispose();
     WidgetsBinding.instance.removeObserver(this);
+    _lottieController?.dispose();
     super.dispose();
   }
 
@@ -115,13 +117,14 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
 //      margin: EdgeInsets.only(right: 5),
       width: 28,
       height: 28,
-      child: LottieView.fromFile(
-        onViewCreated: _handelLottieViewCreated,
-        filePath: "assets/json/animations/play_status_animation.json",
-        autoPlay: true,
-        loop: true,
-//        reverse: true,
-      ),
+      child: Lottie.asset('assets/json/animations/play_status_animation.json', controller: _lottieController,
+        onLoaded: (composition) {
+        // Configure the AnimationController with the duration of the
+        // Lottie file and start the animation.
+        _lottieController
+          ..duration = composition.duration
+          ..forward();
+      },),
     );
   }
 
@@ -162,7 +165,7 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
     setState(() {
       _latestValue = controller.value;
       if (_latestValue.isPlaying) {
-        _resumePlayAnimation();
+        _stopPlayAnimation();
         _startPlayAnimation();
       } else {
         _stopPlayAnimation();
@@ -181,25 +184,16 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
     }
   }
 
-  void _handelLottieViewCreated(LottieController controller) {
-    _lottieController = controller;
-  }
-
   void _stopPlayAnimation() {
-    if (_lottieController != null) {
-      _lottieController.pause();
+    if (_lottieController != null && _lottieController.isAnimating) {
+      _lottieController.stop();
     }
   }
 
   void _startPlayAnimation() {
-    if (_lottieController != null) {
-      _lottieController.play();
+    if (_lottieController != null && !_lottieController.isAnimating && _lottieController.value != 0) {
+      _lottieController.repeat();
     }
   }
 
-  void _resumePlayAnimation() {
-    if (_lottieController != null) {
-      _lottieController.resume();
-    }
-  }
 }

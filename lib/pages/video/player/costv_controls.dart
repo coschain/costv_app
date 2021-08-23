@@ -759,6 +759,7 @@ class CosTVControlsState extends State<CosTVControls> {
                   },
                   imageUrl: avatar,
                   fit: BoxFit.cover,
+                  errorWidget: (context, url, error) => Container(),
                 ),
               )),
         ),
@@ -1103,6 +1104,7 @@ class CosTVControlsState extends State<CosTVControls> {
         placeholder: (BuildContext context, String url) {
           return Container();
         },
+        errorWidget: (context, url, error) => Container(),
       ),
     );
   }

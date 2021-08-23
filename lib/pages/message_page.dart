@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/get_message_list_bean.dart';
@@ -32,6 +33,8 @@ import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import 'webview/webview_page.dart';
 
 class MessagePage extends StatefulWidget {
   MessagePage({Key key}) : super(key: key);
@@ -441,7 +444,17 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
 
   ///登录
   void _startLogIn() {
-    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    if (Platform.isAndroid) {
+      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    } else {
+      Navigator.of(context).push(SlideAnimationRoute(
+        builder: (_) {
+          return WebViewPage(
+            Constant.logInWebViewUrl,
+          );
+        },
+      ));
+    }
   }
 
   void _showLoadDataFailTips() {

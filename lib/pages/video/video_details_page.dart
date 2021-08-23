@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -1910,14 +1911,29 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           _showEnergyNotEnoughDialog();
         }
       } else {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _httpVideoIsLike(true);
-            _httpAddWatchHistory();
-          }
-        });
+        if (Platform.isAndroid) {
+          WebViewUtil.instance
+              .openWebViewResult(Constant.logInWebViewUrl)
+              .then((isSuccess) {
+            if (isSuccess != null && isSuccess) {
+              _httpVideoIsLike(true);
+              _httpAddWatchHistory();
+            }
+          });
+        } else {
+          Navigator.of(context).push(SlideAnimationRoute(
+            builder: (_) {
+              return WebViewPage(
+                Constant.logInWebViewUrl,
+              );
+            },
+          )).then((isSuccess) {
+            if (isSuccess != null && isSuccess) {
+              _httpVideoIsLike(true);
+              _httpAddWatchHistory();
+            }
+          });
+        }
       }
     }
   }
@@ -1930,31 +1946,63 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _httpAccountFollow();
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) async {
-        if (isSuccess != null && isSuccess) {
-          if (!_isNetIng) {
-            setState(() {
-              _isNetIng = true;
-            });
-          }
-          bool oldStatus = _isFollow;
-          await _initAuthorFollowStatus(_getVideoInfoDataBean?.uid ?? '');
-          if (oldStatus == _isFollow) {
-            _checkAbleAccountFollow();
-          } else {
-            EventBusHelp.getInstance()
-                .fire(FollowStatusChangeEvent(_pageFlag, _isFollow, true));
-            if (_isNetIng) {
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) async {
+          if (isSuccess != null && isSuccess) {
+            if (!_isNetIng) {
               setState(() {
-                _isNetIng = false;
+                _isNetIng = true;
               });
             }
+            bool oldStatus = _isFollow;
+            await _initAuthorFollowStatus(_getVideoInfoDataBean?.uid ?? '');
+            if (oldStatus == _isFollow) {
+              _checkAbleAccountFollow();
+            } else {
+              EventBusHelp.getInstance()
+                  .fire(FollowStatusChangeEvent(_pageFlag, _isFollow, true));
+              if (_isNetIng) {
+                setState(() {
+                  _isNetIng = false;
+                });
+              }
+            }
+            _httpAddWatchHistory();
           }
-          _httpAddWatchHistory();
-        }
-      });
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) async {
+          if (isSuccess != null && isSuccess) {
+            if (!_isNetIng) {
+              setState(() {
+                _isNetIng = true;
+              });
+            }
+            bool oldStatus = _isFollow;
+            await _initAuthorFollowStatus(_getVideoInfoDataBean?.uid ?? '');
+            if (oldStatus == _isFollow) {
+              _checkAbleAccountFollow();
+            } else {
+              EventBusHelp.getInstance()
+                  .fire(FollowStatusChangeEvent(_pageFlag, _isFollow, true));
+              if (_isNetIng) {
+                setState(() {
+                  _isNetIng = false;
+                });
+              }
+            }
+            _httpAddWatchHistory();
+          }
+        });
+      }
     }
   }
 
@@ -1968,14 +2016,29 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         }
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleCommentLike(isLike, cid, index);
-          _httpAddWatchHistory();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleCommentLike(isLike, cid, index);
+            _httpAddWatchHistory();
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleCommentLike(isLike, cid, index);
+            _httpAddWatchHistory();
+          }
+        });
+      }
     }
   }
 
@@ -1998,14 +2061,29 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _httpVideoComment(Constant.accountName, id, content, vid, uid);
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleVideoComment(id, vid, uid);
-          _httpAddWatchHistory();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoComment(id, vid, uid);
+            _httpAddWatchHistory();
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoComment(id, vid, uid);
+            _httpAddWatchHistory();
+          }
+        });
+      }
     }
   }
 
@@ -2164,14 +2242,29 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       return InkWell(
         onTap: () {
           if (Common.isAbleClick()) {
-            WebViewUtil.instance
-                .openWebViewResult(Constant.logInWebViewUrl)
-                .then((isSuccess) {
-              if (isSuccess != null && isSuccess) {
-                setState(() {});
-                _httpAddWatchHistory();
-              }
-            });
+            if (Platform.isAndroid) {
+              WebViewUtil.instance
+                  .openWebViewResult(Constant.logInWebViewUrl)
+                  .then((isSuccess) {
+                if (isSuccess != null && isSuccess) {
+                  setState(() {});
+                  _httpAddWatchHistory();
+                }
+              });
+            } else {
+              Navigator.of(context).push(SlideAnimationRoute(
+                builder: (_) {
+                  return WebViewPage(
+                    Constant.logInWebViewUrl,
+                  );
+                },
+              )).then((isSuccess) {
+                if (isSuccess != null && isSuccess) {
+                  setState(() {});
+                  _httpAddWatchHistory();
+                }
+              });
+            }
           }
         },
         child: Padding(

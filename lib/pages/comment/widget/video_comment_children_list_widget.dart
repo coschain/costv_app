@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -23,6 +24,7 @@ import 'package:costv_android/pages/comment/bean/comment_children_list_item_para
 import 'package:costv_android/pages/comment/bean/open_comment_children_parameter_bean.dart';
 import 'package:costv_android/pages/comment/widget/comment_list_children_item.dart';
 import 'package:costv_android/pages/video/dialog/video_comment_delete_dialog.dart';
+import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
@@ -35,6 +37,7 @@ import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
 import 'package:costv_android/widget/loading_view.dart';
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 
@@ -289,13 +292,27 @@ class _VideoCommentChildrenListWidgetState
         _httpCommentLike(cid, index, Constant.accountName ?? '');
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleCommentLike(isLike, cid, index);
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleCommentLike(isLike, cid, index);
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleCommentLike(isLike, cid, index);
+          }
+        });
+      }
     }
   }
 
@@ -316,13 +333,27 @@ class _VideoCommentChildrenListWidgetState
         _httpVideoComment(Constant.accountName, _commentId, content);
       }
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleVideoComment();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoComment();
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoComment();
+          }
+        });
+      }
     }
   }
 

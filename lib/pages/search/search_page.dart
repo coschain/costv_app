@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -11,6 +12,7 @@ import 'package:costv_android/constant.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/search/debug_switch_page.dart';
+import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/popupwindow/popup_window.dart';
 import 'package:costv_android/popupwindow/popup_window_route.dart';
 import 'package:costv_android/popupwindow/view/search_title_window.dart';
@@ -839,8 +841,17 @@ class SearchPageState extends State<SearchPage> {
                         if (Common.isAbleClick()) {
                           if (!Common.judgeHasLogIn()) {
                             //进入登录界面
-                            WebViewUtil.instance
-                                .openWebView(Constant.logInWebViewUrl);
+                            if (Platform.isAndroid) {
+                              WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+                            } else {
+                              Navigator.of(context).push(SlideAnimationRoute(
+                                builder: (_) {
+                                  return WebViewPage(
+                                    Constant.logInWebViewUrl,
+                                  );
+                                },
+                              ));
+                            }
                           } else {
                             if (!ObjectUtil.isEmptyString(uid)) {
                               if (isAttentionFinish) {

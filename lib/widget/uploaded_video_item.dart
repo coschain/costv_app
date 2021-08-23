@@ -139,6 +139,7 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                                     color: Common.getColorFromHexString(
                                         "D6D6D6", 1.0),
                                   ),
+                                  errorWidget: (context, url, error) => Container(),
                                 )),
                           ),
                           _getVideoTimeWidget(),

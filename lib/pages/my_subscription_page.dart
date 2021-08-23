@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -37,6 +38,8 @@ import 'package:costv_android/widget/single_video_item.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+
+import 'webview/webview_page.dart';
 
 const String subscribeLogPrefix = "MySubScriptionPage";
 
@@ -337,7 +340,17 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   ///登录
   void _startLogIn() {
-    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    if (Platform.isAndroid) {
+      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    } else {
+      Navigator.of(context).push(SlideAnimationRoute(
+        builder: (_) {
+          return WebViewPage(
+            Constant.logInWebViewUrl,
+          );
+        },
+      ));
+    }
   }
 
   SingleFollowItem _getFollowItem(int index) {

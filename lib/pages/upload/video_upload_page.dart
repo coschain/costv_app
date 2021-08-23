@@ -8,7 +8,9 @@ import 'package:costv_android/bean/video_tags_bean.dart';
 import 'package:costv_android/bean/video_upload_sign_bean.dart';
 import 'package:costv_android/pages/upload/video_upload_form.dart';
 import 'package:costv_android/pages/upload/video_upload_appbar.dart';
+import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/constant.dart';
@@ -118,7 +120,17 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
         children: <Widget>[
           PageRemindWidget(
             clickCallBack: () {
-              WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+              if (Platform.isAndroid) {
+                WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+              } else {
+                Navigator.of(context).push(SlideAnimationRoute(
+                  builder: (_) {
+                    return WebViewPage(
+                      Constant.logInWebViewUrl,
+                    );
+                  },
+                ));
+              }
             },
             remindType: RemindType.VideoUploadPageLogIn,
           ),

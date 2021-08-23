@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -436,7 +437,17 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
 
   ///登录
   void _startLogIn() {
-    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    if (Platform.isAndroid) {
+      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
+    } else {
+      Navigator.of(context).push(SlideAnimationRoute(
+        builder: (_) {
+          return WebViewPage(
+            Constant.logInWebViewUrl,
+          );
+        },
+      ));
+    }
   }
 
   void _showLoadDataFailTips() {
@@ -521,6 +532,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                                   );
                                 },
                                 imageUrl: imageUrl,
+                                errorWidget: (context, url, error) => Container(),
                               ),
                             ),
                             _getVideoDurationWidget(),

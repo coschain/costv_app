@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/simple_bean.dart';
@@ -6,6 +7,7 @@ import 'package:costv_android/constant.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/video/bean/report_radio_bean.dart';
+import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/toast_util.dart';
@@ -13,6 +15,7 @@ import 'package:costv_android/utils/web_view_util.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
@@ -86,7 +89,7 @@ class VideoReportDialog {
 
   Widget _buildReport(BuildContext context) {
     if (_showType == showTypeOne) {
-      return _buildReportOne();
+      return _buildReportOne(context);
     } else if (_showType == showTypeTwo) {
       return _buildReportTwo(context);
     } else {
@@ -95,7 +98,7 @@ class VideoReportDialog {
   }
 
   /// 构建举报1弹出框界面
-  Widget _buildReportOne() {
+  Widget _buildReportOne(BuildContext context) {
     return Container(
       width: AppDimens.item_size_290,
       height: AppDimens.item_size_470,
@@ -143,7 +146,7 @@ class VideoReportDialog {
               itemCount: _listReport.length,
             ),
           )),
-          _buildCommonBottom()
+          _buildCommonBottom(context)
         ],
       ),
     );
@@ -346,7 +349,7 @@ class VideoReportDialog {
               ),
             ),
           ),
-          _buildCommonBottom()
+          _buildCommonBottom(context)
         ],
       ),
     );
@@ -455,22 +458,36 @@ class VideoReportDialog {
     );
   }
 
-  void _checkAbleVideoReportAdd() {
+  void _checkAbleVideoReportAdd(BuildContext context) {
     if (!ObjectUtil.isEmptyString(Constant.uid)) {
       _httpGetVideoInfo();
     } else {
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          _checkAbleVideoReportAdd();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoReportAdd(context);
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            _checkAbleVideoReportAdd(context);
+          }
+        });
+      }
     }
   }
 
   /// 通用底部
-  Widget _buildCommonBottom() {
+  Widget _buildCommonBottom(BuildContext context) {
     return Column(
       children: <Widget>[
         Container(
@@ -558,7 +575,7 @@ class VideoReportDialog {
                             } else {
                               _time =
                                   '${(hours).toString().padLeft(2, '0')}:${(minutes).toString().padLeft(2, '0')}:${(seconds).toString().padLeft(2, '0')}';
-                              _checkAbleVideoReportAdd();
+                              _checkAbleVideoReportAdd(context);
                             }
                           }
                         }

@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:common_utils/common_utils.dart';
 import 'package:cosdart/types.dart';
 import 'package:costv_android/bean/anchor_image_compress_bean.dart';
 import 'package:costv_android/bean/comment_list_item_bean.dart';
+import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
@@ -10,6 +13,7 @@ import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/utils/web_view_util.dart';
 import 'package:costv_android/widget/loading_view.dart';
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
+import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/common_util.dart';
@@ -1122,15 +1126,31 @@ class FollowButtonState extends State<FollowButton> {
       }
     } else {
       //先进行登录
-      WebViewUtil.instance
-          .openWebViewResult(Constant.logInWebViewUrl)
-          .then((isSuccess) {
-        if (isSuccess != null && isSuccess) {
-          //登录成功,重新拉取接口判断是否已经关注过该用户
-          _isShowLoading = true;
-          _handleLogInSuccess();
-        }
-      });
+      if (Platform.isAndroid) {
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl)
+            .then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            //登录成功,重新拉取接口判断是否已经关注过该用户
+            _isShowLoading = true;
+            _handleLogInSuccess();
+          }
+        });
+      } else {
+        Navigator.of(context).push(SlideAnimationRoute(
+          builder: (_) {
+            return WebViewPage(
+              Constant.logInWebViewUrl,
+            );
+          },
+        )).then((isSuccess) {
+          if (isSuccess != null && isSuccess) {
+            //登录成功,重新拉取接口判断是否已经关注过该用户
+            _isShowLoading = true;
+            _handleLogInSuccess();
+          }
+        });
+      }
     }
   }
 

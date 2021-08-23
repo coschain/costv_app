@@ -659,13 +659,7 @@ class _SingleTopicItemState extends State<SingleTopicItem> {
                       child: Stack(
                         alignment: Alignment.center,
                         children: <Widget>[
-                          CachedNetworkImage(
-                            imageUrl: widget.topic?.iconUrl ?? "",
-                            placeholder: (context, url) {
-                              return Image.asset(widget.topic?.bgPath ?? "");
-                            },
-                            fit: BoxFit.cover,
-                          ),
+                          Image.asset(widget.topic?.bgPath ?? ""),
                           _getMask(),
                         ],
                       )

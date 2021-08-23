@@ -18,7 +18,7 @@ import 'package:costv_android/utils/global_util.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:webview_flutter_fix/webview_flutter.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 const String kNavigationExamplePage = '''
 <!DOCTYPE html><html>
@@ -207,7 +207,7 @@ class _WebViewState extends State<WebViewPage> {
                       onPageFinished: (String url) {
                         CosLogUtil.log('$tag Page finished loading: $url');
                       },
-                      onProgressChanged: (int progress) {
+                      onProgress: (int progress) {
                         CosLogUtil.log(
                             '$tag Page onProgressChanged: $progress');
                         if (_progressKey != null &&
