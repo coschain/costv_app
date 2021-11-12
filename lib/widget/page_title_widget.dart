@@ -181,39 +181,42 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
                   ),
                 ),
               ),
-              Material(
-                color: AppColors.color_transparent,
-                child: Ink(
-                  child: InkWell(
-                    child: Container(
-                      margin: EdgeInsets.only(
-                          left: AppDimens.margin_15,
-                          top: AppDimens.margin_5,
-                          right: AppDimens.margin_5,
-                          bottom: AppDimens.margin_5),
-                      child: Image.asset(AppThemeUtil.getUploadIcn()),
-                    ),
-                    onTap: () async {
-                      _reportUploadClick();
-                      if (ObjectUtil.isEmptyString(Constant.uid)) {
-                        Navigator.of(context).push(MaterialPageRoute(builder: (_){
-                          return VideoUploadPage();
-                        }));
-                      } else {
-                        var file = await ImagePicker.pickVideo(source: ImageSource.gallery);
-                        String videoPath = file?.path;
-                        if (!ObjectUtil.isEmptyString(videoPath)) {
-                          _reportPickedVideo();
-                          CosLogUtil.log("Video path: $videoPath");
+              Offstage(
+                offstage: Platform.isIOS,
+                child: Material(
+                  color: AppColors.color_transparent,
+                  child: Ink(
+                    child: InkWell(
+                      child: Container(
+                        margin: EdgeInsets.only(
+                            left: AppDimens.margin_15,
+                            top: AppDimens.margin_5,
+                            right: AppDimens.margin_5,
+                            bottom: AppDimens.margin_5),
+                        child: Image.asset(AppThemeUtil.getUploadIcn()),
+                      ),
+                      onTap: () async {
+                        _reportUploadClick();
+                        if (ObjectUtil.isEmptyString(Constant.uid)) {
                           Navigator.of(context).push(MaterialPageRoute(builder: (_){
-                            return VideoUploadPage(uid: Constant.uid, videoPath: videoPath);
+                            return VideoUploadPage();
                           }));
+                        } else {
+                          var file = await ImagePicker.pickVideo(source: ImageSource.gallery);
+                          String videoPath = file?.path;
+                          if (!ObjectUtil.isEmptyString(videoPath)) {
+                            _reportPickedVideo();
+                            CosLogUtil.log("Video path: $videoPath");
+                            Navigator.of(context).push(MaterialPageRoute(builder: (_){
+                              return VideoUploadPage(uid: Constant.uid, videoPath: videoPath);
+                            }));
+                          }
                         }
-                      }
-                    },
+                      },
+                    ),
                   ),
                 ),
-              ),
+              ),  
               Offstage(
                 offstage: !CloudControlUtil.instance.isShowPop,
                 child: Material(

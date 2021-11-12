@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chewie/chewie.dart';
 import 'package:common_utils/common_utils.dart';
@@ -41,6 +43,7 @@ enum EnterSource {
 
 typedef ClickPlayVideoCallBack = Function(GetVideoListNewDataListBean video);
 typedef VisibilityChangedCallback = Function(int index, double visibleFraction);
+typedef ClickBlockCallback = Function(int index);
 
 class SingleVideoItem extends StatefulWidget {
   final GetVideoListNewDataListBean videoData;
@@ -48,9 +51,13 @@ class SingleVideoItem extends StatefulWidget {
   final dynamic_properties dgpoBean;
   final int index;
   final ClickPlayVideoCallBack playVideoCallBack;
+  final ClickBlockCallback blockCallBack;
+
   final EnterSource source;
   final VisibilityChangedCallback visibilityChangedCallback;
   final bool isNeedAutoPlay;
+  final bool isNeedMoreAction;
+
 
   SingleVideoItem({
     Key key,
@@ -62,6 +69,8 @@ class SingleVideoItem extends StatefulWidget {
     this.source,
     this.visibilityChangedCallback,
     this.isNeedAutoPlay = false,
+    this.isNeedMoreAction = false,
+    this.blockCallBack,
   }) : super(key: key);
 
   @override
@@ -71,7 +80,7 @@ class SingleVideoItem extends StatefulWidget {
 }
 
 class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
-  bool _isNeedAutoPlay = false, _isIniting = false, _initSuccess = false;
+  bool _isNeedAutoPlay = false, _isIniting = false, _initSuccess = false, _isNeedMoreAction = false;
   VideoPlayerController _videoPlayerController;
   ChewieController _chewieController;
   String _tag = "SingleVideoItem";
@@ -91,6 +100,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
   @override
   void initState() {
     super.initState();
+    _isNeedMoreAction = widget.isNeedMoreAction;
     _isNeedAutoPlay = widget.isNeedAutoPlay;
     if (_isNeedAutoPlay) {
       _initVideoPlayers(widget?.videoData?.videosource, false);
@@ -226,24 +236,33 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        //title
-                        Container(
-                          margin: EdgeInsets.fromLTRB(descMargin, 0, 0, 0),
-                          child: Text(
-                            widget.videoData?.title ?? "",
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 2,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AppThemeUtil.setDifferentModeColor(
-                                lightColorStr: "333333",
-                                darkColorStr: DarkModelTextColorUtil
-                                    .firstLevelBrightnessColorStr,
-                              ),
-                              fontWeight: FontWeight.bold,
+                        //title + MoreAction
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            Expanded(flex:1, 
+                              child: Container(
+                                margin: EdgeInsets.fromLTRB(descMargin, 0, 0, 0),
+                                child: Text(
+                                  widget.videoData?.title ?? "",
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: AppThemeUtil.setDifferentModeColor(
+                                      lightColorStr: "333333",
+                                      darkColorStr: DarkModelTextColorUtil
+                                          .firstLevelBrightnessColorStr,
+                                    ),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              )
                             ),
-                          ),
-                        ),
+                            _buildMoreAction(context),
+                        ],),
                         // author · watch number · date
                         Container(
                           margin: EdgeInsets.fromLTRB(descMargin, 2, 0, 0),
@@ -346,7 +365,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                         widget.videoData?.videosource,
                       );
                     },
-                  ))
+                  )),
                 ],
               ),
             ),
@@ -354,6 +373,78 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         ),
       ),
     );
+  }
+
+  void _showBottomMoreMenu(BuildContext context){
+    showModalBottomSheet(
+      context: context,
+      isDismissible: true,
+      isScrollControlled: false,
+      backgroundColor: AppThemeUtil.setDifferentModeColor(
+              lightColor: AppColors.color_f6f6f6,
+              darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
+            ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15))),
+      builder: (BuildContext context) {
+        return SizedBox( height:155, 
+          child: Column(
+            children: [
+              InkWell(child: Container(
+                height: 50,
+                alignment: Alignment.center,
+                child: Text( InternationalLocalizations.blockVideo,
+                  textAlign: TextAlign.center
+                ),
+              ), onTap: (){
+                Navigator.pop(context);
+                if (widget.blockCallBack != null){
+                  widget.blockCallBack(0);
+                }
+              },),
+              InkWell(child: Container(
+                height: 50,
+                alignment: Alignment.center,
+                child: Text( InternationalLocalizations.blockCreator,
+                  textAlign: TextAlign.center
+                ),
+              ), onTap: (){
+                Navigator.pop(context);
+                if (widget.blockCallBack != null){
+                  widget.blockCallBack(1);
+                }
+              },),
+              InkWell(child: Container(
+                height: 50,
+                alignment: Alignment.center,
+                child: Text( InternationalLocalizations.cancel,
+                  textAlign: TextAlign.center
+                ),
+              ), onTap: (){
+                Navigator.pop(context);
+              },),
+            ],
+
+          )
+        );
+      });
+
+  }
+
+  Widget _buildMoreAction(BuildContext context){
+    if (this._isNeedMoreAction){
+        return InkWell(
+                    child: Container(
+                      height: 33.0,
+                      child: IconButton(
+                          icon: Icon(Icons.more_vert),
+                          tooltip: 'MoreAction',
+                          onPressed: () => _showBottomMoreMenu(context),
+                        ),
+                    )
+                  );
+    } else {
+      return InkWell(child: Container());
+    }
   }
 
 //  Future<void> resetMediaController() async {

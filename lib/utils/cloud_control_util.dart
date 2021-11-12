@@ -1,5 +1,6 @@
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:costv_android/bean/cos_tv_cloud_control_bean.dart';
 import 'package:costv_android/event/base/event_bus_help.dart';
@@ -42,6 +43,9 @@ class CloudControlUtil {
           if (controlData.pop == "1") {
             isShowPop = true;
           } else {
+            isShowPop = false;
+          }
+          if(Platform.isIOS){
             isShowPop = false;
           }
           EventBusHelp.getInstance().fire(CloudControlFinishEvent(true));

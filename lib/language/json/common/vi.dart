@@ -31,5 +31,7 @@ var commonVi = {
     "emojiUnlockTitle": "Cách nhận toàn bộ emoji của Voepa",
     "emojiUnlockHint": "Tặng đủ 100 Gifting Votes cho Voepa, bạn sẽ có thể nhận toàn bộ emoji \"Epamoji\" độc quyền của Voepa.",
     "emojiUnlockGo": "(Lưu ý: Hiện tại, APP chưa hỗ trợ tặng Gifting Votes, vui lòng truy cập trang web và tham gia)"
-  }
+  },
+  "blockVideo":"Ẩn video",
+  "blockCreator":"Không đề xuất người sáng tạo này",
 };

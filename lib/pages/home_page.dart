@@ -20,6 +20,7 @@ import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dar
 import 'package:costv_android/pages/video/video_details_page.dart';
 import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/banner_util.dart';
+import 'package:costv_android/utils/black_list_util.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
@@ -42,6 +43,7 @@ import 'package:costv_android/widget/single_video_item.dart';
 import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:io';
 
 const homeLogPrefix = "HomePage";
 const reportResKey = "result";
@@ -293,6 +295,22 @@ class _HomePageState extends State<HomePage> with RouteAware {
     return imgHeight;
   }
 
+  void filterListByBlack(){
+    List<dynamic> resultList = [];
+    for (var item in _videoList) {
+      if (item is GetVideoListNewDataListBean ){
+        GetVideoListNewDataListBean video = item;
+        if (BlackListUtil().IsBlackUser(video.uid)){
+          continue;
+        } else if ( BlackListUtil().IsBlackVideo(video.id)){
+          continue;
+        }
+      }
+      resultList.add(item);
+    }
+    _videoList = resultList;
+  }
+
   Widget _getVideoItem(int idx) {
     int listCnt = _videoList?.length ?? 0;
     if (idx >= 0 && idx < listCnt) {
@@ -324,9 +342,24 @@ class _HomePageState extends State<HomePage> with RouteAware {
             }
           },
           isNeedAutoPlay: isNeedAutoPlay,
+          isNeedMoreAction: true,
           playVideoCallBack: (GetVideoListNewDataListBean video) {},
+          blockCallBack: (int action){
+            if (action == 0){
+              BlackListUtil.instance.AddVideoIdToBlackList(video.id);
+              filterListByBlack();
+              setState(() {});
+            } else if (action == 1){
+              BlackListUtil.instance.AddUserIdToBlackList(video.uid);
+              filterListByBlack();
+              setState(() {});
+            }
+          },
         );
       } else if (_videoList[idx] == itemTypeAd) {
+        if(Platform.isIOS){
+          return Container();
+        }
         return Container(
           margin: EdgeInsets.only(
               left: AppDimens.margin_10,
@@ -444,6 +477,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
               _videoList.addAll(listVideoBean);
               _videoList.add(itemTypeAd);
             });
+            filterListByBlack();
           } else {
             _videoList = [];
           }
@@ -657,6 +691,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
               _videoList.addAll(dataList);
               _videoList.add(itemTypeAd);
             });
+            filterListByBlack();
+            list = _videoList;
           }
           setState(() {});
         }

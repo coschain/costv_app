@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:costv_android/constant.dart';
 import 'package:costv_android/db/login_info_db_bean.dart';
 import 'package:costv_android/db/login_info_db_provider.dart';
+import 'package:costv_android/pages/home_page.dart';
 import 'package:costv_android/pages/main_page.dart';
+import 'package:costv_android/pages/splash_terms_page.dart';
+import 'package:costv_android/utils/black_list_util.dart';
 import 'package:costv_android/utils/cloud_control_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import "package:costv_android/utils/data_report_util.dart";
@@ -31,6 +34,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     super.initState();
+    BlackListUtil.instance;
     _initData();
     CloudControlUtil.instance.fetchCloudControl();
   }
@@ -61,13 +65,18 @@ class _SplashPageState extends State<SplashPage> {
       CosLogUtil.log("$tag time = ${timeEnd - _timeBegin}");
       if ((timeEnd - _timeBegin) < waitTime) {
         CosLogUtil.log("$tag wait");
+        bool accepted = await SplashTermsPage.getAcceptTerms();
         Future.delayed(
             Duration(milliseconds: waitTime - (timeEnd - _timeBegin)), () {
           Navigator.pushAndRemoveUntil(
             context,
             SlideAnimationRoute(
               builder: (_) {
-                return MainPage();
+                if (accepted){
+                  return MainPage();
+                } else {
+                  return SplashTermsPage();
+                }
               },
             ),
             (route) => route == null,

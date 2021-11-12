@@ -14,6 +14,16 @@ import 'package:costv_android/language/json/login/tr.dart';
 import 'package:costv_android/language/json/login/vi.dart';
 import 'package:costv_android/language/json/login/zh.dart';
 import 'package:costv_android/language/json/login/zh_ch.dart';
+
+import 'package:costv_android/language/json/terms/en.dart';
+import 'package:costv_android/language/json/terms/ko.dart';
+import 'package:costv_android/language/json/terms/pt_br.dart';
+import 'package:costv_android/language/json/terms/ru.dart';
+import 'package:costv_android/language/json/terms/tr.dart';
+import 'package:costv_android/language/json/terms/vi.dart';
+import 'package:costv_android/language/json/terms/zh.dart';
+import 'package:costv_android/language/json/terms/zh_ch.dart';
+
 import 'package:costv_android/language/json/main/en.dart';
 import 'package:costv_android/language/json/main/ko.dart';
 import 'package:costv_android/language/json/main/pt_br.dart';
@@ -87,6 +97,7 @@ class InternationalLocalizations {
   static Map<String, dynamic> _mapVideoDetailValue = {};
   static Map<String, dynamic> _userValue = {};
   static Map<String, dynamic> _mapVideoUploadValue = {};
+  static Map<String, dynamic> _mapTermsValue = {};
 
   InternationalLocalizations(this.locale);
 
@@ -100,6 +111,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailKo;
       _userValue= userKo;
       _mapVideoUploadValue = uploadKo;
+      _mapTermsValue = termsKo;
     } else if (languageCode == languageCodePt_Br) {
       _mapCommonValue = commonPtBr;
       _mapLoginValue = loginPtBr;
@@ -108,6 +120,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailPtBr;
       _userValue= userPtBr;
       _mapVideoUploadValue = uploadPtBr;
+      _mapTermsValue = termsPtBr;
     } else if (languageCode == languageCodeRu) {
       _mapCommonValue = commonRu;
       _mapLoginValue = loginRu;
@@ -116,6 +129,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailRu;
       _userValue= userRu;
       _mapVideoUploadValue = uploadRu;
+      _mapTermsValue = termsRu;
     }  else if (languageCode == languageCodeTr) {
       _mapCommonValue = commonTr;
       _mapLoginValue = loginTr;
@@ -124,6 +138,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailTr;
       _userValue= userTr;
       _mapVideoUploadValue = uploadTr;
+      _mapTermsValue = termsTr;
     } else if (languageCode == languageCodeVi) {
       _mapCommonValue = commonVi;
       _mapLoginValue = loginVi;
@@ -132,6 +147,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailVi;
       _userValue= userVi;
       _mapVideoUploadValue = uploadVi;
+      _mapTermsValue = termsVi;
     } else if (languageCode == languageCodeZh_Cn) {
       _mapCommonValue = commonZhCh;
       _mapLoginValue = loginZhCn;
@@ -140,6 +156,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailZhCn;
       _userValue= userZhCn;
       _mapVideoUploadValue = uploadZhCn;
+      _mapTermsValue = termsZhCn;
     } else if (languageCode == languageCodeZh) {
       _mapCommonValue = commonZh;
       _mapLoginValue = loginZh;
@@ -148,6 +165,7 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailZh;
       _userValue= userZh;
       _mapVideoUploadValue = uploadZh;
+      _mapTermsValue = termsZh;
     } else {
       _mapCommonValue = commonEn;
       _mapLoginValue = loginEn;
@@ -156,10 +174,27 @@ class InternationalLocalizations {
       _mapVideoDetailValue = videoDetailEn;
       _userValue= userEn;
       _mapVideoUploadValue = uploadEn;
+      _mapTermsValue = termsEn;
     }
   }
 
   static Map<String, dynamic> get mapNetValue => _mapNetValue;
+
+
+  // begin Terms
+  static get termsWelCome {
+    return _mapTermsValue['terms_welcome'];
+  }
+  static get termsWelComeDesc {
+    return _mapTermsValue['terms_desc'];
+  }
+  static get termsContinueDesc {
+    return _mapTermsValue['terms_desc_continue'];
+  }
+  static get termsContinueLink {
+    return _mapTermsValue['terms_continue_link'];
+  }
+  // end terms
 
   // begin通用
   static get title {
@@ -268,6 +303,13 @@ class InternationalLocalizations {
 
   static get lightModeDesc {
     return _mapCommonValue["lightModeDesc"];
+  }
+
+  static get blockVideo {
+    return _mapCommonValue["blockVideo"];
+  }
+  static get blockCreator {
+    return _mapCommonValue["blockCreator"];
   }
 
   static get darkModeDesc {

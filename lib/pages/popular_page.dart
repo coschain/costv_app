@@ -12,6 +12,7 @@ import 'package:costv_android/event/video_small_show_status_event.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/hot/hot_topic_detail.dart';
+import 'package:costv_android/utils/black_list_util.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_long_log_util.dart';
@@ -258,10 +259,38 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
           }
           _visibleFractionMap[index] = visibleFraction;
         },
+        isNeedMoreAction: true,
+        blockCallBack: (int action){
+            if (action == 0){
+              BlackListUtil.instance.AddVideoIdToBlackList(video.id);
+              _videoList = filterListByBlack(_videoList);
+              setState(() {});
+            } else if (action == 1){
+              BlackListUtil.instance.AddUserIdToBlackList(video.uid);
+              _videoList = filterListByBlack(_videoList);
+              setState(() {});
+            }
+          }
       );
       return item;
     }
     return SingleVideoItem();
+  }
+
+  List<GetVideoListNewDataListBean> filterListByBlack(List<GetVideoListNewDataListBean> videoList){
+    List<GetVideoListNewDataListBean> resultList = [];
+    for (var item in videoList) {
+      if (item is GetVideoListNewDataListBean ){
+        GetVideoListNewDataListBean video = item;
+        if (BlackListUtil().IsBlackUser(video.uid)){
+          continue;
+        } else if ( BlackListUtil().IsBlackVideo(video.id)){
+          continue;
+        }
+      }
+      resultList.add(item);
+    }
+    return resultList;
   }
 
   /// 是否有热门列表数据
@@ -432,6 +461,7 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
       bool isSuccess = (bean.status == SimpleResponse.statusStrSuccess);
       List<GetVideoListNewDataListBean> dataList =
           isSuccess ? (bean.data?.list ?? []) : [];
+      dataList = filterListByBlack(dataList);
       list = dataList;
       if (isSuccess) {
         _tmpHasMore = bean.data.hasNext == "1";

@@ -278,6 +278,7 @@ flutter:
     - assets/images/ic_more.png
     - assets/images/img_upload_succ.png
     - assets/images/img_default_video_cover.png
+    - assets/images/terms_note.png
     - assets/epamoji/epamoji_agree.png
     - assets/epamoji/epamoji_agree_lock.png
     - assets/epamoji/epamoji_amazed.png
