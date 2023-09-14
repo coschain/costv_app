@@ -6,15 +6,13 @@ import 'package:chewie/src/chewie_player.dart';
 import 'package:chewie/src/chewie_progress_colors.dart';
 import 'package:chewie/src/cupertino_progress_bar.dart';
 import 'package:chewie/src/utils.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:open_iconic_flutter/open_iconic_flutter.dart';
 import 'package:video_player/video_player.dart';
 
 class CupertinoControls extends StatefulWidget {
   const CupertinoControls({
-    @required this.backgroundColor,
-    @required this.iconColor,
+    required this.backgroundColor,
+    required this.iconColor,
   });
 
   final Color backgroundColor;
@@ -27,34 +25,32 @@ class CupertinoControls extends StatefulWidget {
 }
 
 class _CupertinoControlsState extends State<CupertinoControls> {
-  VideoPlayerValue _latestValue;
-  double _latestVolume;
+  late VideoPlayerValue _latestValue;
+  late double _latestVolume;
   bool _hideStuff = true;
-  Timer _hideTimer;
+  late Timer _hideTimer;
   final marginSize = 5.0;
-  Timer _expandCollapseTimer;
-  Timer _initTimer;
+  late Timer _expandCollapseTimer;
+  late Timer _initTimer;
 
-  VideoPlayerController controller;
-  ChewieController chewieController;
+  late VideoPlayerController controller;
+  late ChewieController chewieController;
 
   @override
   Widget build(BuildContext context) {
     chewieController = ChewieController.of(context);
-
     if (_latestValue.hasError) {
-      return chewieController.errorBuilder != null
-          ? chewieController.errorBuilder(
-              context,
-              chewieController.videoPlayerController.value.errorDescription,
-            )
-          : Center(
-              child: Icon(
-                OpenIconicIcons.ban,
-                color: Colors.white,
-                size: 42,
-              ),
-            );
+      var errorBuilder = chewieController.errorBuilder;
+      if (errorBuilder == null) {
+        return Center(
+          child: Icon(Icons.error, color: Colors.white, size: 42),
+        );
+      } else {
+        return errorBuilder(
+          context,
+          chewieController.videoPlayerController.value.errorDescription ?? "",
+        );
+      }
     }
 
     final backgroundColor = widget.backgroundColor;
@@ -95,9 +91,9 @@ class _CupertinoControlsState extends State<CupertinoControls> {
 
   void _dispose() {
     controller.removeListener(_updateState);
-    _hideTimer?.cancel();
-    _expandCollapseTimer?.cancel();
-    _initTimer?.cancel();
+    _hideTimer.cancel();
+    _expandCollapseTimer.cancel();
+    _initTimer.cancel();
   }
 
   @override
@@ -195,9 +191,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
               color: backgroundColor,
               child: Center(
                 child: Icon(
-                  chewieController.isFullScreen
-                      ? OpenIconicIcons.fullscreenExit
-                      : OpenIconicIcons.fullscreenEnter,
+                  chewieController.isFullScreen ? Icons.transit_enterexit : Icons.transit_enterexit,
                   color: iconColor,
                   size: 12.0,
                 ),
@@ -212,10 +206,10 @@ class _CupertinoControlsState extends State<CupertinoControls> {
   Expanded _buildHitArea() {
     return Expanded(
       child: GestureDetector(
-        onTap: _latestValue != null && _latestValue.isPlaying
+        onTap: _latestValue.isPlaying
             ? _cancelAndRestartTimer
             : () {
-                _hideTimer?.cancel();
+                _hideTimer.cancel();
 
                 setState(() {
                   _hideStuff = false;
@@ -262,9 +256,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
                   right: buttonPadding,
                 ),
                 child: Icon(
-                  (_latestValue != null && _latestValue.volume > 0)
-                      ? Icons.volume_up
-                      : Icons.volume_off,
+                  (_latestValue.volume > 0) ? Icons.volume_up : Icons.volume_off,
                   color: iconColor,
                   size: 16.0,
                 ),
@@ -291,9 +283,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
           right: 6.0,
         ),
         child: Icon(
-          controller.value.isPlaying
-              ? OpenIconicIcons.mediaPause
-              : OpenIconicIcons.mediaPlay,
+          controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
           color: iconColor,
           size: 16.0,
         ),
@@ -302,8 +292,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
   }
 
   Widget _buildPosition(Color iconColor) {
-    final position =
-        _latestValue != null ? _latestValue.position : Duration(seconds: 0);
+    final position = _latestValue != null ? _latestValue.position : Duration(seconds: 0);
 
     return Padding(
       padding: EdgeInsets.only(right: 12.0),
@@ -318,9 +307,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
   }
 
   Widget _buildRemaining(Color iconColor) {
-    final position = _latestValue != null && _latestValue.duration != null
-        ? _latestValue.duration - _latestValue.position
-        : Duration(seconds: 0);
+    final position = _latestValue.duration != null ? _latestValue.duration - _latestValue.position : Duration(seconds: 0);
 
     return Padding(
       padding: EdgeInsets.only(right: 12.0),
@@ -348,7 +335,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
             ..rotateX(math.pi)
             ..rotateZ(math.pi),
           child: Icon(
-            OpenIconicIcons.reload,
+            Icons.replay,
             color: iconColor,
             size: 12.0,
           ),
@@ -371,7 +358,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
           right: 8.0,
         ),
         child: Icon(
-          OpenIconicIcons.reload,
+          Icons.replay,
           color: iconColor,
           size: 12.0,
         ),
@@ -394,22 +381,16 @@ class _CupertinoControlsState extends State<CupertinoControls> {
       ),
       child: Row(
         children: <Widget>[
-          chewieController.allowFullScreen
-              ? _buildExpandButton(
-                  backgroundColor, iconColor, barHeight, buttonPadding)
-              : Container(),
+          chewieController.allowFullScreen ? _buildExpandButton(backgroundColor, iconColor, barHeight, buttonPadding) : Container(),
           Expanded(child: Container()),
-          chewieController.allowMuting
-              ? _buildMuteButton(controller, backgroundColor, iconColor,
-                  barHeight, buttonPadding)
-              : Container(),
+          chewieController.allowMuting ? _buildMuteButton(controller, backgroundColor, iconColor, barHeight, buttonPadding) : Container(),
         ],
       ),
     );
   }
 
   void _cancelAndRestartTimer() {
-    _hideTimer?.cancel();
+    _hideTimer.cancel();
 
     setState(() {
       _hideStuff = false;
@@ -423,8 +404,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
 
     _updateState();
 
-    if ((controller.value != null && controller.value.isPlaying) ||
-        chewieController.autoPlay) {
+    if ((controller.value.isPlaying) || chewieController.autoPlay) {
       _startHideTimer();
     }
 
@@ -457,7 +437,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
         child: CupertinoVideoProgressBar(
           controller,
           onDragStart: () {
-            _hideTimer?.cancel();
+            _hideTimer.cancel();
           },
           onDragEnd: () {
             _startHideTimer();
@@ -489,6 +469,7 @@ class _CupertinoControlsState extends State<CupertinoControls> {
                   255,
                 ),
               ),
+          onDragUpdate: () {},
         ),
       ),
     );
@@ -500,12 +481,12 @@ class _CupertinoControlsState extends State<CupertinoControls> {
     setState(() {
       if (controller.value.isPlaying) {
         _hideStuff = false;
-        _hideTimer?.cancel();
+        _hideTimer.cancel();
         controller.pause();
       } else {
         _cancelAndRestartTimer();
 
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           controller.initialize().then((_) {
             controller.play();
           });

@@ -1,5 +1,4 @@
 import 'package:costv_android/language/international_localizations.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/values/app_colors.dart';
@@ -7,7 +6,7 @@ import 'package:costv_android/values/app_colors.dart';
 class VideoAgeLimitSheet extends StatefulWidget {
   final bool adultOnly;
 
-  VideoAgeLimitSheet({this.adultOnly});
+  VideoAgeLimitSheet({required this.adultOnly});
 
   @override
   _VideoAgeLimitSheetState createState() => _VideoAgeLimitSheetState(adultOnly);
@@ -18,8 +17,8 @@ class _VideoAgeLimitSheetState extends State<VideoAgeLimitSheet> {
 
   _VideoAgeLimitSheetState(this.adultOnly);
 
-  bool get _ageLimited => adultOnly != null && adultOnly;
-  bool get _ageUnlimited => adultOnly != null && !adultOnly;
+  bool get _ageLimited => adultOnly;
+  bool get _ageUnlimited => !adultOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -80,9 +79,9 @@ class _VideoAgeLimitSheetState extends State<VideoAgeLimitSheet> {
                   Row(
                     children: <Widget>[
                       Expanded(
-                        child: FlatButton(
+                        child: ElevatedButton(
                           child: Text(InternationalLocalizations.cancel, style: TextStyle(fontSize: 15)),
-                          onPressed: (){
+                          onPressed: () {
                             Navigator.of(context).pop();
                           },
                         ),

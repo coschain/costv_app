@@ -23,7 +23,7 @@ import 'package:flutter/material.dart';
 class FollowingListPage extends StatefulWidget {
   final String uid;
 
-  FollowingListPage({this.uid}) : assert(uid != null);
+  FollowingListPage({required this.uid});
 
   @override
   State<StatefulWidget> createState() => _FollowingListPageState();
@@ -31,13 +31,9 @@ class FollowingListPage extends StatefulWidget {
 
 class _FollowingListPageState extends State<FollowingListPage> {
   static const String tag = '_FollowingListPageState';
-  GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
-      new GlobalKey<NetRequestFailTipsViewState>();
+  GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   int _pageSize = 20, _curPage = 1;
-  bool _isFetching = false,
-      _hasNextPage = false,
-      _isShowLoading = true,
-      _isSuccessLoad = true;
+  bool _isFetching = false, _hasNextPage = false, _isShowLoading = true, _isSuccessLoad = true;
   List<FollowRelationData> _dataList = [];
 
   @override
@@ -54,8 +50,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(
-          title: InternationalLocalizations.followingListPageTitle),
+      appBar: CustomAppBar(title: InternationalLocalizations.followingListPageTitle),
       body: _getFollowingPageBody(),
     );
   }
@@ -85,8 +80,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
             contentTopPadding: 10,
             pageSize: _pageSize,
             isHaveMoreData: _hasNextPage,
-            itemCount:
-                _dataList == null || _dataList.isEmpty ? 0 : _dataList.length,
+            itemCount: _dataList.isEmpty ? 0 : _dataList.length,
             itemBuilder: (context, index) {
               return _getSingleItem(index);
             },
@@ -103,7 +97,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
   }
 
   Widget _getSingleItem(int index) {
-    int listLen = _dataList?.length ?? 0;
+    int listLen = _dataList.length ?? 0;
     if (index >= 0 && index < listLen) {
       return FollowListItem(
         relationData: _dataList[index],
@@ -121,9 +115,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
     }
     _isFetching = true;
     int nextPage = _curPage + 1;
-    RequestManager.instance
-        .getUserFollowingList(tag, widget.uid, nextPage, _pageSize)
-        .then((response) {
+    RequestManager.instance.getUserFollowingList(tag, widget.uid, nextPage, _pageSize).then((response) {
       if (response == null || !mounted) {
         CosLogUtil.log("FollowingListPage: fail to fetch uid:${widget.uid}'s "
             "next page:$nextPage's data");
@@ -131,7 +123,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
       }
       FollowRelationListBean bean = _parseResponse(response);
       if (bean.status == SimpleResponse.statusStrSuccess) {
-        if (bean.data.list != null && bean.data.list.isNotEmpty) {
+        if (bean.data.list.isNotEmpty) {
           setState(() {
             _dataList.addAll(bean.data.list);
             _curPage = nextPage;
@@ -158,9 +150,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
       return;
     }
     _isFetching = true;
-    RequestManager.instance
-        .getUserFollowingList(tag, widget.uid, 1, _pageSize)
-        .then((response) {
+    RequestManager.instance.getUserFollowingList(tag, widget.uid, 1, _pageSize).then((response) {
       if (response == null || !mounted) {
         CosLogUtil.log("FollowingListPage: fail to fetch following list of"
             " uid:${widget.uid}'s first page data");
@@ -175,7 +165,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
       }
       FollowRelationListBean bean = _parseResponse(response);
       if (bean.status == SimpleResponse.statusStrSuccess) {
-        _dataList = bean.data?.list ?? [];
+        _dataList = bean.data.list ?? [];
         _curPage = 1;
         _hasNextPage = bean.data.hasnext == "1";
         _isSuccessLoad = true;
@@ -206,19 +196,18 @@ class _FollowingListPageState extends State<FollowingListPage> {
   }
 
   FollowRelationListBean _parseResponse(Response response) {
-    FollowRelationListBean bean =
-        FollowRelationListBean.fromJson(json.decode(response.data));
+    FollowRelationListBean bean = FollowRelationListBean.fromJson(json.decode(response.data));
     return bean;
   }
 
   void _showLoadDataFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
   bool _checkHasFollowData() {
-    if (_dataList != null && _dataList.isNotEmpty) {
+    if (_dataList.isNotEmpty) {
       return true;
     }
     return false;
@@ -226,7 +215,7 @@ class _FollowingListPageState extends State<FollowingListPage> {
 }
 
 class FollowListItem extends StatefulWidget {
-  final FollowRelationData relationData;
+  final FollowRelationData? relationData;
 
   FollowListItem({this.relationData});
 
@@ -237,8 +226,7 @@ class FollowListItem extends StatefulWidget {
 class _FollowListItemState extends State<FollowListItem> {
   @override
   Widget build(BuildContext context) {
-    String avatar =
-        widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
+    String avatar = widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(avatar)) {
       avatar = widget.relationData?.avatar ?? '';
     }
@@ -246,8 +234,7 @@ class _FollowListItemState extends State<FollowListItem> {
       color: Colors.transparent,
       child: Ink(
         color: AppThemeUtil.setDifferentModeColor(
-            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
-            darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0), darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
         child: InkWell(
           child: Container(
             padding: EdgeInsets.all(10),
@@ -257,9 +244,7 @@ class _FollowListItemState extends State<FollowListItem> {
               children: <Widget>[
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(
-                        color: AppColors.color_ebebeb,
-                        width: AppDimens.item_line_height_0_5),
+                    border: Border.all(color: AppColors.color_ebebeb, width: AppDimens.item_line_height_0_5),
                     borderRadius: BorderRadius.circular(AppDimens.item_size_25),
                   ),
                   child: Stack(
@@ -267,8 +252,7 @@ class _FollowListItemState extends State<FollowListItem> {
                       CircleAvatar(
                         backgroundColor: AppColors.color_ffffff,
                         radius: AppDimens.item_size_25,
-                        backgroundImage:
-                            AssetImage('assets/images/ic_default_avatar.png'),
+                        backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                       ),
                       CircleAvatar(
                         backgroundColor: AppColors.color_transparent,
@@ -291,9 +275,7 @@ class _FollowListItemState extends State<FollowListItem> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor: Colors.black,
-                            darkColorStr: DarkModelTextColorUtil
-                                .firstLevelBrightnessColorStr),
+                            lightColor: Colors.black, darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                         fontSize: 15,
                       ),
                     ),
@@ -303,7 +285,7 @@ class _FollowListItemState extends State<FollowListItem> {
             ),
           ),
           onTap: () {
-            _jumpToUserCenter(widget.relationData.uid);
+            _jumpToUserCenter(widget.relationData?.uid ?? "");
           },
         ),
       ),
@@ -315,8 +297,7 @@ class _FollowListItemState extends State<FollowListItem> {
 //      CosLogUtil.log("FollowingListPage: can't open webview due to uid is empty");
 //      return;
 //    }
-    String avatar =
-        widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
+    String avatar = widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(avatar)) {
       avatar = widget.relationData?.avatar ?? '';
     }

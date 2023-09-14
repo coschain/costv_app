@@ -5,20 +5,19 @@ import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/relate_list_bean.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-typedef ClickRecommendVideoCallBack = Function(RelateListItemBean videoInfo);
+typedef ClickRecommendVideoCallBack = Function(RelateListItemBean? videoInfo);
 
 class AutoPlayRecommendVideoItem extends StatefulWidget {
-  final RelateListItemBean videoInfo;
+  final RelateListItemBean? videoInfo;
   final double rightPadding;
   final double leftMargin;
-  final ClickRecommendVideoCallBack clickRecommendVideoCallBack;
+  final ClickRecommendVideoCallBack? clickRecommendVideoCallBack;
 
   AutoPlayRecommendVideoItem({
     this.videoInfo,
-    this.rightPadding,
+    this.rightPadding = 0,
     this.leftMargin = 0,
     this.clickRecommendVideoCallBack,
   });
@@ -29,8 +28,7 @@ class AutoPlayRecommendVideoItem extends StatefulWidget {
   }
 }
 
-class AutoPlayRecommendVideoItemState
-    extends State<AutoPlayRecommendVideoItem> {
+class AutoPlayRecommendVideoItemState extends State<AutoPlayRecommendVideoItem> {
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -57,7 +55,7 @@ class AutoPlayRecommendVideoItemState
 
   Widget _buildVideoCover(double coverWidth, double coverHeight) {
     String imageUrl = widget.videoInfo?.videoImageCompress?.videoCompressUrl ?? '';
-    if(ObjectUtil.isEmptyString(imageUrl)){
+    if (ObjectUtil.isEmptyString(imageUrl)) {
       imageUrl = widget.videoInfo?.videoCoverBig ?? '';
     }
     return InkWell(
@@ -96,19 +94,18 @@ class AutoPlayRecommendVideoItemState
       ),
       onTap: () {
         if (widget.clickRecommendVideoCallBack != null) {
-          widget.clickRecommendVideoCallBack(widget.videoInfo);
+          widget.clickRecommendVideoCallBack?.call(widget.videoInfo);
         }
       },
     );
   }
 
   Widget _getVideoDurationWidget() {
-    if (Common.checkVideoDurationValid(widget.videoInfo?.duration)) {
+    if (Common.checkVideoDurationValid(widget.videoInfo?.duration ?? "")) {
       return Positioned(
         right: 0,
         bottom: 0,
-        child: VideoTimeWidget(
-            Common.formatVideoDuration(widget.videoInfo?.duration)),
+        child: VideoTimeWidget(Common.formatVideoDuration(widget.videoInfo?.duration ?? "")),
       );
     }
     return Container();
@@ -123,10 +120,7 @@ class AutoPlayRecommendVideoItemState
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.start,
         maxLines: 1,
-        style: TextStyle(
-            fontSize: 13,
-            color: Common.getColorFromHexString("FFFFFF", 1.0),
-            fontFamily: "Roboto"),
+        style: TextStyle(fontSize: 13, color: Common.getColorFromHexString("FFFFFF", 1.0), fontFamily: "Roboto"),
       ),
     );
   }
@@ -140,11 +134,7 @@ class AutoPlayRecommendVideoItemState
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.start,
         maxLines: 1,
-        style: TextStyle(
-            fontSize: 11,
-            color: Common.getColorFromHexString("FFFFFF", 1.0),
-            fontWeight: FontWeight.bold,
-            fontFamily: "Roboto"),
+        style: TextStyle(fontSize: 11, color: Common.getColorFromHexString("FFFFFF", 1.0), fontWeight: FontWeight.bold, fontFamily: "Roboto"),
       ),
     );
   }

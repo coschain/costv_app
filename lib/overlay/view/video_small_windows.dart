@@ -33,24 +33,23 @@ class VideoSmallWindows extends StatefulWidget {
   _VideoSmallWindowsState createState() => _VideoSmallWindowsState();
 }
 
-class _VideoSmallWindowsState extends State<VideoSmallWindows>
-    with TickerProviderStateMixin {
-  VideoPlayerController _videoPlayerController;
-  ChewieController _chewieController;
-  AnimationController _controllerProgress;
+class _VideoSmallWindowsState extends State<VideoSmallWindows> with TickerProviderStateMixin {
+  late VideoPlayerController _videoPlayerController;
+  late ChewieController _chewieController;
+  late AnimationController _controllerProgress;
   String _pageFlag = DateTime.now().toString();
-  double _triggerY;
-  double _startY;
+  double _triggerY = 0;
+  double _startY = 0;
   int _currVideoIndex = 0;
-  String _title;
-  String _introduction;
-  CosTVControls _cosTVControls;
+  late String _title;
+  late String _introduction;
+  late CosTVControls _cosTVControls;
   bool _isReplayVideo = false;
-  Animation<double> _animationPosition;
-  Animation<double> _animationOpacity;
-  AnimationController _controllerClose;
+  late Animation<double> _animationPosition;
+  late Animation<double> _animationOpacity;
+  late AnimationController _controllerClose;
   bool _isAnimationCloseRun = false;
-  StreamSubscription _eventSubscription;
+  StreamSubscription? _eventSubscription;
   double _marginBottom = AppDimens.margin_64_5;
   Duration _lastPlayerPosition = Duration.zero;
   Duration _currentPlayerPosition = Duration.zero;
@@ -64,43 +63,39 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
   }
 
   void _initData() {
-    GetVideoInfoDataBean _getVideoInfoDataBean = widget._bean.listDataItem[0];
-    _pageFlag =
-        '${_getVideoInfoDataBean?.videoId ?? ''}${DateTime.now().toString()}';
+    GetVideoInfoDataBean _getVideoInfoDataBean = widget._bean.listDataItem[0] as GetVideoInfoDataBean;
+    _pageFlag = '${_getVideoInfoDataBean.videoId}${DateTime.now().toString()}';
     _controllerProgress = AnimationController(
       vsync: this,
     );
-    _controllerClose =
-        AnimationController(vsync: this, duration: Duration(milliseconds: 300));
+    _controllerClose = AnimationController(vsync: this, duration: Duration(milliseconds: 300));
     initAnimationClose();
     _controllerClose.addListener(animationCloseUpdate);
     _controllerClose.addStatusListener(animationCloseStatus);
     _triggerY = AppDimens.item_size_65 / 2;
-    _title = _getVideoInfoDataBean?.title ?? '';
-    _introduction = _getVideoInfoDataBean?.introduction ?? '';
+    _title = _getVideoInfoDataBean.title;
+    _introduction = _getVideoInfoDataBean.introduction;
     if (widget._bean != null) {
       if (widget._bean.videoPlayerController != null) {
-        _videoPlayerController = widget._bean.videoPlayerController;
+        _videoPlayerController = widget._bean.videoPlayerController!;
         _initChewieController(false, widget._bean.startAt);
-        _videoPlayerController?.addListener(videoSmallPlayerChanged);
+        _videoPlayerController.addListener(videoSmallPlayerChanged);
         Future.delayed(Duration(milliseconds: 800), () {
           if (mounted) {
-            _videoPlayerController?.addListener(videoSmallPlayerChanged);
-            _videoPlayerController?.play();
+            _videoPlayerController.addListener(videoSmallPlayerChanged);
+            _videoPlayerController.play();
             setState(() {});
           }
         });
       }
     } else {
-      _initVideoPlayers(_getVideoInfoDataBean?.videosource ?? '');
+      _initVideoPlayers(_getVideoInfoDataBean.videosource);
     }
   }
 
   void initAnimationClose() {
-    _animationPosition =
-        Tween<double>(begin: _marginBottom, end: 0.0).animate(_controllerClose);
-    _animationOpacity =
-        Tween<double>(begin: 1.0, end: 0.0).animate(_controllerClose);
+    _animationPosition = Tween<double>(begin: _marginBottom, end: 0.0).animate(_controllerClose);
+    _animationOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(_controllerClose);
   }
 
   void _listenEvent() {
@@ -147,12 +142,11 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
     });
   }
 
-  void _initChewieController(bool autoPlay, Duration startAt) {
+  void _initChewieController(bool autoPlay, Duration? startAt) {
     if (_videoPlayerController == null) {
       return;
     }
-    _cosTVControls = CosTVControls(_pageFlag,
-        showType: CosTVControls.showTypeSmallWindows, videoPlayEndCallBack: () {
+    _cosTVControls = CosTVControls(_pageFlag, showType: CosTVControls.showTypeSmallWindows, videoPlayEndCallBack: () {
       _handleCurVideoPlayEnd();
     });
     if (startAt == null) {
@@ -169,8 +163,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
       isLive: _videoPlayerController.value.duration == Duration.zero,
       customControls: _cosTVControls,
       materialProgressColors: CosTVControlColor.MaterialProgressColors,
-      routePageBuilder:
-          CosTvFullScreenBuilder.of(_videoPlayerController.value.aspectRatio),
+      routePageBuilder: CosTvFullScreenBuilder.of(_videoPlayerController.value.aspectRatio),
       deviceOrientationsAfterFullScreen: [DeviceOrientation.portraitUp],
     );
   }
@@ -184,30 +177,27 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
     }
     if (_currVideoIndex < widget._bean.listDataItem.length) {
       if (usrAutoPlaySetting) {
-        if (widget._bean.listDataItem[_currVideoIndex]
-            is GetVideoInfoDataBean) {
-          GetVideoInfoDataBean _getVideoInfoDataBean =
-              widget._bean.listDataItem[_currVideoIndex];
+        if (widget._bean.listDataItem[_currVideoIndex] is GetVideoInfoDataBean) {
+          GetVideoInfoDataBean _getVideoInfoDataBean = widget._bean.listDataItem[_currVideoIndex] as GetVideoInfoDataBean;
           replayFristVideo(_getVideoInfoDataBean);
-        } else if (widget._bean.listDataItem[_currVideoIndex]
-            is RelateListItemBean) {
-          RelateListItemBean bean = widget._bean.listDataItem[_currVideoIndex];
-          if (bean != null) {
-            _title = bean?.title ?? '';
-            _introduction = bean?.introduction ?? '';
-            final oldPlayerController = _videoPlayerController;
-            final oldChewieController = _chewieController;
-            oldPlayerController?.removeListener(videoSmallPlayerChanged);
-            _videoPlayerController = null;
-            _chewieController = null;
-            oldPlayerController?.pause();
-            oldChewieController?.pause();
-            _initVideoPlayers(bean?.videosource ?? '');
-            Future.delayed(Duration(seconds: 3), () {
-              oldPlayerController?.dispose();
-              oldChewieController?.dispose();
-            });
-          }
+        } else if (widget._bean.listDataItem[_currVideoIndex] is RelateListItemBean) {
+          RelateListItemBean bean = widget._bean.listDataItem[_currVideoIndex] as RelateListItemBean;
+          _title = bean.title;
+          _introduction = bean.introduction;
+          final oldPlayerController = _videoPlayerController;
+          final oldChewieController = _chewieController;
+          oldPlayerController.removeListener(videoSmallPlayerChanged);
+          _videoPlayerController.dispose();
+          _chewieController.dispose();
+          oldPlayerController.pause();
+          oldChewieController.pause();
+          _initVideoPlayers(bean.videosource);
+          Future.delayed(Duration(seconds: 3), () {
+            oldPlayerController.dispose();
+            if (oldChewieController.isLive){
+              oldChewieController.dispose();
+            }
+          });
         }
       } else {
         _currVideoIndex = 0;
@@ -224,29 +214,27 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
   }
 
   void replayFristVideo(GetVideoInfoDataBean _getVideoInfoDataBean) {
-    if (_getVideoInfoDataBean != null) {
-      _title = _getVideoInfoDataBean?.title ?? '';
-      _introduction = _getVideoInfoDataBean?.introduction ?? '';
-      final oldPlayerController = _videoPlayerController;
-      final oldChewieController = _chewieController;
-      oldPlayerController?.removeListener(videoSmallPlayerChanged);
-      _videoPlayerController = null;
-      _chewieController = null;
-      oldPlayerController?.pause();
-      oldChewieController?.pause();
-      _initVideoPlayers(_getVideoInfoDataBean?.videosource ?? '');
-      Future.delayed(Duration(seconds: 3), () {
-        oldPlayerController?.dispose();
-        oldChewieController?.dispose();
-      });
-    }
+    _title = _getVideoInfoDataBean.title;
+    _introduction = _getVideoInfoDataBean.introduction;
+    final oldPlayerController = _videoPlayerController;
+    final oldChewieController = _chewieController;
+    oldPlayerController.removeListener(videoSmallPlayerChanged);
+    _videoPlayerController.dispose();
+    _chewieController.dispose();
+    oldPlayerController.pause();
+    oldChewieController.pause();
+    _initVideoPlayers(_getVideoInfoDataBean.videosource);
+    Future.delayed(Duration(seconds: 3), () {
+      oldPlayerController.dispose();
+      oldChewieController.dispose();
+    });
   }
 
   /// 重播视频
   Future<void> replayVideo() async {
     if (_currVideoIndex > 0) {
       _currVideoIndex = 0;
-      GetVideoInfoDataBean _getVideoInfoDataBean = widget._bean.listDataItem[0];
+      GetVideoInfoDataBean _getVideoInfoDataBean = widget._bean.listDataItem[0] as GetVideoInfoDataBean;
       replayFristVideo(_getVideoInfoDataBean);
     } else {
       await _videoPlayerController.seekTo(Duration(seconds: 0));
@@ -256,34 +244,29 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
 
   String _getVideoId() {
     String vid = '';
-    if (widget._bean.getVideoInfoDataBean != null &&
-        widget._bean.getVideoInfoDataBean.id != null) {
-      vid = widget._bean.getVideoInfoDataBean.id;
+    if (widget._bean.getVideoInfoDataBean != null && widget._bean.getVideoInfoDataBean?.id != null) {
+      vid = widget._bean.getVideoInfoDataBean!.id;
     } else if (widget._bean.vid != null) {
-      vid = widget._bean.vid;
+      vid = widget._bean.vid!;
     }
     return vid;
   }
 
   String _getUidOfVideo() {
     String uid = '';
-    if (widget._bean.getVideoInfoDataBean != null &&
-        widget._bean.getVideoInfoDataBean.uid != null) {
-      uid = widget._bean.getVideoInfoDataBean.uid;
+    if (widget._bean.getVideoInfoDataBean != null && widget._bean.getVideoInfoDataBean?.uid != null) {
+      uid = widget._bean.getVideoInfoDataBean!.uid;
     } else if (widget._bean.uid != null) {
-      uid = widget._bean.uid;
+      uid = widget._bean.uid!;
     }
     return uid;
   }
 
   ///视频停止、切换、播放完成、退到后台时的上报
   void reportVideoEnd(VideoPlayerValue playerValue) {
-    num playTimeProportion = NumUtil.getNumByValueDouble(
-        NumUtil.multiply(
-            NumUtil.divide(_currentPlayerPosition.inSeconds,
-                playerValue.duration.inSeconds),
-            100),
-        2);
+    num? playTimeProportion =
+        NumUtil.getNumByValueDouble(NumUtil.multiply(_currentPlayerPosition.inSeconds / playerValue.duration.inSeconds, 100), 2);
+    if (playTimeProportion == null) return;
     DataReportUtil.instance.reportData(
       eventName: "Play_time_proportion",
       params: {
@@ -321,7 +304,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
   }
 
   void videoSmallPlayerChanged() {
-    VideoPlayerValue playerValue = _videoPlayerController?.value;
+    VideoPlayerValue? playerValue = _videoPlayerController.value;
     if (playerValue == null) {
       return;
     }
@@ -333,8 +316,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
       }
       if (mounted) {
         setState(() {
-          double timeValue = NumUtil.divide(
-              playerValue.position.inSeconds, playerValue.duration.inSeconds);
+          double timeValue = playerValue.position.inSeconds / playerValue.duration.inSeconds;
           CosLogUtil.log("videoPlayerChanged timeValue = $timeValue");
           _controllerProgress.value = timeValue;
         });
@@ -343,8 +325,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
         _lastPlayerPosition = _currentPlayerPosition;
         _currentPlayerPosition = playerValue.position;
 
-        if (_currentPlayerPosition.inSeconds >= 1 &&
-            _lastPlayerPosition.inSeconds < 1) {
+        if (_currentPlayerPosition.inSeconds >= 1 && _lastPlayerPosition.inSeconds < 1) {
           if (widget._bean.isVideoDetailsInit) {
             widget._bean.isVideoDetailsInit = false;
           } else {
@@ -352,8 +333,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
               eventName: "Video_play",
               params: {
                 "vid": _getVideoId(),
-                "topic_class":
-                    widget._bean.getVideoInfoDataBean?.topicClass ?? '',
+                "topic_class": widget._bean.getVideoInfoDataBean?.topicClass ?? '',
                 "type": widget._bean.getVideoInfoDataBean?.type ?? '',
               },
             );
@@ -362,8 +342,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
 
         if (playerValue.duration > Duration.zero) {
           Duration threshold = playerValue.duration * 0.9;
-          if (_currentPlayerPosition >= threshold &&
-              _lastPlayerPosition < threshold) {
+          if (_currentPlayerPosition >= threshold && _lastPlayerPosition < threshold) {
             DataReportUtil.instance.reportData(
               eventName: "Video_done",
               params: {
@@ -373,29 +352,21 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
             );
           }
         }
-        if (_currentPlayerPosition.inSeconds != null &&
-            playerValue.duration.inSeconds != null &&
-            _currentPlayerPosition.inSeconds ==
-                playerValue.duration.inSeconds &&
-            _isCanReportVideoEnd) {
+        if (_currentPlayerPosition.inSeconds == playerValue.duration.inSeconds && _isCanReportVideoEnd) {
           _isCanReportVideoEnd = false;
           reportVideoEnd(playerValue);
         }
       }
     } else {
-      CosLogUtil.log(
-          "videoSmallPlayerChanged _isReplayVideo = $_isReplayVideo");
-      CosLogUtil.log(
-          "videoSmallPlayerChanged _controllerProgress.value = ${_controllerProgress.value}");
+      CosLogUtil.log("videoSmallPlayerChanged _isReplayVideo = $_isReplayVideo");
+      CosLogUtil.log("videoSmallPlayerChanged _controllerProgress.value = ${_controllerProgress.value}");
       CosLogUtil.log("videoSmallPlayerChanged mounted = $mounted");
       if (_isReplayVideo && _controllerProgress.value < 1.0 && mounted) {
         setState(() {
           _controllerProgress.value = 1.0;
         });
       }
-      if (_currentPlayerPosition.inSeconds != null &&
-          playerValue.duration.inSeconds != null &&
-          _isCanReportVideoEnd) {
+      if (_isCanReportVideoEnd) {
         _isCanReportVideoEnd = false;
         reportVideoEnd(playerValue);
       }
@@ -405,64 +376,52 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
   @override
   void dispose() {
     if (_eventSubscription != null) {
-      _eventSubscription.cancel();
+      _eventSubscription?.cancel();
       _eventSubscription = null;
     }
     clearVideoPlayerController();
-    if (_chewieController != null) {
-      _chewieController.dispose();
-      _chewieController = null;
-    }
-    if (_controllerProgress != null) {
-      _controllerProgress.dispose();
-      _controllerProgress = null;
-    }
-    if (_controllerClose != null) {
-      _controllerClose.removeListener(animationCloseUpdate);
-      _controllerClose.removeStatusListener(animationCloseStatus);
-      _controllerClose.dispose();
-      _controllerClose = null;
-    }
+    _chewieController.dispose();
+    _controllerProgress.dispose();
+    _controllerClose.removeListener(animationCloseUpdate);
+    _controllerClose.removeStatusListener(animationCloseStatus);
+    _controllerClose.dispose();
     super.dispose();
   }
 
   void clearVideoPlayerController() {
-    if (_videoPlayerController != null) {
-      _videoPlayerController.pause();
-      _videoPlayerController.removeListener(videoSmallPlayerChanged);
-      _videoPlayerController.dispose();
-      _videoPlayerController = null;
-    }
+    _videoPlayerController.pause();
+    _videoPlayerController.removeListener(videoSmallPlayerChanged);
+    _videoPlayerController.dispose();
   }
 
   /// 跳转到视频详情页
   void jumpVideoDetails(BuildContext context) {
-    String videoId;
-    String uid;
-    String videoSource;
+    late String videoId;
+    late String uid;
+    late String videoSource;
     if (_currVideoIndex < widget._bean.listDataItem.length) {
       if (widget._bean.listDataItem[_currVideoIndex] is GetVideoInfoDataBean) {
-        GetVideoInfoDataBean _getVideoInfoDataBean =
-            widget._bean.listDataItem[_currVideoIndex];
+        GetVideoInfoDataBean? _getVideoInfoDataBean = widget._bean.listDataItem[_currVideoIndex] as GetVideoInfoDataBean?;
         if (_getVideoInfoDataBean != null) {
-          videoId = _getVideoInfoDataBean?.id ?? '';
-          uid = _getVideoInfoDataBean?.uid ?? '';
-          videoSource = _getVideoInfoDataBean?.videosource ?? '';
+          videoId = _getVideoInfoDataBean.id;
+          uid = _getVideoInfoDataBean.uid;
+          videoSource = _getVideoInfoDataBean.videosource;
         }
-      } else if (widget._bean.listDataItem[_currVideoIndex]
-          is RelateListItemBean) {
-        RelateListItemBean bean = widget._bean.listDataItem[_currVideoIndex];
+      } else if (widget._bean.listDataItem[_currVideoIndex] is RelateListItemBean) {
+        RelateListItemBean? bean = widget._bean.listDataItem[_currVideoIndex] as RelateListItemBean?;
         if (bean != null) {
-          videoId = bean?.videoId ?? '';
-          uid = bean?.introduction ?? '';
-          videoSource = bean?.videosource ?? '';
+          videoId = bean.videoId;
+          uid = bean.introduction;
+          videoSource = bean.videosource;
         }
       }
     } else {
-      GetVideoInfoDataBean _getVideoInfoDataBean = widget._bean.listDataItem[0];
-      videoId = _getVideoInfoDataBean?.id ?? '';
-      uid = _getVideoInfoDataBean?.uid ?? '';
-      videoSource = _getVideoInfoDataBean?.videosource ?? '';
+      GetVideoInfoDataBean? _getVideoInfoDataBean = widget._bean.listDataItem[0] as GetVideoInfoDataBean?;
+      if (_getVideoInfoDataBean != null) {
+        videoId = _getVideoInfoDataBean.id;
+        uid = _getVideoInfoDataBean.uid;
+        videoSource = _getVideoInfoDataBean.videosource;
+      }
     }
     Navigator.of(context).push(SlideAnimationRoute(
       builder: (_) {
@@ -472,8 +431,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
           vid: videoId,
           uid: uid,
           videoSource: videoSource,
-          enterSource:
-              VideoDetailsEnterSource.VideoDetailsEnterSourceVideoSmallWindows,
+          enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceVideoSmallWindows,
           videoSmallWindowsBean: widget._bean,
         ));
       },
@@ -486,7 +444,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width - AppDimens.margin_20;
     double videoWidth = AppDimens.item_size_65 * 16 / 9;
-    bool isPlaying = _videoPlayerController?.value?.isPlaying ?? false;
+    bool isPlaying = _videoPlayerController.value.isPlaying;
     String imgPlayUrl;
     if (isPlaying) {
       imgPlayUrl = AppThemeUtil.getSmallWindowVideoStop();
@@ -507,7 +465,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
               if (!_isAnimationCloseRun) {
                 jumpVideoDetails(context);
                 _isAnimationCloseRun = true;
-                _videoPlayerController?.pause();
+                _videoPlayerController.pause();
                 _videoPlayerController.removeListener(videoSmallPlayerChanged);
                 _controllerClose.forward();
               }
@@ -520,16 +478,15 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
               double moveY = endY - _startY;
               if (moveY > 0 && moveY >= _triggerY && !_isAnimationCloseRun) {
                 _isAnimationCloseRun = true;
-                _videoPlayerController?.pause();
+                _videoPlayerController.pause();
                 _videoPlayerController.removeListener(videoSmallPlayerChanged);
                 _controllerClose.forward();
               } else {
                 if (moveY.abs() >= _triggerY && !_isAnimationCloseRun) {
                   jumpVideoDetails(context);
                   _isAnimationCloseRun = true;
-                  _videoPlayerController?.pause();
-                  _videoPlayerController
-                      .removeListener(videoSmallPlayerChanged);
+                  _videoPlayerController.pause();
+                  _videoPlayerController.removeListener(videoSmallPlayerChanged);
                   _controllerClose.forward();
                 }
               }
@@ -565,22 +522,17 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
-                            colors: [
-                              Color.fromRGBO(84, 84, 84, 1.0),
-                              Colors.black
-                            ],
+                            colors: [Color.fromRGBO(84, 84, 84, 1.0), Colors.black],
                           ),
                         ),
-                        child: (_chewieController != null &&
-                                _videoPlayerController != null)
+                        child: (_chewieController != null)
                             ? ClipRect(
                                 child: Chewie(
                                 controller: _chewieController,
                               ))
                             : Center(
                                 child: Theme(
-                                data: Theme.of(context)
-                                    .copyWith(accentColor: Colors.white),
+                                data: Theme.of(context).copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
                                 child: CircularProgressIndicator(),
                               )),
                       ),
@@ -606,8 +558,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
                                 overflow: TextOverflow.ellipsis,
                               ),
                               Container(
-                                margin:
-                                    EdgeInsets.only(top: AppDimens.margin_5),
+                                margin: EdgeInsets.only(top: AppDimens.margin_5),
                                 child: Text(
                                   _introduction,
                                   style: TextStyle(
@@ -628,21 +579,18 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
                       GestureDetector(
                         behavior: HitTestBehavior.opaque,
                         onTap: () {
-                          if (_videoPlayerController != null &&
-                              _chewieController != null) {
-                            setState(() {
-                              if (_videoPlayerController.value.isPlaying) {
-                                _videoPlayerController.pause();
+                          setState(() {
+                            if (_videoPlayerController.value.isPlaying) {
+                              _videoPlayerController.pause();
+                            } else {
+                              if (_isReplayVideo) {
+                                replayVideo();
+                                _isReplayVideo = false;
                               } else {
-                                if (_isReplayVideo) {
-                                  replayVideo();
-                                  _isReplayVideo = false;
-                                } else {
-                                  _videoPlayerController.play();
-                                }
+                                _videoPlayerController.play();
                               }
-                            });
-                          }
+                            }
+                          });
                         },
                         child: Container(
                           margin: EdgeInsets.only(left: AppDimens.margin_15),
@@ -654,17 +602,15 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
                         onTap: () {
                           if (Common.isAbleClick() && !_isAnimationCloseRun) {
                             _isAnimationCloseRun = true;
-                            _videoPlayerController?.pause();
-                            _videoPlayerController
-                                .removeListener(videoSmallPlayerChanged);
+                            _videoPlayerController.pause();
+                            _videoPlayerController.removeListener(videoSmallPlayerChanged);
                             _controllerClose.forward();
                           }
                         },
                         child: Container(
                           padding: EdgeInsets.all(AppDimens.margin_15),
                           margin: EdgeInsets.only(left: AppDimens.margin_10),
-                          child: Image.asset(
-                              AppThemeUtil.getSmallWindowVideoClose()),
+                          child: Image.asset(AppThemeUtil.getSmallWindowVideoClose()),
                         ),
                       )
                     ],
@@ -675,10 +621,7 @@ class _VideoSmallWindowsState extends State<VideoSmallWindows>
                     child: LinearProgressIndicator(
                       backgroundColor: AppColors.color_transparent,
                       value: _controllerProgress.value,
-                      valueColor: ColorTween(
-                              begin: AppColors.color_3674ff,
-                              end: AppColors.color_3674ff)
-                          .animate(_controllerProgress),
+                      valueColor: ColorTween(begin: AppColors.color_3674ff, end: AppColors.color_3674ff).animate(_controllerProgress),
                     ),
                   )
                 ],

@@ -8,7 +8,7 @@ import 'package:costv_android/utils/revenue_calculation_util.dart';
 import 'package:costv_android/widget/animation/video_add_money_widget.dart';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 
 const String tokenErrCode = "11011";
 
@@ -228,7 +228,7 @@ class Common {
   }
 
   ///通过当前语言获取货币符号
-  static String getCurrencySymbolByLanguage({String lan}) {
+  static String getCurrencySymbolByLanguage({String? lan}) {
     lan = lan ?? curLanguage;
     if (lan != null) {
       if (lan.startsWith("en")) {
@@ -265,7 +265,7 @@ class Common {
   }
 
   ///通过当前语言获取货币
-  static String getCurrencyMoneyByLanguage({String lan}) {
+  static String getCurrencyMoneyByLanguage({String? lan}) {
     lan = lan ?? curLanguage;
     if (lan != null) {
       if (lan.startsWith("en")) {
@@ -302,7 +302,7 @@ class Common {
   }
 
   ///通过当前语言获取时间选择弹出框语言
-  static LocaleType getTimeShowByLanguage({String lan}) {
+  static LocaleType getTimeShowByLanguage({String? lan}) {
     lan = lan ?? curLanguage;
     if (lan != null) {
       if (lan.startsWith("en")) {
@@ -422,12 +422,13 @@ class Common {
     return amount;
   }
 
-  static DateTime _lastTime;
+  static DateTime? _lastTime;
+
   static const int clickMilliSeconds = 500;
 
   static bool isAbleClick() {
     if (_lastTime == null ||
-        DateTime.now().difference(_lastTime) >
+        DateTime.now().difference(_lastTime!) >
             Duration(milliseconds: clickMilliSeconds)) {
       _lastTime = DateTime.now();
       return true;
@@ -437,7 +438,7 @@ class Common {
     }
   }
 
-  static Decimal getUserMaxPower(AccountInfo acctInfo) {
+  static Decimal getUserMaxPower(AccountInfo? acctInfo) {
     if (acctInfo != null && acctInfo.vest != null) {
       Decimal vestDec = Decimal.fromInt(acctInfo.vest.value.toInt());
       vestDec *= Decimal.fromInt(33);
@@ -514,11 +515,11 @@ class Common {
   }
 
   static String calcVideoAddedIncome(
-      AccountInfo acctInfo,
-      ExchangeRateInfoData exchangeRateInfoData,
-      ChainState chainStateBean,
-      String oldPower,
-      String giftVest) {
+      AccountInfo? acctInfo,
+      ExchangeRateInfoData? exchangeRateInfoData,
+      ChainState? chainStateBean,
+      String? oldPower,
+      String? giftVest) {
     if (acctInfo != null &&
         exchangeRateInfoData != null &&
         chainStateBean != null &&
@@ -544,10 +545,10 @@ class Common {
   }
 
   static String calcCommentAddedIncome(
-      AccountInfo acctInfo,
-      ExchangeRateInfoData exchangeRateInfoData,
-      ChainState chainStateBean,
-      String oldPower) {
+      AccountInfo? acctInfo,
+      ExchangeRateInfoData? exchangeRateInfoData,
+      ChainState? chainStateBean,
+      String? oldPower) {
     if (acctInfo != null &&
         exchangeRateInfoData != null &&
         chainStateBean != null &&
@@ -579,9 +580,9 @@ class Common {
     return GlobalObjectKey<VideoAddMoneyWidgetState>(symbol);
   }
 
-  static List<List<T>> splitList<T>(List<T> list, int len, [int firstLen]) {
+  static List<List<T>> splitList<T>(List<T> list, int len, [int? firstLen]) {
     if (ObjectUtil.isEmptyList(list)) {
-      return null;
+      return [];
     }
     List<T> listData;
     List<List<T>> result = [];

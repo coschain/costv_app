@@ -4,23 +4,22 @@ typedef OnCloseListener();
 
 class PopupWindow extends StatefulWidget {
   final Widget child;
-  final Function onClick; //点击child事件
+  final Function? onClick; //点击child事件
   final double left; //距离左边位置
   final double top; //距离上面位置
   final Color backgroundColor;
-  final OnCloseListener onCloseListener;
+  final OnCloseListener? onCloseListener;
   final bool isClickBgClose;
 
-  PopupWindow(this.child, {
+  PopupWindow(
+    this.child, {
     this.onClick,
-    this.left,
-    this.top,
+    this.left = 0,
+    this.top = 0,
     this.backgroundColor = Colors.transparent,
     this.onCloseListener,
     this.isClickBgClose = true,
-  }) {
-    assert(this.child != null);
-  }
+  });
 
   @override
   _PopupWindowState createState() => _PopupWindowState();
@@ -47,7 +46,7 @@ class _PopupWindowState extends State<PopupWindow> {
                     //点击子child
                     if (widget.onClick != null) {
                       Navigator.of(context).pop();
-                      widget.onClick();
+                      widget.onClick?.call();
                     }
                   }),
               left: widget.left,
@@ -57,10 +56,10 @@ class _PopupWindowState extends State<PopupWindow> {
         ),
         onTap: () {
           //点击空白处
-          if(widget.onCloseListener != null){
-            widget.onCloseListener();
+          if (widget.onCloseListener != null) {
+            widget.onCloseListener?.call();
           }
-          if(widget.isClickBgClose){
+          if (widget.isClickBgClose) {
             Navigator.of(context).pop();
           }
         },

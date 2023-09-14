@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-class TrianglePainter extends CustomPainter{
+class TrianglePainter extends CustomPainter {
+  late Color color; //填充颜色
+  late Paint _paint; //画笔
+  late Path _path; //绘制路径
 
-  Color color; //填充颜色
-  Paint _paint;//画笔
-  Path _path;  //绘制路径
-  double angle;//角度
-
-  TrianglePainter(this.color){
+  TrianglePainter(this.color) {
     _paint = Paint()
       ..strokeWidth = 1.0 //线宽
       ..color = color

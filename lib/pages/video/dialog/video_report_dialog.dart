@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/simple_bean.dart';
@@ -7,7 +6,6 @@ import 'package:costv_android/constant.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/video/bean/report_radio_bean.dart';
-import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/toast_util.dart';
@@ -15,10 +13,8 @@ import 'package:costv_android/utils/web_view_util.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
-import 'package:costv_android/widget/route/slide_animation_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_datetime_picker/flutter_datetime_picker.dart';
+import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 class VideoReportDialog {
@@ -29,18 +25,18 @@ class VideoReportDialog {
   final String _tag;
   final GlobalKey<ScaffoldState> _dialogSKey;
   final GlobalKey<ScaffoldState> _pageKey;
-  String _vid;
-  String _duration;
+  late String _vid;
+  late String _duration;
   List<ReportRadioBean> _listReport = [];
-  StateSetter _stateSetter;
-  int _showType;
-  String _selectCode;
+  late StateSetter _stateSetter;
+  late int _showType;
+  String _selectCode = "";
   bool _isAbleCarryOn = false;
-  TextEditingController textController;
-  String _time;
-  ReportRadioBean _selectBean;
-  DateTime _dateTime;
-  BuildContext _context;
+  late TextEditingController textController;
+  String _time = "";
+  late ReportRadioBean _selectBean;
+  late DateTime _dateTime;
+  late BuildContext _context;
 
   VideoReportDialog(this._tag, this._pageKey, this._dialogSKey) {
     for (int i = 0;
@@ -57,17 +53,17 @@ class VideoReportDialog {
     _vid = vid;
     _duration = duration;
     _showType = showTypeOne;
-    _selectCode = null;
+    _selectCode = "";
     _isAbleCarryOn = false;
     textController = TextEditingController();
-    _time = null;
-    _selectBean = null;
+    _time = "";
     _dateTime = DateTime(0, 0, 0);
   }
 
   void showVideoReportDialog() {
+    if (_pageKey.currentState?.context == null) return;
     showDialog<int>(
-      context: _pageKey.currentState.context,
+      context: _pageKey.currentState?.context as BuildContext,
       builder: (BuildContext context) {
         return StatefulBuilder(builder: (context, state) {
           _context = context;
@@ -124,11 +120,12 @@ class VideoReportDialog {
               itemBuilder: (BuildContext context, int index) {
                 ReportRadioBean bean = _listReport[index];
                 return RadioListTile<String>(
-                  title:
-                      Text(bean.getName, style: TextStyle(
+                  title: Text(bean.getName,
+                      style: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
                           lightColor: AppColors.color_333333,
-                          darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                          darkColorStr: DarkModelTextColorUtil
+                              .firstLevelBrightnessColorStr,
                         ),
                         fontSize: AppDimens.text_size_12,
                       )),
@@ -136,7 +133,7 @@ class VideoReportDialog {
                   groupValue: _selectCode,
                   onChanged: (value) {
                     _stateSetter(() {
-                      _selectCode = value;
+                      _selectCode = value ?? "";
                       _selectBean = bean;
                       _isAbleCarryOn = true;
                     });
@@ -185,7 +182,8 @@ class VideoReportDialog {
               style: TextStyle(
                 color: AppThemeUtil.setDifferentModeColor(
                   lightColor: AppColors.color_333333,
-                  darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                  darkColorStr:
+                      DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                 ),
                 fontSize: AppDimens.text_size_12,
               ),
@@ -210,7 +208,8 @@ class VideoReportDialog {
                           style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
-                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                              darkColorStr: DarkModelTextColorUtil
+                                  .firstLevelBrightnessColorStr,
                             ),
                             fontSize: AppDimens.text_size_20,
                           ),
@@ -227,7 +226,8 @@ class VideoReportDialog {
                     style: TextStyle(
                       color: AppThemeUtil.setDifferentModeColor(
                         lightColor: AppColors.color_333333,
-                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                        darkColorStr:
+                            DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                       ),
                       fontSize: AppDimens.text_size_20,
                     ),
@@ -241,7 +241,8 @@ class VideoReportDialog {
                           style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
-                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                              darkColorStr: DarkModelTextColorUtil
+                                  .firstLevelBrightnessColorStr,
                             ),
                             fontSize: AppDimens.text_size_20,
                           ),
@@ -258,7 +259,8 @@ class VideoReportDialog {
                     style: TextStyle(
                       color: AppThemeUtil.setDifferentModeColor(
                         lightColor: AppColors.color_333333,
-                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                        darkColorStr:
+                            DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                       ),
                       fontSize: AppDimens.text_size_20,
                     ),
@@ -272,7 +274,8 @@ class VideoReportDialog {
                           style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
-                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                              darkColorStr: DarkModelTextColorUtil
+                                  .firstLevelBrightnessColorStr,
                             ),
                             fontSize: AppDimens.text_size_20,
                           ),
@@ -313,7 +316,7 @@ class VideoReportDialog {
               height: AppDimens.item_size_140,
               child: TextField(
                 onChanged: (str) {
-                  if (str != null && str.trim().isNotEmpty) {
+                  if (str.trim().isNotEmpty) {
                     if (!_isAbleCarryOn) {
                       _stateSetter(() {
                         _isAbleCarryOn = true;
@@ -331,7 +334,8 @@ class VideoReportDialog {
                 style: TextStyle(
                   color: AppThemeUtil.setDifferentModeColor(
                     lightColor: AppColors.color_333333,
-                    darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                    darkColorStr:
+                        DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                   ),
                   fontSize: AppDimens.text_size_12,
                 ),
@@ -339,7 +343,8 @@ class VideoReportDialog {
                   hintStyle: TextStyle(
                     color: AppThemeUtil.setDifferentModeColor(
                       lightColor: AppColors.color_a0a0a0,
-                      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      darkColorStr:
+                          DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                     ),
                     fontSize: AppDimens.text_size_12,
                   ),
@@ -393,7 +398,7 @@ class VideoReportDialog {
               right: AppDimens.margin_20,
             ),
             child: Text(
-              _selectBean?.getName ?? '',
+              _selectBean.getName,
               style: AppStyles.text_style_333333_12,
             ),
           ),
@@ -415,7 +420,7 @@ class VideoReportDialog {
               right: AppDimens.margin_20,
             ),
             child: Text(
-              _time ?? '',
+              _time,
               style: AppStyles.text_style_333333_12,
             ),
           ),
@@ -462,27 +467,13 @@ class VideoReportDialog {
     if (!ObjectUtil.isEmptyString(Constant.uid)) {
       _httpGetVideoInfo();
     } else {
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleVideoReportAdd(context);
-          }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleVideoReportAdd(context);
-          }
-        });
-      }
+      WebViewUtil.instance
+          .openWebViewResult(Constant.logInWebViewUrl, context)
+          .then((isSuccess) {
+        if (isSuccess) {
+          _checkAbleVideoReportAdd(context);
+        }
+      });
     }
   }
 
@@ -606,8 +597,8 @@ class VideoReportDialog {
   /// 视频举报
   void _httpGetVideoInfo() {
     RequestManager.instance
-        .videoReportAdd(_tag, Constant.uid ?? '', _vid, _time,
-            _selectBean?.getCode, textController.text.trim())
+        .videoReportAdd(_tag, Constant.uid, _vid, _time,
+            _selectBean.getCode ?? "'", textController.text.trim())
         .then((response) {
       if (response == null) {
         return;
@@ -618,7 +609,7 @@ class VideoReportDialog {
           _showType = showTypeThree;
         });
       } else {
-        ToastUtil.showToast(bean?.msg ?? '');
+        ToastUtil.showToast(bean.msg ?? "");
       }
     });
   }

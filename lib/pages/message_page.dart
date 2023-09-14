@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/get_message_list_bean.dart';
@@ -34,10 +33,8 @@ import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'webview/webview_page.dart';
-
 class MessagePage extends StatefulWidget {
-  MessagePage({Key key}) : super(key: key);
+  MessagePage({Key? key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -54,7 +51,7 @@ class MessagePage extends StatefulWidget {
 
 class _MessagePageState extends State<MessagePage> with RouteAware {
   static const tag = '_MessagePageState';
-  StreamSubscription _eventSubscription;
+  late StreamSubscription _eventSubscription;
   bool _isLoggedIn = true;
   bool _isFirstSuccessLoad = false;
   bool _isSuccessLoad = true;
@@ -62,10 +59,8 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
   bool _isNoData = true;
   bool _hasNextPage = false;
   bool _isFetching = false;
-  GlobalObjectKey<RefreshAndLoadMoreListViewState> _messageCenterKey =
-      GlobalObjectKey<RefreshAndLoadMoreListViewState>("messageCenter");
-  GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
-      new GlobalKey<NetRequestFailTipsViewState>();
+  GlobalObjectKey<RefreshAndLoadMoreListViewState> _messageCenterKey = GlobalObjectKey<RefreshAndLoadMoreListViewState>("messageCenter");
+  GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   int _pageSize = 20, _curPage = 1;
   List<GetMessageListItemBean> _messageList = [];
   String _lastKey = "0";
@@ -83,7 +78,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
   @override
   void didUpdateWidget(MessagePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -149,8 +144,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
       }
       return Container(
           color: AppThemeUtil.setDifferentModeColor(
-              lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
-              darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+              lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
           child: LoadingView(
             isShow: _isShowLoading,
             child: Column(
@@ -158,8 +152,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
                 _getSearchWidget(),
                 Container(
                   color: AppThemeUtil.setDifferentModeColor(
-                      lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
-                      darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+                      lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
                 ),
                 Expanded(
                   child: NetRequestFailTipsView(
@@ -193,14 +186,13 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
   Widget _getSearchWidget() {
     return Container(
       color: AppThemeUtil.setDifferentModeColor(
-          lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
-          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+          lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0), darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       child: PageTitleWidget(tag),
     );
   }
 
   MessageCenterItemWidget _getMessageItemByIndex(int index) {
-    int listCnt = _messageList?.length ?? 0;
+    int listCnt = _messageList.length;
     if (index < listCnt) {
       GetMessageListItemBean data = _messageList[index];
       return MessageCenterItemWidget(
@@ -253,7 +245,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
   }
 
   int _getTotalMessageCount() {
-    int listCnt = _messageList?.length ?? 0;
+    int listCnt = _messageList.length;
     return listCnt;
   }
 
@@ -264,24 +256,21 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
       return;
     }
     DataReportUtil.instance.reportData(eventName: "Click_notice", params: {});
-    CommentListParameterBean commentListParameterBean =
-        CommentListParameterBean();
+    CommentListParameterBean commentListParameterBean = CommentListParameterBean();
     commentListParameterBean.isReply = false;
-    commentListParameterBean.videoId = bean?.videoInfo?.id ?? '';
-    commentListParameterBean.vid = bean?.vid ?? '';
-    commentListParameterBean.creatorUid = bean?.videoInfo?.uid ?? '';
-    commentListParameterBean.cid = bean?.cidInfo?.cid ?? '';
-    commentListParameterBean.nickName = bean?.fromUidInfo?.nickname ?? '';
-    commentListParameterBean.pid = bean?.cidInfo?.pid ?? '';
-    commentListParameterBean.videoSource = bean?.videoInfo?.videoSource ?? '';
-    commentListParameterBean.videoTitle = bean?.videoInfo?.title ?? '';
-    commentListParameterBean.videoImage =
-        bean?.videoInfo?.videoImageCompress?.videoCompressUrl ?? '';
+    commentListParameterBean.videoId = bean.videoInfo.id;
+    commentListParameterBean.vid = bean.vid;
+    commentListParameterBean.creatorUid = bean.videoInfo.uid;
+    commentListParameterBean.cid = bean.cidInfo?.cid ?? '';
+    commentListParameterBean.nickName = bean.fromUidInfo.nickname;
+    commentListParameterBean.pid = bean.cidInfo?.pid ?? '';
+    commentListParameterBean.videoSource = bean.videoInfo.videoSource;
+    commentListParameterBean.videoTitle = bean.videoInfo.title;
+    commentListParameterBean.videoImage = bean.videoInfo.videoImageCompress?.videoCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(commentListParameterBean.videoImage)) {
-      commentListParameterBean.videoImage =
-          bean?.videoInfo?.videoCoverBig ?? '';
+      commentListParameterBean.videoImage = bean.videoInfo.videoCoverBig;
     }
-    commentListParameterBean.uid = bean?.fromUid ?? '';
+    commentListParameterBean.uid = bean.fromUid;
     if (bean.type == GetMessageListItemBean.typeCommentLike) {
       if (ObjectUtil.isEmptyString(bean.cidInfo?.pid)) {
         Navigator.of(context).push(SlideAnimationRoute(
@@ -312,11 +301,10 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
       Navigator.of(context).push(SlideAnimationRoute(
         builder: (_) {
           return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-            vid: bean?.videoInfo?.id ?? '',
-            uid: bean?.videoInfo?.uid ?? '',
-            videoSource: bean?.videoInfo?.videoSource ?? '',
-            enterSource:
-            VideoDetailsEnterSource.VideoDetailsEnterSourceNotification,
+            vid: bean.videoInfo.id,
+            uid: bean.videoInfo.uid,
+            videoSource: bean.videoInfo.videoSource,
+            enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceNotification,
           ));
         },
         settings: RouteSettings(name: videoDetailPageRouteName),
@@ -345,11 +333,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
       isClearParameter = MessageListRequest.isClearNo;
     }
     await RequestManager.instance
-        .getMessageList(tag, Constant.uid ?? '',
-            page: page.toString(),
-            pageSize: _pageSize.toString(),
-            isClear: isClearParameter,
-            lastKey: lastKey)
+        .getMessageList(tag, Constant.uid, page: page.toString(), pageSize: _pageSize.toString(), isClear: isClearParameter, lastKey: lastKey)
         .then((response) {
       if (response == null || !mounted) {
         if (mounted && !isNextPage) {
@@ -357,12 +341,11 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
         }
         return;
       }
-      GetMessageListBean bean =
-          GetMessageListBean.fromJson(json.decode(response.data));
+      GetMessageListBean bean = GetMessageListBean.fromJson(json.decode(response.data));
       bool isSuccess = (bean.status == SimpleResponse.statusStrSuccess);
       if (isSuccess) {
         _hasNextPage = (bean.data.hasNext == "1");
-        _lastKey = bean.data.lastKey ?? "0";
+        _lastKey = bean.data.lastKey;
         _curPage = page;
         _isSuccessLoad = true;
         _isFirstSuccessLoad = true;
@@ -382,7 +365,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
       }
     }).catchError((err) {
       CosLogUtil.log("$tag: fail to load messgae list of "
-          "uid:${Constant.uid ?? ""}, the error is $err");
+          "uid:${Constant.uid}, the error is $err");
       _hanleRequestFail(isNextPage);
     }).whenComplete(() {
       if (mounted) {
@@ -400,24 +383,19 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
   }
 
   bool _judgeIsNeedLoadNextPageData() {
-    if ((_messageList == null || _messageList.length < _pageSize) &&
-        _hasNextPage) {
+    if ((_messageList.length < _pageSize) && _hasNextPage) {
       return true;
     }
     return false;
   }
 
-  Future<bool> _reportReadMessageToServer(
-      GetMessageListItemBean data, int times) async {
+  Future<bool> _reportReadMessageToServer(GetMessageListItemBean data, int times) async {
     bool res = false;
     if (times > 2) {
       return false;
     }
     await RequestManager.instance
-        .clearMessageUnread(tag, data?.id ?? "0", Constant.uid ?? "",
-            fromUid: data?.fromUid ?? "",
-            type: data?.type ?? "",
-            postId: data?.postId ?? "")
+        .clearMessageUnread(tag, data.id, Constant.uid, fromUid: data.fromUid, type: data.type, postId: data.postId)
         .then((response) {
       if (response != null) {
         SimpleBean bean = SimpleBean.fromJson(json.decode(response.data));
@@ -444,70 +422,53 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
 
   ///登录
   void _startLogIn() {
-    if (Platform.isAndroid) {
-      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
-    } else {
-      Navigator.of(context).push(SlideAnimationRoute(
-        builder: (_) {
-          return WebViewPage(
-            Constant.logInWebViewUrl,
-          );
-        },
-      ));
-    }
+    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl, context);
   }
 
   void _showLoadDataFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
   void _listenEvent() {
-    if (_eventSubscription == null) {
-      _eventSubscription = EventBusHelp.getInstance().on().listen((event) {
-        if (event != null) {
-          //登出成功
-          if (event is LoginStatusEvent) {
-            if (event.type == LoginStatusEvent.typeLoginSuccess) {
-              if (Common.checkIsNotEmptyStr(event.uid)) {
-                _isLoggedIn = true;
-                _isShowLoading = true;
-                _reloadData();
-                setState(() {});
-              } else {
-                CosLogUtil.log("$tag: success log in but get empty uid");
-              }
-            } else if (event.type == LoginStatusEvent.typeLogoutSuccess) {
-              _resetPageData();
+    _eventSubscription = EventBusHelp.getInstance().on().listen((event) {
+      if (event != null) {
+        //登出成功
+        if (event is LoginStatusEvent) {
+          if (event.type == LoginStatusEvent.typeLoginSuccess) {
+            if (Common.checkIsNotEmptyStr(event.uid ?? "")) {
+              _isLoggedIn = true;
+              _isShowLoading = true;
+              _reloadData();
               setState(() {});
+            } else {
+              CosLogUtil.log("$tag: success log in but get empty uid");
             }
-          } else if (event is TabSwitchEvent) {
-            if (event.to == BottomTabType.TabMessageCenter.index) {
-              print("111111");
+          } else if (event.type == LoginStatusEvent.typeLogoutSuccess) {
+            _resetPageData();
+            setState(() {});
+          }
+        } else if (event is TabSwitchEvent) {
+          if (event.to == BottomTabType.TabMessageCenter.index) {
+            print("111111");
 //              if (event.from == event.to) {
-              //点击tab刷新数据或是从别的页面回到消息中心刷新
-              if (_isLoggedIn && !_isFetching) {
-                _isShowLoading = true;
-                if (_messageCenterKey != null &&
-                    _messageCenterKey.currentState != null) {
-                  _messageCenterKey.currentState.scrollTo(1);
-                }
-                _updateView();
+            //点击tab刷新数据或是从别的页面回到消息中心刷新
+            if (_isLoggedIn && !_isFetching) {
+              _isShowLoading = true;
+              if (_messageCenterKey.currentState != null) {
+                _messageCenterKey.currentState?.scrollTo(1);
               }
-
-//              }
+              _updateView();
             }
           }
         }
-      });
-    }
+      }
+    });
   }
 
   void _cancelListenEvent() {
-    if (_eventSubscription != null) {
-      _eventSubscription.cancel();
-    }
+    _eventSubscription.cancel();
   }
 
   void _resetPageData() {
@@ -518,7 +479,7 @@ class _MessagePageState extends State<MessagePage> with RouteAware {
     _isNoData = true;
     _isFetching = false;
     _hasNextPage = false;
-    if (_messageList != null && _messageList.isNotEmpty) {
+    if (_messageList.isNotEmpty) {
       _messageList.clear();
     }
     _lastKey = "0";

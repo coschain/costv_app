@@ -8,126 +8,123 @@ import 'package:costv_android/utils/common_util.dart';
 int cRecommendCountDownTime = 5;
 
 class VideoDetailDataMgr {
-  static VideoDetailDataMgr _instance;
+  static VideoDetailDataMgr? _instance;
+
   factory VideoDetailDataMgr() => _getInstance();
+
   static VideoDetailDataMgr get instance => _getInstance();
   Map<String, VideoDetailDataCacheBean> pageDataMap = {};
+
   VideoDetailDataMgr._();
 
   static VideoDetailDataMgr _getInstance() {
     if (_instance == null) {
       _instance = VideoDetailDataMgr._();
     }
-    return _instance;
+    return _instance!;
   }
 
-  void updateCurrentVideoDetailDataByKey(String pageKey,
-      GetVideoInfoDataBean videoInfo,
-      List<RelateListItemBean> recommendVideoList) {
+  void updateCurrentVideoDetailDataByKey(String pageKey, GetVideoInfoDataBean? videoInfo, List<RelateListItemBean> recommendVideoList) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      dataCacheBean.updateCurrentVideoDetailData(videoInfo, recommendVideoList);
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      dataCacheBean?.updateCurrentVideoDetailData(videoInfo, recommendVideoList);
     }
   }
 
   void updateLoadStatuesByKey(String pageKey, bool isLoad) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      dataCacheBean.updateLoadStatues(isLoad);
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      dataCacheBean?.updateLoadStatues(isLoad);
     }
   }
 
   bool getLoadStatuesByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean._isLoad;
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?._isLoad ?? false;
     }
     return false;
   }
 
   void updateFollowStatusByKey(String pageKey, bool isFollow) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      dataCacheBean._isFollow = isFollow;
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      dataCacheBean?._isFollow = isFollow;
     }
   }
 
   bool getFollowStatusByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean._isFollow;
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?._isFollow ?? false;
     }
     return false;
   }
 
-  bool checkIsLoadVideoByKey(String pageKey){
-    if (Common.checkIsNotEmptyStr(pageKey)&&judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean._isLoad;
+  bool checkIsLoadVideoByKey(String pageKey) {
+    if (Common.checkIsNotEmptyStr(pageKey) && judgeContainPageByKey(pageKey)) {
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?._isLoad ?? false;
     }
     return false;
   }
 
-  List<RelateListItemBean> getRecommendVideoListByKey(String pageKey) {
+  List<RelateListItemBean>? getRecommendVideoListByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean._recommendVideoList;
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?._recommendVideoList;
     }
     return [];
   }
 
-  GetVideoInfoDataBean getCurrentVideoInfoByKey(String pageKey) {
+  GetVideoInfoDataBean? getCurrentVideoInfoByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean._curVideoData;
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?._curVideoData;
     }
     return null;
   }
 
-
-  void updateCachedNextVideoInfoByKey(String pageKey, VideoDetailAllDataBean data) {
+  void updateCachedNextVideoInfoByKey(String pageKey, VideoDetailAllDataBean? data) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      dataCacheBean.updateCachedNextVideoInfo(data);
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      dataCacheBean?.updateCachedNextVideoInfo(data);
     }
   }
 
   bool checkHasRecommendVideoByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean.checkHasRecommendVideo();
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?.checkHasRecommendVideo() ?? false;
     }
     return false;
   }
 
   bool checkHasFollowingRecommendVideoByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean.checkHasFollowingRecommendVideo();
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?.checkHasFollowingRecommendVideo() ?? false;
     }
     return false;
   }
 
-  GetVideoListNewDataListBean getFirstFollowingRecommendVideoByKey(String pageKey) {
+  GetVideoListNewDataListBean? getFirstFollowingRecommendVideoByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean dataCacheBean = pageDataMap[pageKey];
-      return dataCacheBean.getFirstFollowingRecommendVideo();
+      VideoDetailDataCacheBean? dataCacheBean = pageDataMap[pageKey];
+      return dataCacheBean?.getFirstFollowingRecommendVideo();
     }
     return null;
-
   }
 
   bool judgeContainPageByKey(String pageKey) {
-    if (pageDataMap != null && pageDataMap.containsKey(pageKey)) {
+    if (pageDataMap.containsKey(pageKey)) {
       return true;
     }
     return false;
   }
 
   void resetData() {
-    if (pageDataMap != null) {
-      pageDataMap.clear();
-    }
+    pageDataMap.clear();
   }
 
   void clearCachedDataByKey(String pageKey) {
@@ -138,157 +135,156 @@ class VideoDetailDataMgr {
 
   void addPageCachedDataByKey(String pageKey) {
     if (!judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = VideoDetailDataCacheBean();
+      VideoDetailDataCacheBean? cacheBean = VideoDetailDataCacheBean();
       pageDataMap[pageKey] = cacheBean;
     }
   }
 
   void updateCurrentVideoParamsBeanByKey(String pageKey, VideoDetailPageParamsBean paramsBean) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._videoDetailPageParamsBean = paramsBean;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._videoDetailPageParamsBean = paramsBean;
     }
   }
 
   void updateRecommendVideoByKey(String pageKey, List<RelateListItemBean> recommendVideoList) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._recommendVideoList = recommendVideoList;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._recommendVideoList = recommendVideoList;
     }
   }
 
-  void updateFollowingRecommendVideoByKey(String pageKey,
-      List<GetVideoListNewDataListBean> followingRecommendVideoList) {
+  void updateFollowingRecommendVideoByKey(String pageKey, List<GetVideoListNewDataListBean> followingRecommendVideoList) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._followingRecommendVideoList = followingRecommendVideoList;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._followingRecommendVideoList = followingRecommendVideoList;
     }
   }
 
-  VideoDetailAllDataBean getCachedNextVideoDataByKey(String pageKey) {
+  VideoDetailAllDataBean? getCachedNextVideoDataByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean._cachedNextVideoData;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._cachedNextVideoData;
     }
     return null;
   }
 
   bool getIsShowUserRecommendByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean._isShowUserRecommend;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._isShowUserRecommend ?? false;
     }
     return false;
   }
 
   void updateShowUserRecommendByKey(String pageKey, bool val) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._isShowUserRecommend = val;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._isShowUserRecommend = val;
     }
   }
 
   void updateReplayStatusByKey(String pageKey, bool val) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._isReplayStatus = val;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._isReplayStatus = val;
     }
   }
 
   bool getIsReplayStatusByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean._isReplayStatus;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._isReplayStatus ?? false;
     }
     return false;
   }
 
   void updatePlayEndStatusByKey(String pageKey, bool val) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._isPlayEnd = val;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._isPlayEnd = val;
     }
   }
 
   bool getIsPlayEndStatusByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean._isPlayEnd;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._isPlayEnd ?? false;
     }
     return false;
   }
 
   void updateIsHandelRequestStatusByKey(String pageKey, bool val) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._isHandelRequest = val;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._isHandelRequest = val;
     }
   }
 
   bool getIsHandelRequestStatusByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean._isHandelRequest;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._isHandelRequest ?? false;
     }
     return false;
   }
 
   void updateRecommendCountDownValueByKey(String pageKey, int val) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._recommendCountDownValue = val;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._recommendCountDownValue = val;
     }
   }
 
   int getRecommendCountDownValueByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-     return cacheBean._recommendCountDownValue;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._recommendCountDownValue ?? 0;
     }
     return cRecommendCountDownTime;
   }
 
   void updateCurCountDownValueByKey(String pageKey, double val) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      cacheBean._curCountDownValue = val;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      cacheBean?._curCountDownValue = val;
     }
   }
 
   double getCurCountDownValueByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean._curCountDownValue;
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?._curCountDownValue ?? 0;
     }
     return 0;
   }
 
   bool getHasPreVideo(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean.checkHasPrevVideo();
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?.checkHasPrevVideo() ?? false;
     }
     return false;
   }
 
-  void pushPreVideoPageParamsByKey(String pageKey, VideoDetailPageParamsBean paramsBean) {
+  void pushPreVideoPageParamsByKey(String pageKey, VideoDetailPageParamsBean? paramsBean) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean.pushPageParams(paramsBean);
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?.pushPageParams(paramsBean);
     }
   }
 
-  VideoDetailPageParamsBean popPreVideoPageParamsByKey(String pageKey) {
+  VideoDetailPageParamsBean? popPreVideoPageParamsByKey(String pageKey) {
     if (judgeContainPageByKey(pageKey)) {
-      VideoDetailDataCacheBean cacheBean = pageDataMap[pageKey];
-      return cacheBean.popPageParams();
+      VideoDetailDataCacheBean? cacheBean = pageDataMap[pageKey];
+      return cacheBean?.popPageParams();
     }
     return null;
   }
 }
 
 class VideoDetailDataCacheBean {
-  GetVideoInfoDataBean _curVideoData;
+  GetVideoInfoDataBean? _curVideoData;
   List<RelateListItemBean> _recommendVideoList = [];
   List<GetVideoListNewDataListBean> _followingRecommendVideoList = [];
   bool _isLoad = false;
@@ -299,13 +295,13 @@ class VideoDetailDataCacheBean {
   bool _isHandelRequest = false;
   double _curCountDownValue = 0;
   int _recommendCountDownValue = cRecommendCountDownTime; //默认5s倒计时
-  VideoDetailAllDataBean _cachedNextVideoData;
-  VideoDetailPageParamsBean _videoDetailPageParamsBean;
+  VideoDetailAllDataBean? _cachedNextVideoData;
+  VideoDetailPageParamsBean? _videoDetailPageParamsBean;
   List<VideoDetailPageParamsBean> _prePageParamsList = [];
+
   VideoDetailDataCacheBean();
 
-  void updateCurrentVideoDetailData(GetVideoInfoDataBean videoInfo,
-      List<RelateListItemBean> recommendVideoList) {
+  void updateCurrentVideoDetailData(GetVideoInfoDataBean? videoInfo, List<RelateListItemBean> recommendVideoList) {
     _curVideoData = videoInfo;
     _recommendVideoList = recommendVideoList;
   }
@@ -314,19 +310,19 @@ class VideoDetailDataCacheBean {
     _isLoad = isLoad;
   }
 
-  void updateCachedNextVideoInfo(VideoDetailAllDataBean data) {
+  void updateCachedNextVideoInfo(VideoDetailAllDataBean? data) {
     _cachedNextVideoData = data;
   }
 
   bool checkHasRecommendVideo() {
-    if (_recommendVideoList != null && _recommendVideoList.isNotEmpty) {
+    if (_recommendVideoList.isNotEmpty) {
       return true;
     }
     return false;
   }
 
   bool checkHasFollowingRecommendVideo() {
-    if (_followingRecommendVideoList != null && _followingRecommendVideoList.isNotEmpty) {
+    if (_followingRecommendVideoList.isNotEmpty) {
       GetVideoListNewDataListBean video = _followingRecommendVideoList[0];
       String recUid = video.uid;
       String curUid = _videoDetailPageParamsBean?.getUid ?? '';
@@ -337,21 +333,21 @@ class VideoDetailDataCacheBean {
     return false;
   }
 
-  GetVideoListNewDataListBean getFirstFollowingRecommendVideo() {
-    if (_followingRecommendVideoList != null && _followingRecommendVideoList.isNotEmpty) {
+  GetVideoListNewDataListBean? getFirstFollowingRecommendVideo() {
+    if (_followingRecommendVideoList.isNotEmpty) {
       return _followingRecommendVideoList[0];
     }
     return null;
   }
 
   bool checkHasPrevVideo() {
-    if (_prePageParamsList != null && _prePageParamsList.isNotEmpty) {
+    if (_prePageParamsList.isNotEmpty) {
       return true;
     }
     return false;
   }
 
-  void pushPageParams(VideoDetailPageParamsBean paramsBean) {
+  void pushPageParams(VideoDetailPageParamsBean? paramsBean) {
     if (paramsBean == null) {
       return;
     }
@@ -362,12 +358,11 @@ class VideoDetailDataCacheBean {
   }
 
   VideoDetailPageParamsBean popPageParams() {
-    VideoDetailPageParamsBean pageParamsBean;
-    if (_prePageParamsList != null && _prePageParamsList.isNotEmpty) {
+    VideoDetailPageParamsBean pageParamsBean = VideoDetailPageParamsBean();
+    if (_prePageParamsList.isNotEmpty) {
       pageParamsBean = _prePageParamsList.last;
       _prePageParamsList.removeLast();
     }
     return pageParamsBean;
   }
-
 }

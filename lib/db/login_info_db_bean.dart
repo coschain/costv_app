@@ -1,13 +1,12 @@
 import 'package:costv_android/db/login_info_db_provider.dart';
 
 class LoginInfoDbBean {
-  String _uid;
-  String _token;
-  String _chainAccountName;
-  int _expires;
+  String _uid = "";
+  String _token = "";
+  String _chainAccountName = "";
+  int _expires = 0;
 
-  LoginInfoDbBean(
-      this._uid, this._token, this._chainAccountName, this._expires);
+  LoginInfoDbBean(this._uid, this._token, this._chainAccountName, this._expires);
 
   String get getUid => _uid;
 

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -12,7 +11,6 @@ import 'package:costv_android/constant.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/search/debug_switch_page.dart';
-import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/popupwindow/popup_window.dart';
 import 'package:costv_android/popupwindow/popup_window_route.dart';
 import 'package:costv_android/popupwindow/view/search_title_window.dart';
@@ -20,6 +18,7 @@ import 'package:costv_android/pages/user/others_home_page.dart';
 import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dart';
 import 'package:costv_android/pages/video/video_details_page.dart';
 import 'package:costv_android/utils/common_util.dart';
+import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/global_util.dart';
@@ -38,13 +37,14 @@ import 'package:costv_android/widget/video_time_widget.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:visibility_detector/visibility_detector.dart';
+// import 'package:flutter_widgets/flutter_widgets.dart';
 
 class SearchPage extends StatefulWidget {
   final String keyword;
 
   static const String DebugFlag = "debug";
 
-  SearchPage(this.keyword, {Key key}) : super(key: key);
+  SearchPage(this.keyword, {Key? key}) : super(key: key);
 
   @override
   SearchPageState createState() => SearchPageState();
@@ -64,16 +64,16 @@ class SearchPageState extends State<SearchPage> {
   int _pageSearchUser = 1;
   List<SearchDoListItemBean> _listSearchVideo = [];
   List<SearchDoListItemBean> _listSearchUser = [];
-  String _searchVideoTotal, _searchUserTotal;
+  String _searchVideoTotal = "", _searchUserTotal = "";
   List<SearchDoRecommendListItemBean> _listRecommendVideo = [];
   List<SearchDoRecommendListItemBean> _listRecommendUser = [];
   bool _isNetIng = false;
   bool _isHaveMoreDataVideo = true;
   bool _isHaveMoreDataCreator = true;
-  String _searchStr;
+  String _searchStr = "";
   bool _isInitFinish = false;
-  ExchangeRateInfoData _exchangeRateInfoData;
-  ChainState _chainStateBean;
+  ExchangeRateInfoData? _exchangeRateInfoData;
+  ChainState? _chainStateBean;
   Map<int, double> _visibleSearchMap = {};
   Map<int, double> _visibleRecommendMap = {};
   bool _isScrollingSearch = false;
@@ -96,10 +96,7 @@ class SearchPageState extends State<SearchPage> {
   @override
   void dispose() {
     RequestManager.instance.cancelAllNetworkRequest(tag);
-    if (_textController != null) {
-      _textController.dispose();
-      _textController = null;
-    }
+    _textController.dispose();
     super.dispose();
   }
 
@@ -108,33 +105,23 @@ class SearchPageState extends State<SearchPage> {
       _isNetIng = true;
     });
     Future.wait([
-      RequestManager.instance.searchDo(
-          tag, _searchStr, SearchRequest.searchTypeVideo,
-          page: _pageSearchVideo,
-          pageSize: pageSize,
-          uid: Constant.uid ?? '',
-          from: SearchRequest.fromSearch),
-      RequestManager.instance.searchDo(
-          tag, _searchStr, SearchRequest.searchTypeUser,
-          page: _pageSearchUser,
-          pageSize: pageSize,
-          uid: Constant.uid ?? '',
-          from: SearchRequest.fromSearch),
+      RequestManager.instance.searchDo(tag, _searchStr, SearchRequest.searchTypeVideo,
+          page: _pageSearchVideo, pageSize: pageSize, uid: Constant.uid ?? '', from: SearchRequest.fromSearch),
+      RequestManager.instance.searchDo(tag, _searchStr, SearchRequest.searchTypeUser,
+          page: _pageSearchUser, pageSize: pageSize, uid: Constant.uid ?? '', from: SearchRequest.fromSearch),
       RequestManager.instance.getExchangeRateInfo(tag),
     ]).then((listResponse) {
-      if (listResponse == null || !mounted) {
+      if (!mounted) {
         return;
       }
       bool isHaveBasicData = true;
       if (listResponse.length > 0 && listResponse[0] != null) {
         _searchVideoTotal = '0';
-        isHaveBasicData =
-            _processSearchDo(listResponse[0], false, selectTypeVideo);
+        isHaveBasicData = _processSearchDo(listResponse[0], false, selectTypeVideo);
       }
       if (listResponse.length > 1 && listResponse[1] != null) {
         _searchUserTotal = '0';
-        isHaveBasicData =
-            _processSearchDo(listResponse[1], false, selectTypeCreator);
+        isHaveBasicData = _processSearchDo(listResponse[1], false, selectTypeCreator);
       }
       if (listResponse.length > 2 && listResponse[2] != null) {
         isHaveBasicData = _processExchangeRateInfo(listResponse[2]);
@@ -178,22 +165,13 @@ class SearchPageState extends State<SearchPage> {
         _pageSearchUser = 1;
       }
     }
-    int page =
-        selectType == selectTypeVideo ? _pageSearchVideo : _pageSearchUser;
+    int page = selectType == selectTypeVideo ? _pageSearchVideo : _pageSearchUser;
     if (isLoadMore) {
       page += 1;
     }
     RequestManager.instance
-        .searchDo(
-            tag,
-            _searchStr,
-            selectType == selectTypeVideo
-                ? SearchRequest.searchTypeVideo
-                : SearchRequest.searchTypeUser,
-            page: page,
-            pageSize: pageSize,
-            uid: Constant.uid ?? '',
-            from: SearchRequest.fromSearch)
+        .searchDo(tag, _searchStr, selectType == selectTypeVideo ? SearchRequest.searchTypeVideo : SearchRequest.searchTypeUser,
+            page: page, pageSize: pageSize, uid: Constant.uid ?? '', from: SearchRequest.fromSearch)
         .then((response) {
       if (response == null || !mounted) {
         return;
@@ -203,11 +181,9 @@ class SearchPageState extends State<SearchPage> {
   }
 
   /// 处理用户搜索返回数据
-  bool _processSearchDo(Response response, bool isLoadMore, int selectType) {
-    SearchDoBean bean = SearchDoBean.fromJson(json.decode(response.data));
-    if (bean != null &&
-        bean.status == SimpleResponse.statusStrSuccess &&
-        bean.data != null) {
+  bool _processSearchDo(Response? response, bool isLoadMore, int selectType) {
+    SearchDoBean bean = SearchDoBean.fromJson(json.decode(response?.data));
+    if (bean.status == SimpleResponse.statusStrSuccess) {
       if (!ObjectUtil.isEmptyList(bean.data.list)) {
         setState(() {
           if (selectType == selectTypeVideo) {
@@ -232,14 +208,14 @@ class SearchPageState extends State<SearchPage> {
             _listSearchUser.addAll(bean.data.list);
             _isHaveMoreDataCreator = bean.data.hasNext == "1";
           }
-          if (bean.data.showType != null && !isLoadMore) {
+          if (!isLoadMore) {
             //不是第一页的时候，服务端返回的总数是0，所以支取第一页的总数
             if (bean.data.showType == selectTypeVideo.toString()) {
-              _searchVideoTotal = bean.data?.total ?? "0";
-              _searchUserTotal = bean.data?.totalOtherType ?? "0";
+              _searchVideoTotal = bean.data.total ?? "0";
+              _searchUserTotal = bean.data.totalOtherType ?? "0";
             } else if (bean.data.showType == selectTypeCreator.toString()) {
-              _searchUserTotal = bean.data?.total ?? "0";
-              _searchVideoTotal = bean.data?.totalOtherType ?? "0";
+              _searchUserTotal = bean.data.total ?? "0";
+              _searchVideoTotal = bean.data.totalOtherType ?? "0";
             }
           }
           setState(() {
@@ -259,15 +235,14 @@ class SearchPageState extends State<SearchPage> {
       setState(() {
         _isNetIng = false;
       });
-      ToastUtil.showToast(bean?.msg ?? '');
+      ToastUtil.showToast(bean.msg ?? '');
       return false;
     }
   }
 
   /// 处理查询汇率返回数据
-  bool _processExchangeRateInfo(Response response) {
-    ExchangeRateInfoBean info =
-        ExchangeRateInfoBean.fromJson(json.decode(response.data));
+  bool _processExchangeRateInfo(Response? response) {
+    ExchangeRateInfoBean info = ExchangeRateInfoBean.fromJson(json.decode(response?.data));
     if (info.status == SimpleResponse.statusStrSuccess) {
       _exchangeRateInfoData = info.data;
       return true;
@@ -284,23 +259,14 @@ class SearchPageState extends State<SearchPage> {
       });
     }
     RequestManager.instance
-        .searchDoRecommend(
-            tag,
-            selectType == selectTypeVideo
-                ? SearchRequest.searchTypeVideo
-                : SearchRequest.searchTypeUser,
-            page: pageRecommend,
-            pageSize: pageSizeRecommend,
-            uid: Constant.uid ?? '')
+        .searchDoRecommend(tag, selectType == selectTypeVideo ? SearchRequest.searchTypeVideo : SearchRequest.searchTypeUser,
+            page: pageRecommend, pageSize: pageSizeRecommend, uid: Constant.uid ?? '')
         .then((response) {
       if (response == null || !mounted) {
         return;
       }
-      SearchDoRecommendBean bean =
-          SearchDoRecommendBean.fromJson(json.decode(response.data));
-      if (bean != null &&
-          bean.status == SimpleResponse.statusStrSuccess &&
-          bean.data != null) {
+      SearchDoRecommendBean bean = SearchDoRecommendBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         if (!ObjectUtil.isEmptyList(bean.data.list)) {
           setState(() {
             if (selectType == selectTypeVideo) {
@@ -328,8 +294,10 @@ class SearchPageState extends State<SearchPage> {
         setState(() {
           _isNetIng = false;
         });
-        ToastUtil.showToast(bean?.msg ?? '');
+        ToastUtil.showToast(bean.msg ?? '');
       }
+    }).onError((error, stackTrace) {
+      CosLogUtil.i(stackTrace.toString());
     });
   }
 
@@ -338,9 +306,7 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isNetIng = true;
     });
-    RequestManager.instance
-        .accountFollow(tag, Constant.uid, uid)
-        .then((response) {
+    RequestManager.instance.accountFollow(tag, Constant.uid, uid).then((response) {
       if (response == null || !mounted) {
         return;
       }
@@ -348,15 +314,13 @@ class SearchPageState extends State<SearchPage> {
       if (bean.status == SimpleResponse.statusStrSuccess) {
         if (bean.data == SimpleResponse.responseSuccess) {
           if (!ObjectUtil.isEmptyList(_listSearchUser)) {
-            _listSearchUser[index].relation =
-                SearchResponse.relationAttentionFinish;
+            _listSearchUser[index].relation = SearchResponse.relationAttentionFinish;
           } else {
-            _listRecommendUser[index].relation =
-                SearchResponse.relationAttentionFinish;
+            _listRecommendUser[index].relation = SearchResponse.relationAttentionFinish;
           }
         }
       } else {
-        ToastUtil.showToast(bean.msg);
+        ToastUtil.showToast(bean.msg ?? "");
       }
     }).whenComplete(() {
       if (!mounted) {
@@ -373,9 +337,7 @@ class SearchPageState extends State<SearchPage> {
     setState(() {
       _isNetIng = true;
     });
-    RequestManager.instance
-        .accountUnFollow(tag, Constant.uid, uid)
-        .then((response) {
+    RequestManager.instance.accountUnFollow(tag, Constant.uid, uid).then((response) {
       if (response == null || !mounted) {
         return;
       }
@@ -385,12 +347,11 @@ class SearchPageState extends State<SearchPage> {
           if (!ObjectUtil.isEmptyList(_listSearchUser)) {
             _listSearchUser[index].relation = SearchResponse.relationAttention;
           } else {
-            _listRecommendUser[index].relation =
-                SearchResponse.relationAttention;
+            _listRecommendUser[index].relation = SearchResponse.relationAttention;
           }
         }
       } else {
-        ToastUtil.showToast(bean.msg);
+        ToastUtil.showToast(bean.msg ?? "");
       }
     }).whenComplete(() {
       if (!mounted) {
@@ -411,98 +372,71 @@ class SearchPageState extends State<SearchPage> {
     String showTime;
     String id;
     String uid;
-    String totalRevenue;
+    String totalRevenue = '';
     bool isSearchVideo;
     if (!ObjectUtil.isEmptyList(_listSearchVideo)) {
       isSearchVideo = true;
       SearchDoListItemBean searchDoListItemBean = _listSearchVideo[index];
-      imageUrl =
-          searchDoListItemBean?.videoImageCompress?.videoCompressUrl ?? '';
+      imageUrl = searchDoListItemBean.videoImageCompress?.videoCompressUrl ?? '';
       if (ObjectUtil.isEmptyString(imageUrl)) {
-        imageUrl = searchDoListItemBean?.videoCoverBig ?? '';
+        imageUrl = searchDoListItemBean.videoCoverBig ?? '';
       }
-      duration = searchDoListItemBean?.duration;
-      title = searchDoListItemBean?.title ?? '';
-      anchorNickname = searchDoListItemBean?.anchorNickname ?? '';
-      watchNum = searchDoListItemBean?.watchNum ?? '0';
-      if (!ObjectUtil.isEmptyString(searchDoListItemBean?.createdAt)) {
-        showTime =
-            Common.calcDiffTimeByStartTime(searchDoListItemBean?.createdAt);
+      duration = searchDoListItemBean.duration ?? "";
+      title = searchDoListItemBean.title ?? '';
+      anchorNickname = searchDoListItemBean.anchorNickname ?? '';
+      watchNum = searchDoListItemBean.watchNum ?? '0';
+      if (!ObjectUtil.isEmptyString(searchDoListItemBean.createdAt)) {
+        showTime = Common.calcDiffTimeByStartTime(searchDoListItemBean.createdAt ?? "");
       } else {
         showTime = '';
       }
-      id = searchDoListItemBean?.id ?? '';
-      uid = searchDoListItemBean?.uid ?? '';
-      if (searchDoListItemBean != null && _exchangeRateInfoData != null) {
-        if (searchDoListItemBean?.vestStatus ==
-            VideoInfoResponse.vestStatusFinish) {
+      id = searchDoListItemBean.id ?? '';
+      uid = searchDoListItemBean.uid ?? '';
+      if (_exchangeRateInfoData != null) {
+        if (searchDoListItemBean.vestStatus == VideoInfoResponse.vestStatusFinish) {
           /// 奖励完成
           double totalRevenueVest =
-              RevenueCalculationUtil.getStatusFinishTotalRevenueVest(
-                  searchDoListItemBean?.vest ?? '',
-                  searchDoListItemBean?.vestGift ?? '');
-          totalRevenue = RevenueCalculationUtil.vestToRevenue(
-                  totalRevenueVest, _exchangeRateInfoData)
-              .toStringAsFixed(2);
+              RevenueCalculationUtil.getStatusFinishTotalRevenueVest(searchDoListItemBean.vest ?? '', searchDoListItemBean.vestGift ?? '');
+          totalRevenue = RevenueCalculationUtil.vestToRevenue(totalRevenueVest, _exchangeRateInfoData).toStringAsFixed(2);
         } else {
           /// 奖励未完成
-          double settlementBonusVest =
-              RevenueCalculationUtil.getVideoRevenueVest(
-                  searchDoListItemBean?.votepower, _chainStateBean?.dgpo);
-          double giftRevenueVest = RevenueCalculationUtil.getGiftRevenueVest(
-              searchDoListItemBean?.vestGift);
-          totalRevenue = RevenueCalculationUtil.vestToRevenue(
-                  NumUtil.add(settlementBonusVest, giftRevenueVest),
-                  _exchangeRateInfoData)
-              .toStringAsFixed(2);
+          double settlementBonusVest = RevenueCalculationUtil.getVideoRevenueVest(searchDoListItemBean.votepower ?? "", _chainStateBean?.dgpo);
+          double giftRevenueVest = RevenueCalculationUtil.getGiftRevenueVest(searchDoListItemBean.vestGift ?? "");
+          totalRevenue =
+              RevenueCalculationUtil.vestToRevenue(NumUtil.add(settlementBonusVest, giftRevenueVest), _exchangeRateInfoData).toStringAsFixed(2);
         }
       }
     } else {
       isSearchVideo = false;
-      SearchDoRecommendListItemBean searchDoRecommendListItemBean =
-          _listRecommendVideo[index];
-      imageUrl =
-          searchDoRecommendListItemBean?.videoImageCompress?.videoCompressUrl ??
-              '';
+      SearchDoRecommendListItemBean searchDoRecommendListItemBean = _listRecommendVideo[index];
+      imageUrl = searchDoRecommendListItemBean.videoImageCompress?.videoCompressUrl ?? '';
       if (ObjectUtil.isEmptyString(imageUrl)) {
-        imageUrl = searchDoRecommendListItemBean?.videoCoverBig ?? '';
+        imageUrl = searchDoRecommendListItemBean.videoCoverBig ?? '';
       }
-      duration = searchDoRecommendListItemBean?.duration;
-      title = searchDoRecommendListItemBean?.title ?? '';
-      anchorNickname = searchDoRecommendListItemBean?.anchorNickname ?? '';
-      watchNum = searchDoRecommendListItemBean?.watchNum ?? '0';
-      if (!ObjectUtil.isEmptyString(searchDoRecommendListItemBean?.createdAt)) {
-        showTime = Common.calcDiffTimeByStartTime(
-            searchDoRecommendListItemBean?.createdAt ?? '');
+      duration = searchDoRecommendListItemBean.duration ?? "";
+      title = searchDoRecommendListItemBean.title ?? '';
+      anchorNickname = searchDoRecommendListItemBean.anchorNickname ?? '';
+      watchNum = searchDoRecommendListItemBean.watchNum ?? '0';
+      if (!ObjectUtil.isEmptyString(searchDoRecommendListItemBean.createdAt)) {
+        showTime = Common.calcDiffTimeByStartTime(searchDoRecommendListItemBean.createdAt ?? '');
       } else {
         showTime = '';
       }
-      id = searchDoRecommendListItemBean?.id ?? '';
-      uid = searchDoRecommendListItemBean?.uid ?? '';
-      if (searchDoRecommendListItemBean != null &&
-          _exchangeRateInfoData != null) {
-        if (searchDoRecommendListItemBean?.vestStatus ==
-            VideoInfoResponse.vestStatusFinish) {
+      id = searchDoRecommendListItemBean.id ?? '';
+      uid = searchDoRecommendListItemBean.uid ?? '';
+      if (_exchangeRateInfoData != null) {
+        if (searchDoRecommendListItemBean.vestStatus == VideoInfoResponse.vestStatusFinish) {
           /// 奖励完成
-          double totalRevenueVest =
-              RevenueCalculationUtil.getStatusFinishTotalRevenueVest(
-                  searchDoRecommendListItemBean?.vest ?? '',
-                  searchDoRecommendListItemBean?.vestGift ?? '');
-          totalRevenue = RevenueCalculationUtil.vestToRevenue(
-                  totalRevenueVest, _exchangeRateInfoData)
-              .toStringAsFixed(2);
+          double totalRevenueVest = RevenueCalculationUtil.getStatusFinishTotalRevenueVest(
+              searchDoRecommendListItemBean.vest ?? '', searchDoRecommendListItemBean.vestGift ?? '');
+          totalRevenue = RevenueCalculationUtil.vestToRevenue(totalRevenueVest, _exchangeRateInfoData).toStringAsFixed(2);
         } else {
           /// 奖励未完成
           double settlementBonusVest =
-              RevenueCalculationUtil.getVideoRevenueVest(
-                  searchDoRecommendListItemBean?.votepower,
-                  _chainStateBean?.dgpo);
-          double giftRevenueVest = RevenueCalculationUtil.getGiftRevenueVest(
-              searchDoRecommendListItemBean?.vestGift);
-          totalRevenue = RevenueCalculationUtil.vestToRevenue(
-                  NumUtil.add(settlementBonusVest, giftRevenueVest),
-                  _exchangeRateInfoData)
-              .toStringAsFixed(2);
+              RevenueCalculationUtil.getVideoRevenueVest(searchDoRecommendListItemBean.votepower ?? "", _chainStateBean?.dgpo);
+          double giftRevenueVest = RevenueCalculationUtil.getGiftRevenueVest(searchDoRecommendListItemBean.vestGift ?? "");
+          totalRevenue =
+              RevenueCalculationUtil.vestToRevenue(NumUtil.add(settlementBonusVest, giftRevenueVest), _exchangeRateInfoData).toStringAsFixed(2);
         }
       }
     }
@@ -534,11 +468,7 @@ class SearchPageState extends State<SearchPage> {
           }
         },
         child: Container(
-          margin: EdgeInsets.only(
-              left: AppDimens.margin_10,
-              top: marginTop,
-              right: AppDimens.margin_10,
-              bottom: AppDimens.margin_15),
+          margin: EdgeInsets.only(left: AppDimens.margin_10, top: marginTop, right: AppDimens.margin_10, bottom: AppDimens.margin_15),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
@@ -589,8 +519,7 @@ class SearchPageState extends State<SearchPage> {
                         style: TextStyle(
                           color: AppThemeUtil.setDifferentModeColor(
                             lightColor: AppColors.color_333333,
-                            darkColorStr: DarkModelTextColorUtil
-                                .firstLevelBrightnessColorStr,
+                            darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                           ),
                           fontSize: AppDimens.text_size_14,
                         ),
@@ -602,8 +531,7 @@ class SearchPageState extends State<SearchPage> {
                           style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_858585,
-                              darkColorStr: DarkModelTextColorUtil
-                                  .secondaryBrightnessColorStr,
+                              darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr,
                             ),
                             fontSize: AppDimens.text_size_11,
                           ),
@@ -611,12 +539,11 @@ class SearchPageState extends State<SearchPage> {
                         ),
                       ),
                       Text(
-                        '${Common.getCurrencySymbolByLanguage()} ${totalRevenue ?? ''}',
+                        '${Common.getCurrencySymbolByLanguage()} $totalRevenue',
                         style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
-                              darkColorStr: DarkModelTextColorUtil
-                                  .firstLevelBrightnessColorStr,
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                             ),
                             fontSize: AppDimens.text_size_14,
                             fontWeight: FontWeight.w700,
@@ -627,8 +554,7 @@ class SearchPageState extends State<SearchPage> {
                         style: TextStyle(
                           color: AppThemeUtil.setDifferentModeColor(
                             lightColor: AppColors.color_a0a0a0,
-                            darkColorStr: DarkModelTextColorUtil
-                                .secondaryBrightnessColorStr,
+                            darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr,
                           ),
                           fontSize: AppDimens.text_size_12,
                         ),
@@ -649,8 +575,7 @@ class SearchPageState extends State<SearchPage> {
               return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
                 vid: id,
                 uid: uid,
-                enterSource:
-                VideoDetailsEnterSource.VideoDetailsEnterSourceSearch,
+                enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceSearch,
               ));
             },
             settings: RouteSettings(name: videoDetailPageRouteName),
@@ -678,13 +603,11 @@ class SearchPageState extends State<SearchPage> {
     String isCertification;
     if (!ObjectUtil.isEmptyList(_listSearchUser)) {
       SearchDoListItemBean searchDoListItemBean = _listSearchUser[index];
-      if (searchDoListItemBean?.relation ==
-          SearchResponse.relationAttentionFinish) {
+      if (searchDoListItemBean.relation == SearchResponse.relationAttentionFinish) {
         attentionMsg = InternationalLocalizations.searchAttentionFinish;
         imagePath = 'assets/images/ic_attention_finish.png';
         isAttentionFinish = true;
-      } else if (searchDoListItemBean?.relation ==
-          SearchResponse.relationAttentionAllFinish) {
+      } else if (searchDoListItemBean.relation == SearchResponse.relationAttentionAllFinish) {
         attentionMsg = InternationalLocalizations.searchAttentionAllFinish;
         imagePath = 'assets/images/ic_attention_all_finish.png';
         isAttentionFinish = true;
@@ -693,26 +616,22 @@ class SearchPageState extends State<SearchPage> {
         imagePath = 'assets/images/ic_attention.png';
         isAttentionFinish = false;
       }
-      anchorAvatar =
-          searchDoListItemBean?.imageCompress?.avatarCompressUrl ?? '';
+      anchorAvatar = searchDoListItemBean.imageCompress?.avatarCompressUrl ?? '';
       if (ObjectUtil.isEmptyString(anchorAvatar)) {
-        anchorAvatar = searchDoListItemBean?.avatar ?? '';
+        anchorAvatar = searchDoListItemBean.avatar ?? "";
       }
-      anchorNickname = searchDoListItemBean?.nickName ?? '';
-      followerCount = searchDoListItemBean?.followerCount ?? '';
-      videoCount = searchDoListItemBean?.videoCount ?? '';
-      uid = searchDoListItemBean?.uid ?? '';
-      isCertification = searchDoListItemBean?.isCertification ?? '';
+      anchorNickname = searchDoListItemBean.nickName ?? "";
+      followerCount = searchDoListItemBean.followerCount ?? "";
+      videoCount = searchDoListItemBean.videoCount ?? "";
+      uid = searchDoListItemBean.uid ?? '';
+      isCertification = searchDoListItemBean.isCertification ?? '';
     } else {
-      SearchDoRecommendListItemBean searchDoRecommendListItemBean =
-          _listRecommendUser[index];
-      if (searchDoRecommendListItemBean?.relation ==
-          SearchResponse.relationAttentionFinish) {
+      SearchDoRecommendListItemBean searchDoRecommendListItemBean = _listRecommendUser[index];
+      if (searchDoRecommendListItemBean.relation == SearchResponse.relationAttentionFinish) {
         attentionMsg = InternationalLocalizations.searchAttentionFinish;
         imagePath = 'assets/images/ic_attention_finish.png';
         isAttentionFinish = true;
-      } else if (searchDoRecommendListItemBean?.relation ==
-          SearchResponse.relationAttentionAllFinish) {
+      } else if (searchDoRecommendListItemBean.relation == SearchResponse.relationAttentionAllFinish) {
         attentionMsg = InternationalLocalizations.searchAttentionAllFinish;
         imagePath = 'assets/images/ic_attention_all_finish.png';
         isAttentionFinish = true;
@@ -721,16 +640,15 @@ class SearchPageState extends State<SearchPage> {
         imagePath = 'assets/images/ic_attention.png';
         isAttentionFinish = false;
       }
-      anchorAvatar =
-          searchDoRecommendListItemBean?.imageCompress?.avatarCompressUrl ?? '';
+      anchorAvatar = searchDoRecommendListItemBean.imageCompress?.avatarCompressUrl ?? '';
       if (ObjectUtil.isEmptyString(anchorAvatar)) {
-        anchorAvatar = searchDoRecommendListItemBean?.avatar ?? '';
+        anchorAvatar = searchDoRecommendListItemBean.avatar ?? "";
       }
-      anchorNickname = searchDoRecommendListItemBean?.nickName ?? '';
-      followerCount = searchDoRecommendListItemBean?.followerCount ?? '';
-      videoCount = searchDoRecommendListItemBean?.videoCount ?? '';
-      uid = searchDoRecommendListItemBean?.uid ?? '';
-      isCertification = searchDoRecommendListItemBean?.isCertification ?? '';
+      anchorNickname = searchDoRecommendListItemBean.nickName ?? "";
+      followerCount = searchDoRecommendListItemBean.followerCount ?? "";
+      videoCount = searchDoRecommendListItemBean.videoCount ?? "";
+      uid = searchDoRecommendListItemBean.uid;
+      isCertification = searchDoRecommendListItemBean.isCertification ?? "";
     }
     double marginTop = 0.0;
     if (index == 0) {
@@ -738,19 +656,13 @@ class SearchPageState extends State<SearchPage> {
     }
     return InkWell(
       child: Container(
-        margin: EdgeInsets.only(
-            left: AppDimens.margin_10,
-            top: marginTop,
-            right: AppDimens.margin_10,
-            bottom: AppDimens.margin_15),
+        margin: EdgeInsets.only(left: AppDimens.margin_10, top: marginTop, right: AppDimens.margin_10, bottom: AppDimens.margin_15),
         child: Row(
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
             Container(
               decoration: BoxDecoration(
-                border: Border.all(
-                    color: AppColors.color_ebebeb,
-                    width: AppDimens.item_line_height_0_5),
+                border: Border.all(color: AppColors.color_ebebeb, width: AppDimens.item_line_height_0_5),
                 borderRadius: BorderRadius.circular(AppDimens.item_size_27_5),
               ),
               child: Stack(
@@ -758,8 +670,7 @@ class SearchPageState extends State<SearchPage> {
                   CircleAvatar(
                     backgroundColor: AppColors.color_ffffff,
                     radius: AppDimens.item_size_27_5,
-                    backgroundImage:
-                        AssetImage('assets/images/ic_default_avatar.png'),
+                    backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                   ),
                   CircleAvatar(
                     backgroundColor: AppColors.color_transparent,
@@ -783,9 +694,7 @@ class SearchPageState extends State<SearchPage> {
                       anchorNickname,
                       style: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor: AppColors.color_333333,
-                            darkColorStr: DarkModelTextColorUtil
-                                .firstLevelBrightnessColorStr),
+                            lightColor: AppColors.color_333333, darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                         fontSize: AppDimens.text_size_15,
                         fontWeight: FontWeight.w700,
                       ),
@@ -821,11 +730,8 @@ class SearchPageState extends State<SearchPage> {
                   height: AppDimens.item_size_30,
                   alignment: Alignment.center,
                   child: Material(
-                    borderRadius:
-                        BorderRadius.circular(AppDimens.radius_size_15),
-                    color: isAttentionFinish
-                        ? AppColors.color_d6d6d6
-                        : AppColors.color_3674ff,
+                    borderRadius: BorderRadius.circular(AppDimens.radius_size_15),
+                    color: isAttentionFinish ? AppColors.color_d6d6d6 : AppColors.color_3674ff,
                     child: MaterialButton(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -841,17 +747,7 @@ class SearchPageState extends State<SearchPage> {
                         if (Common.isAbleClick()) {
                           if (!Common.judgeHasLogIn()) {
                             //进入登录界面
-                            if (Platform.isAndroid) {
-                              WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
-                            } else {
-                              Navigator.of(context).push(SlideAnimationRoute(
-                                builder: (_) {
-                                  return WebViewPage(
-                                    Constant.logInWebViewUrl,
-                                  );
-                                },
-                              ));
-                            }
+                            WebViewUtil.instance.openWebView(Constant.logInWebViewUrl, context);
                           } else {
                             if (!ObjectUtil.isEmptyString(uid)) {
                               if (isAttentionFinish) {
@@ -903,8 +799,7 @@ class SearchPageState extends State<SearchPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Container(
-                  margin: EdgeInsets.only(
-                      top: AppDimens.margin_40, bottom: AppDimens.margin_12_5),
+                  margin: EdgeInsets.only(top: AppDimens.margin_40, bottom: AppDimens.margin_12_5),
                   child: Image.asset('assets/images/ic_search_no_data.png'),
                 ),
                 Text(
@@ -921,14 +816,11 @@ class SearchPageState extends State<SearchPage> {
               right: AppDimens.margin_10,
             ),
             child: Text(
-              _selectType == selectTypeVideo
-                  ? InternationalLocalizations.searchHotVideo
-                  : InternationalLocalizations.searchRecommendUser,
+              _selectType == selectTypeVideo ? InternationalLocalizations.searchHotVideo : InternationalLocalizations.searchRecommendUser,
               style: TextStyle(
                 color: AppThemeUtil.setDifferentModeColor(
                   lightColor: AppColors.color_333333,
-                  darkColorStr:
-                      DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                  darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                 ),
                 fontSize: AppDimens.text_size_16,
                 fontWeight: FontWeight.w700,
@@ -942,13 +834,9 @@ class SearchPageState extends State<SearchPage> {
                   if (!_isScrollingRecommend) {
                     _visibleRecommendMap[index] = 1;
                   }
-                  return _selectType == selectTypeVideo
-                      ? _buildSearchVideoItem(index)
-                      : _buildSearchUserItem(index);
+                  return _selectType == selectTypeVideo ? _buildSearchVideoItem(index) : _buildSearchUserItem(index);
                 },
-                itemCount: _selectType == selectTypeVideo
-                    ? _listRecommendVideo.length
-                    : _listRecommendUser.length,
+                itemCount: _selectType == selectTypeVideo ? _listRecommendVideo.length : _listRecommendUser.length,
                 scrollEndCallBack: (last, cur) {
                   _isScrollingRecommend = false;
                   Future.delayed(Duration(milliseconds: 500), () {
@@ -958,8 +846,7 @@ class SearchPageState extends State<SearchPage> {
                   });
                 },
                 scrollStatusCallBack: (scrollNotification) {
-                  if (scrollNotification is ScrollStartCallBack ||
-                      scrollNotification is ScrollUpdateNotification) {
+                  if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
                     _isScrollingRecommend = true;
                   }
                 },
@@ -985,13 +872,9 @@ class SearchPageState extends State<SearchPage> {
               if (!_isScrollingSearch) {
                 _visibleSearchMap[index] = 1;
               }
-              return _selectType == selectTypeVideo
-                  ? _buildSearchVideoItem(index)
-                  : _buildSearchUserItem(index);
+              return _selectType == selectTypeVideo ? _buildSearchVideoItem(index) : _buildSearchUserItem(index);
             },
-            itemCount: _selectType == selectTypeVideo
-                ? _listSearchVideo.length
-                : _listSearchUser.length,
+            itemCount: _selectType == selectTypeVideo ? _listSearchVideo.length : _listSearchUser.length,
             onLoadMore: () {
               return _httpSearchDo(_selectType, true);
             },
@@ -1004,20 +887,16 @@ class SearchPageState extends State<SearchPage> {
               });
             },
             scrollStatusCallBack: (scrollNotification) {
-              if (scrollNotification is ScrollStartCallBack ||
-                  scrollNotification is ScrollUpdateNotification) {
+              if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
                 _isScrollingSearch = true;
               }
             },
             pageSize: pageSize,
-            isHaveMoreData: _selectType == selectTypeVideo
-                ? _isHaveMoreDataVideo
-                : _isHaveMoreDataCreator,
+            isHaveMoreData: _selectType == selectTypeVideo ? _isHaveMoreDataVideo : _isHaveMoreDataCreator,
             isRefreshEnable: false,
             isShowItemLine: false,
-            bottomMessage: _selectType == selectTypeVideo
-                ? InternationalLocalizations.searchNoMoreVideo
-                : InternationalLocalizations.searchNoMoreUser,
+            bottomMessage:
+                _selectType == selectTypeVideo ? InternationalLocalizations.searchNoMoreVideo : InternationalLocalizations.searchNoMoreUser,
             hasTopPadding: false,
           ),
           color: AppThemeUtil.setDifferentModeColor(
@@ -1063,8 +942,7 @@ class SearchPageState extends State<SearchPage> {
                 ),
                 Expanded(
                   child: Container(
-                    margin: EdgeInsets.only(
-                        left: AppDimens.margin_5, right: AppDimens.margin_15),
+                    margin: EdgeInsets.only(left: AppDimens.margin_5, right: AppDimens.margin_15),
                     height: AppDimens.item_size_32,
                     decoration: BoxDecoration(
                       color: AppThemeUtil.setDifferentModeColor(
@@ -1082,15 +960,13 @@ class SearchPageState extends State<SearchPage> {
                         Expanded(
                           child: InkWell(
                             child: Container(
-                              margin:
-                                  EdgeInsets.only(left: AppDimens.margin_10),
+                              margin: EdgeInsets.only(left: AppDimens.margin_10),
                               child: Text(
                                 _searchStr ?? '',
                                 style: TextStyle(
                                   color: AppThemeUtil.setDifferentModeColor(
                                     lightColor: AppColors.color_333333,
-                                    darkColorStr: DarkModelTextColorUtil
-                                        .firstLevelBrightnessColorStr,
+                                    darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                                   ),
                                   fontSize: AppDimens.text_size_14,
                                 ),
@@ -1113,12 +989,10 @@ class SearchPageState extends State<SearchPage> {
                                           _searchStr = searchStr;
                                           _textController.text = searchStr;
 //                                          _httpSearchDo(_selectType, false);
-                                          if (!ObjectUtil.isEmptyList(
-                                              _listSearchVideo)) {
+                                          if (!ObjectUtil.isEmptyList(_listSearchVideo)) {
                                             _listSearchVideo.clear();
                                           }
-                                          if (!ObjectUtil.isEmptyList(
-                                              _listSearchUser)) {
+                                          if (!ObjectUtil.isEmptyList(_listSearchUser)) {
                                             _listSearchUser.clear();
                                           }
                                           _searchVideoTotal = '0';
@@ -1146,11 +1020,9 @@ class SearchPageState extends State<SearchPage> {
                             child: Align(
                               alignment: Alignment.centerRight,
                               child: Container(
-                                margin:
-                                    EdgeInsets.only(right: AppDimens.margin_5),
+                                margin: EdgeInsets.only(right: AppDimens.margin_5),
                                 padding: EdgeInsets.all(AppDimens.margin_5),
-                                child: Image.asset(
-                                    AppThemeUtil.getSearchCloseIcn()),
+                                child: Image.asset(AppThemeUtil.getSearchCloseIcn()),
                               ),
                             ),
                             onTap: () {
@@ -1171,8 +1043,7 @@ class SearchPageState extends State<SearchPage> {
             ),
           ),
           Divider(
-            color: AppThemeUtil.setDifferentModeColor(
-                lightColor: AppColors.color_e4e4e4, darkColorStr: "3E3E3E"),
+            color: AppThemeUtil.setDifferentModeColor(lightColor: AppColors.color_e4e4e4, darkColorStr: "3E3E3E"),
             height: AppDimens.item_line_height_0_5,
           ),
           Container(
@@ -1191,8 +1062,7 @@ class SearchPageState extends State<SearchPage> {
                           : TextStyle(
                               color: AppThemeUtil.setDifferentModeColor(
                                 lightColor: AppColors.color_333333,
-                                darkColorStr: DarkModelTextColorUtil
-                                    .firstLevelBrightnessColorStr,
+                                darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                               ),
                               fontSize: AppDimens.text_size_14,
                             ),
@@ -1218,8 +1088,7 @@ class SearchPageState extends State<SearchPage> {
                           : TextStyle(
                               color: AppThemeUtil.setDifferentModeColor(
                                 lightColor: AppColors.color_333333,
-                                darkColorStr: DarkModelTextColorUtil
-                                    .firstLevelBrightnessColorStr,
+                                darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                               ),
                               fontSize: AppDimens.text_size_14,
                             ),
@@ -1307,7 +1176,7 @@ class SearchPageState extends State<SearchPage> {
 
   /// 搜索视频曝光上报
   void _reportVideoSearch() {
-    if (_visibleSearchMap == null || _visibleSearchMap.isEmpty) {
+    if (_visibleSearchMap.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleSearchItemIndex();
@@ -1316,8 +1185,7 @@ class SearchPageState extends State<SearchPage> {
         int idx = visibleList[i];
         if (idx >= 0 && idx < _listSearchVideo.length) {
           SearchDoListItemBean bean = _listSearchVideo[idx];
-          VideoReportUtil.reportVideoExposure(
-              VideoExposureType.SearchType, bean.id ?? '', bean.uid ?? '');
+          VideoReportUtil.reportVideoExposure(VideoExposureType.SearchType, bean.id ?? '', bean.uid ?? '');
         }
       }
     }
@@ -1335,7 +1203,7 @@ class SearchPageState extends State<SearchPage> {
 
   /// 推荐视频曝光上报
   void _reportVideoRecommend() {
-    if (_visibleRecommendMap == null || _visibleRecommendMap.isEmpty) {
+    if (_visibleRecommendMap.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleRecommendItemIndex();
@@ -1344,8 +1212,7 @@ class SearchPageState extends State<SearchPage> {
         int idx = visibleList[i];
         if (idx >= 0 && idx < _listRecommendVideo.length) {
           SearchDoRecommendListItemBean bean = _listRecommendVideo[idx];
-          VideoReportUtil.reportVideoExposure(
-              VideoExposureType.SearchType, bean.id ?? '', bean.uid ?? '');
+          VideoReportUtil.reportVideoExposure(VideoExposureType.SearchType, bean.id ?? '', bean.uid ?? '');
         }
       }
     }

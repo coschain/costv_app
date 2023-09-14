@@ -29,17 +29,17 @@ typedef DeleteVideoCallback = void Function(String uid, String vid);
 typedef VisibilityChangedCallback = Function(int index, double visibleFraction);
 
 class UploadedVideoItem extends StatefulWidget {
-  final MyVideoInfoBean video;
-  final ExchangeRateInfoData exchangeRate; //汇率
-  final dynamic_properties dgpoBean;
-  final int index;
-  final DeleteVideoCallback deleteCallBack;
-  final String logPrefix;
-  final UploadedItemPageSource source;
-  final bool isEnableDelete;
-  final VisibilityChangedCallback visibilityChangedCallback;
-  final double radius;
-  final SlidableController controller;
+  final MyVideoInfoBean? video;
+  final ExchangeRateInfoData? exchangeRate; //汇率
+  final dynamic_properties? dgpoBean;
+  final int? index;
+  final DeleteVideoCallback? deleteCallBack;
+  final String? logPrefix;
+  final UploadedItemPageSource? source;
+  final bool? isEnableDelete;
+  final VisibilityChangedCallback? visibilityChangedCallback;
+  final double? radius;
+  final SlidableController? controller;
 
   UploadedVideoItem({
     this.video,
@@ -62,15 +62,15 @@ class UploadedVideoItem extends StatefulWidget {
 }
 
 class _UploadedVideoItemState extends State<UploadedVideoItem> {
-  String _logPrefix;
+  String _logPrefix = "";
 
   @override
   void initState() {
     super.initState();
-    if (!Common.checkIsNotEmptyStr(widget.logPrefix)) {
+    if (!Common.checkIsNotEmptyStr(widget.logPrefix ?? "'")) {
       _logPrefix = _getLogPrefix();
     } else {
-      _logPrefix = widget.logPrefix;
+      _logPrefix = widget.logPrefix ?? "";
     }
   }
 
@@ -78,22 +78,18 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width - 20;
     double rate = screenWidth / 375.0, coverRate = 9 / 16;
-    double coverWidth = 149 * rate,
-        coverHeight = coverWidth * coverRate,
-        boldFontSize = 14,
-        normalFontSize = 11,
-        rDescMargin = 8.0;
+    double coverWidth = 149 * rate, coverHeight = coverWidth * coverRate, boldFontSize = 14, normalFontSize = 11, rDescMargin = 8.0;
     double rightDescWidth = screenWidth - rDescMargin - coverWidth;
     String imageUrl = '';
     if (ObjectUtil.isEmptyString(imageUrl)) {
       imageUrl = widget.video?.video_cover_big ?? '';
     }
     return VisibilityDetector(
-      key: Key(widget.video.id ?? widget.index),
+      key: Key(widget.video?.id ?? widget.index.toString()),
       child: Slidable(
-        key: Key('key${widget?.index?.toString() ?? widget.video.id}'),
-        controller: widget.controller ?? SlidableController(),
-        enabled: false,//widget.isEnableDelete,
+        key: Key('key${widget.index?.toString() ?? widget.video?.id}'),
+        enabled: false,
+        //widget.isEnableDelete,
         child: Container(
           padding: EdgeInsets.only(top: AppDimens.margin_15),
           width: screenWidth,
@@ -118,8 +114,7 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                             width: coverWidth,
                             height: coverHeight,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(
-                                  Radius.circular(widget.radius ?? 0)),
+                              borderRadius: BorderRadius.all(Radius.circular(widget.radius ?? 0)),
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -130,16 +125,13 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                               ),
                             ),
                             child: ClipRRect(
-                                borderRadius:
-                                BorderRadius.circular(widget.radius ?? 0),
+                                borderRadius: BorderRadius.circular(widget.radius ?? 0),
                                 child: CachedNetworkImage(
                                   fit: BoxFit.contain,
                                   imageUrl: imageUrl,
                                   placeholder: (context, url) => Container(
-                                    color: Common.getColorFromHexString(
-                                        "D6D6D6", 1.0),
+                                    color: Common.getColorFromHexString("D6D6D6", 1.0),
                                   ),
-                                  errorWidget: (context, url, error) => Container(),
                                 )),
                           ),
                           _getVideoTimeWidget(),
@@ -176,10 +168,8 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                       style: TextStyle(
                         fontSize: boldFontSize,
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor:
-                            Common.getColorFromHexString("333333", 1.0),
-                            darkColorStr: DarkModelTextColorUtil
-                                .firstLevelBrightnessColorStr),
+                            lightColor: Common.getColorFromHexString("333333", 1.0),
+                            darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -191,10 +181,8 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                       style: TextStyle(
                         fontSize: normalFontSize,
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor:
-                            Common.getColorFromHexString("A0A0A0", 1.0),
-                            darkColorStr: DarkModelTextColorUtil
-                                .secondaryBrightnessColorStr),
+                            lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
+                            darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr),
                       ),
                     ),
                     // 视频状态
@@ -206,10 +194,8 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
 //                          fontWeight: FontWeight.bold,
                           fontSize: boldFontSize,
                           color: AppThemeUtil.setDifferentModeColor(
-                              lightColor:
-                              Common.getColorFromHexString("333333", 1.0),
-                              darkColorStr: DarkModelTextColorUtil
-                                  .firstLevelBrightnessColorStr),
+                              lightColor: Common.getColorFromHexString("333333", 1.0),
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                           fontFamily: "DIN"),
                     ),
                     // 上传时间
@@ -218,10 +204,8 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                       maxLines: 1,
                       style: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor:
-                            Common.getColorFromHexString("A0A0A0", 1.0),
-                            darkColorStr: DarkModelTextColorUtil
-                                .secondaryBrightnessColorStr),
+                            lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
+                            darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr),
                         fontSize: normalFontSize,
                       ),
                       child: Container(
@@ -229,7 +213,7 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
                           maxWidth: rightDescWidth,
                         ),
                         child: Text(
-                          '${Common.calcDiffTimeByStartTime(widget.video.created_at)}',
+                          '${Common.calcDiffTimeByStartTime(widget.video?.created_at ?? "")}',
                         ),
                       ),
                     ),
@@ -240,10 +224,7 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
             ],
           ),
         ),
-        actionExtentRatio: 0.25,
-        actionPane: SlidableDrawerActionPane(),
-        actions: <Widget>[],
-        secondaryActions: <Widget>[
+        endActionPane: ActionPane(motion: ScrollMotion(), children: [
           InkWell(
             child: Image.asset(
               "assets/images/ic_delete.png",
@@ -253,48 +234,29 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
 //              _showDeleteConfirmDialog();
             },
           ),
-
-//          IconSlideAction(
-//            caption: '',
-//            color: Common.getColorFromHexString("FA4F00", 1.0),
-//            iconWidget: Container(
-//              width: screenWidth*0.25,
-//              color: Colors.black,
-//              child: Image.asset(
-//                "assets/images/ic_delete.png",
-//                fit: BoxFit.cover,
-//              ),
-//            ),
-//            onTap: () => _showDeleteConfirmDialog(),
-//          ),
-        ],
+        ]),
       ),
       onVisibilityChanged: (VisibilityInfo info) {
         if (widget.visibilityChangedCallback != null) {
-          widget.visibilityChangedCallback(
-              widget.index ?? -1, info.visibleFraction);
+          widget.visibilityChangedCallback?.call(widget.index ?? -1, info.visibleFraction);
         }
       },
     );
   }
 
   Widget _getVideoTimeWidget() {
-    if (Common.checkVideoDurationValid(widget.video?.duration)) {
+    if (Common.checkVideoDurationValid(widget.video?.duration ?? "")) {
       return Positioned(
         right: 0,
         bottom: 0,
-        child:
-        VideoTimeWidget(Common.formatVideoDuration(widget.video?.duration)),
+        child: VideoTimeWidget(Common.formatVideoDuration(widget.video?.duration ?? "")),
       );
     }
     return Container();
   }
 
   void _onClickPlayVideo() {
-    _reportVideoClick();
-    String vid = widget.video?.id,
-        uid = widget.video?.uid,
-        videoSource = widget.video?.videosource;
+    String vid = widget.video?.id ?? "", uid = widget.video?.uid ?? "'", videoSource = widget.video?.videosource ?? "";
     if (!Common.checkIsNotEmptyStr(vid)) {
       CosLogUtil.log("$_logPrefix: fail to jumtp to video detail page "
           "due to empty vid");
@@ -320,47 +282,21 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
     ));
   }
 
-  void _reportVideoClick() {
-//    if (widget?.video?.id != null) {
-////      DataReportUtil.instance.reportData(
-////          eventName: "Click_video",
-////          params: {"Click_video": widget.video.id}
-////      );
-//      if (widget.source == HistoryItemPageSource.OtherHome) {
-//        VideoReportUtil.reportClickVideo(
-//            ClickVideoSource.OtherCenter, widget.video?.id ?? '');
-//      } else if (widget.source == HistoryItemPageSource.likedVideoListPage) {
-//        VideoReportUtil.reportClickVideo(
-//            ClickVideoSource.UserLiked, widget.video?.id ?? '');
-//      } else if (widget.source == HistoryItemPageSource.watchVideoHistoryPage) {
-//        VideoReportUtil.reportClickVideo(
-//            ClickVideoSource.History, widget.video?.id ?? '');
-//      }
-//    }
-  }
-
-//  String _getVideoWorth() {
-//    String symbol = Common.getCurrencySymbolByLanguage();
-//    String worth = VideoUtil.getVideoWorth(
-//        widget.exchangeRate, widget.dgpoBean, widget.video);
-//    return '$symbol $worth';
-//  }
-
   void _showDeleteConfirmDialog() async {
     var dialog = AlertDialog(
       title: Text(""),
       content: Text(InternationalLocalizations.deleteVideoTips),
       actions: <Widget>[
-        new FlatButton(
+        new ElevatedButton(
           onPressed: () {
             if (widget.deleteCallBack != null) {
-              widget.deleteCallBack(widget.video?.uid, widget.video?.id);
+              widget.deleteCallBack?.call(widget.video?.uid ?? "", widget.video?.id ?? "");
             }
             Navigator.of(context).pop(true);
           },
           child: new Text(InternationalLocalizations.confirm),
         ),
-        new FlatButton(
+        new ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop(false);
           },
@@ -375,39 +311,21 @@ class _UploadedVideoItemState extends State<UploadedVideoItem> {
         });
     if (isDismiss) {
       if (widget.deleteCallBack != null) {
-        widget.deleteCallBack(widget.video?.uid, widget.video?.id);
+        widget.deleteCallBack?.call(widget.video?.uid ?? "", widget.video?.id ?? "");
       }
     }
   }
 
   String _getLogPrefix() {
-//    if (widget.source == HistoryItemPageSource.watchVideoHistoryPage) {
-//      return "watchVideoHistoryPage";
-//    } else if (widget.source == HistoryItemPageSource.likedVideoListPage) {
-//      return "LikedVideoListPage";
-//    } else if (widget.source ==
-//        HistoryItemPageSource.ticketRewardVideoListPage) {
-//      return "TicketRewardVideoListPage";
-//    }
     return "";
   }
 
   VideoDetailsEnterSource _getVideoDetailEnterSource() {
-//    VideoDetailsEnterSource source =
-//        VideoDetailsEnterSource.VideoDetailsEnterSourceUnknown;
-//    if (widget.source == HistoryItemPageSource.watchVideoHistoryPage) {
-//      source = VideoDetailsEnterSource.VideoDetailsEnterSourceWatchHistoryList;
-//    } else if (widget.source == HistoryItemPageSource.likedVideoListPage) {
-//      source = VideoDetailsEnterSource.VideoDetailsEnterSourceUserLikedList;
-//    } else if (widget.source == HistoryItemPageSource.OtherHome) {
-//      source = VideoDetailsEnterSource.VideoDetailsEnterSourceOtherCenter;
-//    }
-//    return source;
     return VideoDetailsEnterSource.VideoDetailsEnterSourceUnknown;
   }
 
   String _getVideoStatus() {
-    switch (widget.video.video_process) {
+    switch (widget.video?.video_process ?? "") {
       case "1":
         return InternationalLocalizations.uploadVideoAuditRefused;
       case "2":

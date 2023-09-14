@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:common_utils/common_utils.dart';
 import 'package:cosdart/types.dart';
 import 'package:costv_android/bean/anchor_image_compress_bean.dart';
 import 'package:costv_android/bean/comment_list_item_bean.dart';
-import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
@@ -13,8 +10,6 @@ import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/utils/web_view_util.dart';
 import 'package:costv_android/widget/loading_view.dart';
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
-import 'package:costv_android/widget/route/slide_animation_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/bean/get_video_list_new_bean.dart';
@@ -54,27 +49,20 @@ double descBgWidth = 0;
 
 class OtherHomeParamsBean {
   String uid;
-  String avatar;
-  String nickName;
-  String isCertification;
-  ExchangeRateInfoData rateInfoData;
-  dynamic_properties dgpoBean;
+  String? avatar;
+  String? nickName;
+  String? isCertification;
+  ExchangeRateInfoData? rateInfoData;
+  dynamic_properties? dgpoBean;
 
-  OtherHomeParamsBean(
-      {@required this.uid,
-      this.nickName,
-      this.avatar,
-      this.isCertification,
-      this.rateInfoData,
-      this.dgpoBean})
+  OtherHomeParamsBean({required this.uid, this.nickName, this.avatar, this.isCertification, this.rateInfoData, this.dgpoBean})
       : assert(Common.checkIsNotEmptyStr(uid));
 }
 
 class OthersHomePage extends StatefulWidget {
   final OtherHomeParamsBean paramsBean;
 
-  OthersHomePage(this.paramsBean)
-      : assert(paramsBean != null && Common.checkIsNotEmptyStr(paramsBean.uid));
+  OthersHomePage(this.paramsBean) : assert(Common.checkIsNotEmptyStr(paramsBean.uid));
 
   @override
   State<StatefulWidget> createState() {
@@ -85,19 +73,14 @@ class OthersHomePage extends StatefulWidget {
 class OthersHomePageState extends State<OthersHomePage> {
   List<GetVideoListNewDataListBean> _hotVideoList = []; //用户热门视频列表,第一个为最热视频
   List<GetVideoListNewDataListBean> _newVideoList = []; //用户最新视频列表
-  OthersDetailInfo _userInfo;
-  OthersInfoData _tmpInfo;
-  ExchangeRateInfoData _rateInfoData;
-  dynamic_properties _dgpoBean;
-  GlobalObjectKey<FollowButtonState> _followBtnKey =
-      GlobalObjectKey<FollowButtonState>(
-          "followBtn" + DateTime.now().toString());
-  GlobalObjectKey<FansNumWidgetState> _fansNumTextKey =
-      GlobalObjectKey<FansNumWidgetState>(
-          "fansBtn" + DateTime.now().toString());
+  OthersDetailInfo? _userInfo;
+  OthersInfoData? _tmpInfo;
+  ExchangeRateInfoData? _rateInfoData;
+  dynamic_properties? _dgpoBean;
+  GlobalObjectKey<FollowButtonState> _followBtnKey = GlobalObjectKey<FollowButtonState>("followBtn" + DateTime.now().toString());
+  GlobalObjectKey<FansNumWidgetState> _fansNumTextKey = GlobalObjectKey<FansNumWidgetState>("fansBtn" + DateTime.now().toString());
   GlobalObjectKey<NickNameAndFansNumBgWidgetState> _nickNameBgKey =
-      GlobalObjectKey<NickNameAndFansNumBgWidgetState>(
-          "nickNameBg" + DateTime.now().toString());
+      GlobalObjectKey<NickNameAndFansNumBgWidgetState>("nickNameBg" + DateTime.now().toString());
   bool _isFollowed = false,
       _isShowLoading = true,
       _isVideoLoad = false,
@@ -105,36 +88,23 @@ class OthersHomePageState extends State<OthersHomePage> {
       _hasNextPage = false,
       _isFetching = false,
       _isScrolling = false;
-  int _curNewListPage = 1,
-      _pageSize = 10,
-      _maxHotVideoCnt = 10,
-      _minHotVideoCnt = 5;
-  GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
-      new GlobalKey<NetRequestFailTipsViewState>();
+  int _curNewListPage = 1, _pageSize = 10, _maxHotVideoCnt = 10, _minHotVideoCnt = 5;
+  GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   Map<int, double> _hottestVisibleMap = {};
   Map<int, double> _hotVisibleMap = {};
   Map<int, double> _newVisibleMap = {};
 
   @override
   void initState() {
-    _userInfo = OthersDetailInfo(
-        "",
-        widget.paramsBean.nickName ?? '',
-        widget.paramsBean.uid ?? '',
-        widget.paramsBean.avatar ?? '',
-        '',
-        new AnchorImageCompressBean(widget.paramsBean.avatar ?? ''),
-        '0',
-        '0',
-        '0',
-        widget.paramsBean.isCertification ?? '0');
+    _userInfo = OthersDetailInfo("", widget.paramsBean.nickName ?? '', widget.paramsBean.uid, widget.paramsBean.avatar ?? '', '',
+        new AnchorImageCompressBean(widget.paramsBean.avatar ?? ''), '0', '0', '0', widget.paramsBean.isCertification ?? '0');
     if (widget.paramsBean.rateInfoData != null) {
       _rateInfoData = widget.paramsBean.rateInfoData;
     }
     if (widget.paramsBean.dgpoBean != null) {
       _dgpoBean = widget.paramsBean.dgpoBean;
     }
-    _isFollowed = UserUtil.checkIsFollowByStateCode(_userInfo.isFollow);
+    _isFollowed = UserUtil.checkIsFollowByStateCode(_userInfo?.isFollow ?? "");
     _reportData();
     super.initState();
     _reloadData();
@@ -144,10 +114,9 @@ class OthersHomePageState extends State<OthersHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppThemeUtil.setDifferentModeColor(
-          lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
-          darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+          lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
       appBar: CustomAppBar(
-        title: _userInfo.nickname ?? '',
+        title: _userInfo?.nickname ?? '',
       ),
       body: _buildPageWidget(),
     );
@@ -169,12 +138,9 @@ class OthersHomePageState extends State<OthersHomePage> {
               isRefreshEnable: true,
               isHaveMoreData: _hasNextPage,
               isLoadMoreEnable: true,
-              bottomMessage: _checkHasVideoData()
-                  ? InternationalLocalizations.searchNoMoreVideo
-                  : '',
+              bottomMessage: _checkHasVideoData() ? InternationalLocalizations.searchNoMoreVideo : '',
               scrollStatusCallBack: (scrollNotification) {
-                if (scrollNotification is ScrollStartCallBack ||
-                    scrollNotification is ScrollUpdateNotification) {
+                if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
                   _isScrolling = true;
                 } else if (scrollNotification is ScrollEndNotification) {
                   _isScrolling = false;
@@ -220,8 +186,7 @@ class OthersHomePageState extends State<OthersHomePage> {
           }
           return _buildHotVideoItem(idx);
         }
-      } else if (index < _getHotVideoLength() + 1 + _getNewVideoLength() &&
-          _checkHasNewVideoData()) {
+      } else if (index < _getHotVideoLength() + 1 + _getNewVideoLength() && _checkHasNewVideoData()) {
         int idx = index - 1 - _getHotVideoLength();
         if (idx < _getNewVideoLength()) {
           if (!_isScrolling) {
@@ -274,9 +239,7 @@ class OthersHomePageState extends State<OthersHomePage> {
         children: <Widget>[
           Container(
             decoration: BoxDecoration(
-              border: Border.all(
-                  color: AppColors.color_ebebeb,
-                  width: AppDimens.item_line_height_0_5),
+              border: Border.all(color: AppColors.color_ebebeb, width: AppDimens.item_line_height_0_5),
               borderRadius: BorderRadius.circular(avatarWidth / 2),
             ),
             child: Stack(
@@ -284,8 +247,7 @@ class OthersHomePageState extends State<OthersHomePage> {
                 CircleAvatar(
                   backgroundColor: AppColors.color_ffffff,
                   radius: avatarWidth / 2,
-                  backgroundImage:
-                      AssetImage('assets/images/ic_default_avatar.png'),
+                  backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                 ),
                 CircleAvatar(
                   backgroundColor: AppColors.color_transparent,
@@ -307,8 +269,8 @@ class OthersHomePageState extends State<OthersHomePage> {
   }
 
   Widget _buildNameAndFansPartWidget(double bgWidth) {
-    if (_nickNameBgKey != null && _nickNameBgKey.currentState != null) {
-      _nickNameBgKey.currentState.updateBgWidth(bgWidth);
+    if (_nickNameBgKey.currentState != null) {
+      _nickNameBgKey.currentState?.updateBgWidth(bgWidth);
     }
     return NickNameAndFansNumBgWidget(
       key: _nickNameBgKey,
@@ -327,14 +289,12 @@ class OthersHomePageState extends State<OthersHomePage> {
 
   ///昵称
   Widget _buildNickNameWidget() {
-    if (Common.checkIsNotEmptyStr(_userInfo?.nickname)) {
+    if (Common.checkIsNotEmptyStr(_userInfo?.nickname ?? "")) {
       bool isCertification;
       if (_userInfo != null) {
-        isCertification =
-            _userInfo.isCertification == CommentListItemBean.isCertificationYes;
+        isCertification = _userInfo?.isCertification == CommentListItemBean.isCertificationYes;
       } else {
-        isCertification = widget.paramsBean?.isCertification ==
-            CommentListItemBean.isCertificationYes;
+        isCertification = widget.paramsBean.isCertification == CommentListItemBean.isCertificationYes;
       }
       return Row(
         mainAxisSize: MainAxisSize.max,
@@ -342,7 +302,7 @@ class OthersHomePageState extends State<OthersHomePage> {
         children: <Widget>[
           Flexible(
               child: Text(
-            _userInfo.nickname,
+            _userInfo?.nickname ?? "'",
             textAlign: TextAlign.left,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -372,12 +332,12 @@ class OthersHomePageState extends State<OthersHomePage> {
 
   ///粉丝数
   Widget _buildFansNumWidget() {
-    if (_fansNumTextKey != null && _fansNumTextKey.currentState != null) {
-      _fansNumTextKey.currentState.updateFanNum(_userInfo.followerCount);
+    if (_fansNumTextKey.currentState != null) {
+      _fansNumTextKey.currentState?.updateFanNum(_userInfo?.followerCount ?? "");
     }
     return FansNumWidget(
       key: _fansNumTextKey,
-      fansNum: _userInfo.followerCount,
+      fansNum: _userInfo?.followerCount,
     );
 //    return Container(
 //      margin: EdgeInsets.only(top: 5),
@@ -399,11 +359,10 @@ class OthersHomePageState extends State<OthersHomePage> {
     return Container(
       child: FollowButton(
         key: _followBtnKey,
-        uid: _userInfo.uid,
+        uid: _userInfo?.uid ?? "",
         isFollow: _isFollowed,
         handleResultCallBack: (isFollow, isSuccess) {
-          int originNum =
-              NumUtil.getIntByValueStr(_userInfo.followerCount, defValue: 0);
+          int originNum = NumUtil.getIntByValueStr(_userInfo?.followerCount ?? "", defValue: 0) ?? 0;
           bool needHandle = false;
           if (isFollow && isSuccess) {
             //粉丝数增加
@@ -419,20 +378,17 @@ class OthersHomePageState extends State<OthersHomePage> {
             _isFollowed = false;
           }
           if (needHandle) {
-            _userInfo.followerCount = originNum.toString();
-            if (_fansNumTextKey != null &&
-                _fansNumTextKey.currentState != null) {
-              _fansNumTextKey.currentState
-                  .updateFanNum(_userInfo.followerCount);
+            _userInfo?.followerCount = originNum.toString();
+            if (_fansNumTextKey.currentState != null) {
+              _fansNumTextKey.currentState?.updateFanNum(_userInfo?.followerCount ?? "");
             }
-            if (_nickNameBgKey != null && _nickNameBgKey.currentState != null) {
-              double followWidth =
-                  FollowButtonState.calcWidth(_isFollowed, context);
+            if (_nickNameBgKey.currentState != null) {
+              double followWidth = FollowButtonState.calcWidth(_isFollowed, context);
               if (followWidth > descBgWidth * 0.5) {
                 followWidth = descBgWidth * 0.5;
               }
               double namePartWidth = descBgWidth - followWidth;
-              _nickNameBgKey.currentState.updateBgWidth(namePartWidth);
+              _nickNameBgKey.currentState?.updateBgWidth(namePartWidth);
             }
           }
         },
@@ -446,8 +402,7 @@ class OthersHomePageState extends State<OthersHomePage> {
       return Container(
         padding: EdgeInsets.fromLTRB(0, 15, 0, 0),
         color: AppThemeUtil.setDifferentModeColor(
-            lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
-            darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+            lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
@@ -461,9 +416,7 @@ class OthersHomePageState extends State<OthersHomePage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: AppThemeUtil.setDifferentModeColor(
-                        lightColor: Common.getColorFromHexString("333333", 1.0),
-                        darkColorStr: DarkModelTextColorUtil
-                            .firstLevelBrightnessColorStr),
+                        lightColor: Common.getColorFromHexString("333333", 1.0), darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                     fontSize: 15),
               ),
             ),
@@ -485,9 +438,7 @@ class OthersHomePageState extends State<OthersHomePage> {
             Container(
               margin: EdgeInsets.only(top: 20),
               height: 0.5,
-              color: AppThemeUtil.setDifferentModeColor(
-                  lightColor: Common.getColorFromHexString("EBEBEB", 1),
-                  darkColorStr: "3E3E3E"),
+              color: AppThemeUtil.setDifferentModeColor(lightColor: Common.getColorFromHexString("EBEBEB", 1), darkColorStr: "3E3E3E"),
             )
           ],
         ),
@@ -508,8 +459,7 @@ class OthersHomePageState extends State<OthersHomePage> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Container(
-              margin: EdgeInsets.only(
-                  top: AppDimens.margin_40, bottom: AppDimens.margin_12_5),
+              margin: EdgeInsets.only(top: AppDimens.margin_40, bottom: AppDimens.margin_12_5),
               child: Image.asset('assets/images/ic_search_no_data.png'),
             ),
             Text(
@@ -526,8 +476,7 @@ class OthersHomePageState extends State<OthersHomePage> {
   Widget _buildHotVideoItem(int idx) {
     return Container(
       color: AppThemeUtil.setDifferentModeColor(
-          lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
-          darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+          lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,9 +493,7 @@ class OthersHomePageState extends State<OthersHomePage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: AppThemeUtil.setDifferentModeColor(
-                        lightColor: Common.getColorFromHexString("333333", 1.0),
-                        darkColorStr: DarkModelTextColorUtil
-                            .firstLevelBrightnessColorStr),
+                        lightColor: Common.getColorFromHexString("333333", 1.0), darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                     fontSize: 15),
               ),
             ),
@@ -577,8 +524,7 @@ class OthersHomePageState extends State<OthersHomePage> {
   Widget _buildNewVideoList(int idx) {
     return Container(
       color: AppThemeUtil.setDifferentModeColor(
-          lightColor: Common.getColorFromHexString("F6F6F6", 1.0),
-          darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+          lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
       padding: EdgeInsets.symmetric(horizontal: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -595,8 +541,7 @@ class OthersHomePageState extends State<OthersHomePage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     color: AppThemeUtil.setDifferentModeColor(
-                      darkColorStr:
-                          DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                       lightColor: Common.getColorFromHexString("333333", 1.0),
                     ),
                     fontSize: 15),
@@ -640,25 +585,25 @@ class OthersHomePageState extends State<OthersHomePage> {
         _tmpInfo = val;
       } else if (val is ExchangeRateInfoData) {
         _rateInfoData = val;
-      } else if (val is GetChainStateResponse && val.state.dgpo != null) {
+      } else if (val is GetChainStateResponse) {
         _dgpoBean = val.state.dgpo;
       }
     }).then((resList) {
-      if (resList != null && mounted) {
+      if (mounted) {
         if (resList.length >= 3) {
-          GetChainStateResponse bean = resList[2];
-          if (bean != null && bean.state != null && bean.state.dgpo != null) {
+          GetChainStateResponse? bean = resList[2] as GetChainStateResponse?;
+          if (bean != null) {
             _dgpoBean = bean.state.dgpo;
           }
         }
         if (resList.length >= 2) {
-          ExchangeRateInfoData rateData = resList[1];
+          ExchangeRateInfoData? rateData = resList[1] as ExchangeRateInfoData?;
           if (rateData != null) {
             _rateInfoData = rateData;
           }
         }
         if (resList.length >= 1) {
-          OthersInfoData info = resList[0];
+          OthersInfoData? info = resList[0] as OthersInfoData?;
           if (info == null) {
             if (!_checkHasData()) {
               _isSuccessLoad = false;
@@ -687,7 +632,7 @@ class OthersHomePageState extends State<OthersHomePage> {
       CosLogUtil.log("$othersHomeTag: fail to reload data, the error is $err");
       if (mounted) {
         if (_tmpInfo != null) {
-          _processUserInfo(_tmpInfo);
+          _processUserInfo(_tmpInfo!);
           Future.delayed(Duration(seconds: 2), () {
             if (!_isScrolling) {
               _reportVideoExposure();
@@ -724,43 +669,33 @@ class OthersHomePageState extends State<OthersHomePage> {
   }
 
   ///拉取用户相关信息(包括热门视频列表)
-  Future<OthersInfoData> _fetchUserInfoAndVideoList(
-      bool isNextPage, otherHomeRequestType rType) async {
-    OthersInfoData info;
+  Future<OthersInfoData?> _fetchUserInfoAndVideoList(bool isNextPage, otherHomeRequestType rType) async {
+    OthersInfoData? info;
     if (isNextPage && !_hasNextPage) {
       return null;
     }
     int page = isNextPage ? _curNewListPage + 1 : 1;
     await RequestManager.instance
-        .getUserInfoAndVideoList(widget.paramsBean?.uid ?? '',
-            uid: Constant.uid ?? '',
-            page: page,
-            tag: othersHomeTag,
-            pageSize: _pageSize,
-            type: rType.index)
+        .getUserInfoAndVideoList(widget.paramsBean.uid, uid: Constant.uid, page: page, tag: othersHomeTag, pageSize: _pageSize, type: rType.index)
         .then((response) {
       if (response == null || !mounted) {
         if (mounted) {
-          CosLogUtil.log(
-              "$othersHomeTag: fail to fetch user:${_userInfo?.uid ?? ''} info and video list, response is null");
+          CosLogUtil.log("$othersHomeTag: fail to fetch user:${_userInfo?.uid ?? ''} info and video list, response is null");
         }
         info = null;
       } else {
-        OthersInfoBean bean =
-            OthersInfoBean.fromJson(json.decode(response.data));
+        OthersInfoBean bean = OthersInfoBean.fromJson(json.decode(response.data));
         if (bean.status == SimpleResponse.statusStrSuccess) {
           info = bean.data;
-          if (bean.data.newList != null && bean.data.newList.hasNext != null) {
-            _hasNextPage = bean.data.newList.hasNext == "1";
+          if (bean.data.newList != null && bean.data.newList?.hasNext != null) {
+            _hasNextPage = bean.data.newList!.hasNext == "1";
           } else {
             _hasNextPage = false;
           }
           if (rType == otherHomeRequestType.HotListType) {
-            GetVideoListNewDataBean dataBean = bean.data.newList;
+            GetVideoListNewDataBean? dataBean = bean.data.newList;
             if (isNextPage) {
-              if (dataBean != null &&
-                  dataBean.list != null &&
-                  dataBean.list.isNotEmpty) {
+              if (dataBean != null && dataBean.list.isNotEmpty) {
                 if (_newVideoList == null) {
                   _newVideoList = [];
                 }
@@ -771,9 +706,8 @@ class OthersHomePageState extends State<OthersHomePage> {
             _curNewListPage = page;
           }
         } else {
-          CosLogUtil.log(
-              "$othersHomeTag: fail to fetch user:${_userInfo?.uid ?? ''} "
-              "info and video list, the error is ${bean.message}");
+          CosLogUtil.log("$othersHomeTag: fail to fetch user:${_userInfo?.uid ?? ''} "
+              "info and video list, the error is ${bean.msg}");
         }
       }
     }).catchError((err) {
@@ -785,33 +719,31 @@ class OthersHomePageState extends State<OthersHomePage> {
   }
 
   void _processUserInfo(OthersInfoData data) {
-    if (data != null) {
-      _isVideoLoad = true;
-      if (data.hotList != null) {
-        int hotVideoCnt = data.hotList?.list?.length ?? 0;
-        if (hotVideoCnt > 0) {
-          if (hotVideoCnt >= _maxHotVideoCnt) {
-            //最多显示_maxHotVideoCnt个热门视频(最热+热门列表)
-            _hotVideoList = data.hotList.list.sublist(0, _minHotVideoCnt + 1);
-          } else {
-            _hotVideoList = data.hotList.list;
-          }
+    _isVideoLoad = true;
+    if (data.hotList != null) {
+      int hotVideoCnt = data.hotList?.list.length ?? 0;
+      if (hotVideoCnt > 0) {
+        if (hotVideoCnt >= _maxHotVideoCnt) {
+          //最多显示_maxHotVideoCnt个热门视频(最热+热门列表)
+          _hotVideoList = data.hotList!.list.sublist(0, _minHotVideoCnt + 1);
         } else {
-          _hotVideoList = [];
+          _hotVideoList = data.hotList!.list;
         }
+      } else {
+        _hotVideoList = [];
       }
-      if (data.newList != null) {
-        _newVideoList = data.newList?.list ?? [];
-      }
-      if (data.userInfo != null) {
-        _userInfo = data.userInfo;
-        _isFollowed = UserUtil.checkIsFollowByStateCode(_userInfo.isFollow);
-        if (_followBtnKey != null && _followBtnKey.currentState != null) {
-          _followBtnKey.currentState.updateFollowStatus(_isFollowed);
-        }
-      }
-      _curNewListPage = 1;
     }
+    if (data.newList != null) {
+      _newVideoList = data.newList?.list ?? [];
+    }
+    if (data.userInfo != null) {
+      _userInfo = data.userInfo;
+      _isFollowed = UserUtil.checkIsFollowByStateCode(_userInfo?.isFollow ?? "");
+      if (_followBtnKey.currentState != null) {
+        _followBtnKey.currentState?.updateFollowStatus(_isFollowed);
+      }
+    }
+    _curNewListPage = 1;
   }
 
   int _getTotalItemCount() {
@@ -836,7 +768,7 @@ class OthersHomePageState extends State<OthersHomePage> {
   }
 
   bool _checkHasHotVideoData() {
-    if (_hotVideoList != null && _hotVideoList.isNotEmpty) {
+    if (_hotVideoList.isNotEmpty) {
       return true;
     }
     return false;
@@ -850,7 +782,7 @@ class OthersHomePageState extends State<OthersHomePage> {
   }
 
   bool _checkHasNewVideoData() {
-    if (_newVideoList != null && _newVideoList.isNotEmpty) {
+    if (_newVideoList.isNotEmpty) {
       return true;
     }
     return false;
@@ -867,7 +799,7 @@ class OthersHomePageState extends State<OthersHomePage> {
     if (_userInfo != null) {
       return true;
     }
-    if (_hotVideoList != null && _hotVideoList.isNotEmpty) {
+    if (_hotVideoList.isNotEmpty) {
       return true;
     }
     return false;
@@ -875,14 +807,14 @@ class OthersHomePageState extends State<OthersHomePage> {
 
   void _showNetRequestFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
   void _reportData() {
     DataReportUtil.instance.reportData(eventName: "Page_creator", params: {
       "creator": _userInfo?.uid ?? "",
-      "vistor": Constant.uid ?? "",
+      "vistor": Constant.uid,
     });
   }
 
@@ -912,8 +844,7 @@ class OthersHomePageState extends State<OthersHomePage> {
     List<int> visibleList = _getVisibleItemIndex(otherHomeVideoType.Hottest);
     if (visibleList.isNotEmpty && _checkHasHotVideoData()) {
       GetVideoListNewDataListBean bean = _hotVideoList[0];
-      VideoReportUtil.reportVideoExposure(
-          VideoExposureType.OtherCenterType, bean.id ?? '', bean.uid ?? '');
+      VideoReportUtil.reportVideoExposure(VideoExposureType.OtherCenterType, bean.id, bean.uid);
     }
     _reportHotAndNewVideoExposure(otherHomeVideoType.HotList);
     _reportHotAndNewVideoExposure(otherHomeVideoType.NewList);
@@ -932,8 +863,7 @@ class OthersHomePageState extends State<OthersHomePage> {
       int idx = visibleList[i];
       if (idx >= 0 && idx < videoList.length) {
         GetVideoListNewDataListBean bean = videoList[idx];
-        VideoReportUtil.reportVideoExposure(
-            VideoExposureType.OtherCenterType, bean.id ?? '', bean.uid ?? '');
+        VideoReportUtil.reportVideoExposure(VideoExposureType.OtherCenterType, bean.id, bean.uid);
       }
     }
   }
@@ -941,11 +871,10 @@ class OthersHomePageState extends State<OthersHomePage> {
 
 ///昵称粉丝数背景
 class NickNameAndFansNumBgWidget extends StatefulWidget {
-  final double bgWidth;
-  final Widget child;
+  final double? bgWidth;
+  final Widget? child;
 
-  NickNameAndFansNumBgWidget({Key key, this.bgWidth, this.child})
-      : super(key: key);
+  NickNameAndFansNumBgWidget({Key? key, this.bgWidth, this.child}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -953,9 +882,8 @@ class NickNameAndFansNumBgWidget extends StatefulWidget {
   }
 }
 
-class NickNameAndFansNumBgWidgetState
-    extends State<NickNameAndFansNumBgWidget> {
-  double _bgWidth;
+class NickNameAndFansNumBgWidgetState extends State<NickNameAndFansNumBgWidget> {
+  late double _bgWidth;
 
   @override
   void initState() {
@@ -984,9 +912,9 @@ class NickNameAndFansNumBgWidgetState
 
 ///粉丝数
 class FansNumWidget extends StatefulWidget {
-  final String fansNum;
+  final String? fansNum;
 
-  FansNumWidget({Key key, this.fansNum}) : super(key: key);
+  FansNumWidget({Key? key, this.fansNum}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -995,7 +923,7 @@ class FansNumWidget extends StatefulWidget {
 }
 
 class FansNumWidgetState extends State<FansNumWidget> {
-  String _fansNum;
+  late String _fansNum;
 
   @override
   void initState() {
@@ -1008,15 +936,13 @@ class FansNumWidgetState extends State<FansNumWidget> {
     return Container(
       margin: EdgeInsets.only(top: 5),
       child: Text(
-        '${InternationalLocalizations.getUserFansNum(_fansNum ?? "0")}',
+        '${InternationalLocalizations.getUserFansNum(_fansNum)}',
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.left,
         style: TextStyle(
             color: AppThemeUtil.setDifferentModeColor(
-                lightColor: Common.getColorFromHexString("858585", 1.0),
-                darkColorStr:
-                    DarkModelTextColorUtil.firstLevelBrightnessColorStr),
+                lightColor: Common.getColorFromHexString("858585", 1.0), darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
             fontSize: 12),
       ),
     );
@@ -1031,19 +957,14 @@ class FansNumWidgetState extends State<FansNumWidget> {
 }
 
 ///关注按钮
-typedef FollowHandleResultCallBack = void Function(
-    bool isFollow, bool isSuccess);
+typedef FollowHandleResultCallBack = void Function(bool isFollow, bool isSuccess);
 
 class FollowButton extends StatefulWidget {
   final String uid;
   final bool isFollow;
-  final FollowHandleResultCallBack handleResultCallBack;
+  final FollowHandleResultCallBack? handleResultCallBack;
 
-  FollowButton(
-      {Key key,
-      @required this.uid,
-      this.isFollow = false,
-      this.handleResultCallBack})
+  FollowButton({Key? key, required this.uid, this.isFollow = false, this.handleResultCallBack})
       : assert(Common.checkIsNotEmptyStr(uid)),
         super(key: key);
 
@@ -1070,20 +991,16 @@ class FollowButtonState extends State<FollowButton> {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      overflow: Overflow.visible,
+      clipBehavior: Clip.none,
       alignment: Alignment.center,
       children: <Widget>[
         //按钮
         GestureDetector(
           child: Text(
-            _isFollowed
-                ? InternationalLocalizations.videoSubscriptionFinish
-                : InternationalLocalizations.videoSubscription,
+            _isFollowed ? InternationalLocalizations.videoSubscriptionFinish : InternationalLocalizations.videoSubscription,
             style: TextStyle(
                 color: _isFollowed
-                    ? AppThemeUtil.setDifferentModeColor(
-                        lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
-                        darkColorStr: "EBEBEB")
+                    ? AppThemeUtil.setDifferentModeColor(lightColor: Common.getColorFromHexString("A0A0A0", 1.0), darkColorStr: "EBEBEB")
                     : Common.getColorFromHexString("357CFF", 1.0),
                 fontSize: 12),
             maxLines: 1,
@@ -1106,8 +1023,7 @@ class FollowButtonState extends State<FollowButton> {
                         color: AppColors.color_transparent,
                         child: CircularProgressIndicator(
                           strokeWidth: 1.0,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Common.getColorFromHexString("357CFF", 1.0)),
+                          valueColor: AlwaysStoppedAnimation<Color>(Common.getColorFromHexString("357CFF", 1.0)),
                         )),
                   ),
                 ))
@@ -1126,31 +1042,13 @@ class FollowButtonState extends State<FollowButton> {
       }
     } else {
       //先进行登录
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            //登录成功,重新拉取接口判断是否已经关注过该用户
-            _isShowLoading = true;
-            _handleLogInSuccess();
-          }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            //登录成功,重新拉取接口判断是否已经关注过该用户
-            _isShowLoading = true;
-            _handleLogInSuccess();
-          }
-        });
-      }
+      WebViewUtil.instance.openWebViewResult(Constant.logInWebViewUrl, context).then((isSuccess) {
+        if (isSuccess) {
+          //登录成功,重新拉取接口判断是否已经关注过该用户
+          _isShowLoading = true;
+          _handleLogInSuccess();
+        }
+      });
     }
   }
 
@@ -1181,9 +1079,7 @@ class FollowButtonState extends State<FollowButton> {
     setState(() {
       _isShowLoading = true;
     });
-    RequestManager.instance
-        .accountFollow(othersHomeTag, Constant.uid ?? '', widget.uid ?? '')
-        .then((response) {
+    RequestManager.instance.accountFollow(othersHomeTag, Constant.uid, widget.uid).then((response) {
       if (response == null || !mounted) {
         return;
       }
@@ -1191,15 +1087,13 @@ class FollowButtonState extends State<FollowButton> {
       if (bean.status == SimpleResponse.statusStrSuccess) {
         if (bean.data == SimpleResponse.responseSuccess) {
           _isFollowed = true;
-          if (widget.handleResultCallBack != null) {
-            widget.handleResultCallBack(true, true);
-          }
+          widget.handleResultCallBack?.call(true, true);
         }
       } else {
         if (bean.status == "50007") {
           ToastUtil.showToast(InternationalLocalizations.followSelfErrorTips);
         } else {
-          ToastUtil.showToast(bean.msg);
+          ToastUtil.showToast(bean.msg ?? "");
         }
       }
     }).whenComplete(() {
@@ -1221,9 +1115,7 @@ class FollowButtonState extends State<FollowButton> {
       _isHanding = true;
       _isShowLoading = true;
     });
-    RequestManager.instance
-        .accountUnFollow(othersHomeTag, Constant.uid ?? '', widget.uid ?? '')
-        .then((response) {
+    RequestManager.instance.accountUnFollow(othersHomeTag, Constant.uid, widget.uid).then((response) {
       if (response == null || !mounted) {
         return;
       }
@@ -1231,12 +1123,10 @@ class FollowButtonState extends State<FollowButton> {
       if (bean.status == SimpleResponse.statusStrSuccess) {
         if (bean.data == SimpleResponse.responseSuccess) {
           _isFollowed = false;
-          if (widget.handleResultCallBack != null) {
-            widget.handleResultCallBack(false, true);
-          }
+          widget.handleResultCallBack?.call(false, true);
         }
       } else {
-        ToastUtil.showToast(bean.msg);
+        ToastUtil.showToast(bean.msg ?? "");
       }
     }).whenComplete(() {
       if (!mounted) {
@@ -1250,14 +1140,11 @@ class FollowButtonState extends State<FollowButton> {
 
   Future<bool> _checkFollowStatus() async {
     bool isFollow = false;
-    await RequestManager.instance
-        .accountIsFollow(othersHomeTag, Constant.uid ?? '', widget.uid ?? '')
-        .then((response) {
+    await RequestManager.instance.accountIsFollow(othersHomeTag, Constant.uid, widget.uid).then((response) {
       if (response != null) {
         SimpleBean bean = SimpleBean.fromJson(json.decode(response.data));
         if (bean.status == SimpleResponse.statusStrSuccess) {
-          if (bean.data == FollowStateResponse.followStateFollowing ||
-              bean.data == FollowStateResponse.followStateFriend) {
+          if (bean.data == FollowStateResponse.followStateFollowing || bean.data == FollowStateResponse.followStateFriend) {
             isFollow = true;
           } else {
             isFollow = false;
@@ -1265,15 +1152,13 @@ class FollowButtonState extends State<FollowButton> {
         }
       }
     }).catchError((err) {
-      CosLogUtil.log(
-          "$othersHomeTag: check follow status exception, the error is $err");
+      CosLogUtil.log("$othersHomeTag: check follow status exception, the error is $err");
     }).whenComplete(() {});
     return isFollow;
   }
 
   static TextStyle getFontStyle() {
-    return TextStyle(
-        color: Common.getColorFromHexString("357CFF", 1.0), fontSize: 12);
+    return TextStyle(color: Common.getColorFromHexString("357CFF", 1.0), fontSize: 12);
   }
 
   void updateFollowStatus(bool isFollowed) {
@@ -1291,9 +1176,7 @@ class FollowButtonState extends State<FollowButton> {
       textScaleFactor: MediaQuery.of(context).textScaleFactor,
       textDirection: TextDirection.ltr,
     );
-    String text = isFollowed
-        ? InternationalLocalizations.videoSubscriptionFinish
-        : InternationalLocalizations.videoSubscription;
+    String text = isFollowed ? InternationalLocalizations.videoSubscriptionFinish : InternationalLocalizations.videoSubscription;
     painter.text = TextSpan(text: text, style: style);
     painter.layout();
     double width = painter.width.roundToDouble() + 4;

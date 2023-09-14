@@ -1,8 +1,6 @@
-
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/global_util.dart';
 
@@ -13,10 +11,11 @@ typedef ClickQuestionCallBack = Function(double globalX, double globalY);
 typedef AutoPlaySwitchCallBack = Function(bool isOpen);
 
 class VideoAutoPlaySettingWidget extends StatefulWidget {
-  final ClickQuestionCallBack clickQuestionCallBack;
-  final AutoPlaySwitchCallBack autoPlaySwitchCallBack;
-  VideoAutoPlaySettingWidget({Key key, this.clickQuestionCallBack,
-    this.autoPlaySwitchCallBack}):super(key:key);
+  final ClickQuestionCallBack? clickQuestionCallBack;
+  final AutoPlaySwitchCallBack? autoPlaySwitchCallBack;
+
+  VideoAutoPlaySettingWidget({Key? key, this.clickQuestionCallBack, this.autoPlaySwitchCallBack}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return VideoAutoPlaySettingWidgetState();
@@ -26,11 +25,13 @@ class VideoAutoPlaySettingWidget extends StatefulWidget {
 class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> {
   bool _isSwitchEnable = true, _isOpen = false;
   bool _isShowDesc = false;
+
   @override
   void initState() {
     super.initState();
     _isOpen = usrAutoPlaySetting;
   }
+
   @override
   Widget build(BuildContext context) {
     return Material(
@@ -38,7 +39,7 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
         lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
         darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
       ),
-      child:  GestureDetector(
+      child: GestureDetector(
         behavior: HitTestBehavior.translucent,
         child: Container(
           color: Colors.transparent,
@@ -53,7 +54,6 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
               //开关
               _buildSwitch(),
             ],
-
           ),
         ),
         onTap: () {
@@ -63,24 +63,21 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
         },
       ),
     );
-
   }
 
   ///左侧疑问按钮
   Widget _buildQuestionWidget() {
     return Stack(
+      clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
-      overflow: Overflow.visible,
       children: <Widget>[
         _buildQuestionButton(),
         Positioned(
           bottom: 23,
           child: _buildFunctionDesc(),
         )
-
       ],
     );
-    
   }
 
   Widget _buildQuestionButton() {
@@ -95,7 +92,7 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
         child: InkWell(
           onTap: () {
             if (widget.clickQuestionCallBack != null) {
-              widget.clickQuestionCallBack(globalX ?? 0, globalY ?? 0);
+              widget.clickQuestionCallBack?.call(globalX ?? 0, globalY ?? 0);
             }
             setState(() {
               _isShowDesc = !_isShowDesc;
@@ -112,14 +109,14 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
       ),
     );
   }
-  
+
   Widget _buildFunctionDesc() {
     return AnimatedOpacity(
       opacity: _isShowDesc ? 1.0 : 0.0,
       duration: Duration(milliseconds: 300),
-      child:  Container(
+      child: Container(
         constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width-14,
+          maxWidth: MediaQuery.of(context).size.width - 14,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -132,24 +129,25 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
                   lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
                   darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
                 ),
-                borderRadius:  BorderRadius.all(Radius.circular(5)),
+                borderRadius: BorderRadius.all(Radius.circular(5)),
                 boxShadow: [
                   BoxShadow(
-                    color: Color.fromRGBO(0,0,0,0.2),
-                    offset: Offset(0,0),
+                    color: Color.fromRGBO(0, 0, 0, 0.2),
+                    offset: Offset(0, 0),
                     spreadRadius: 0,
                     blurRadius: 10,
-                  )],
+                  )
+                ],
               ),
               child: Text(
                 InternationalLocalizations.autoPlayFunctionDesc,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                    fontSize: 12,
-                    color: AppThemeUtil.setDifferentModeColor(
-                      lightColor: Common.getColorFromHexString("333333", 1.0),
-                      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
-                    ),
+                  fontSize: 12,
+                  color: AppThemeUtil.setDifferentModeColor(
+                    lightColor: Common.getColorFromHexString("333333", 1.0),
+                    darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                  ),
                 ),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
@@ -162,25 +160,20 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
         ),
       ),
     );
-
   }
 
   ///开关描述
   Widget _buildSwitchDesc() {
     return Container(
-      margin: EdgeInsets.only(left: 5),
-      child: Text(
-          InternationalLocalizations.autoPlayDesc ?? '',
-          style: TextStyle(
-            color: AppThemeUtil.setDifferentModeColor(
-              lightColor: Common.getColorFromHexString("333333", 1.0),
-              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
-            ),
-            fontSize: 14,
-          )
-      )
-    );
-
+        margin: EdgeInsets.only(left: 5),
+        child: Text(InternationalLocalizations.autoPlayDesc ?? '',
+            style: TextStyle(
+              color: AppThemeUtil.setDifferentModeColor(
+                lightColor: Common.getColorFromHexString("333333", 1.0),
+                darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+              ),
+              fontSize: 14,
+            )));
   }
 
   ///切换开关
@@ -196,7 +189,7 @@ class VideoAutoPlaySettingWidgetState extends State<VideoAutoPlaySettingWidget> 
               setState(() {
                 _isOpen = val;
                 if (widget.autoPlaySwitchCallBack != null) {
-                  widget.autoPlaySwitchCallBack(val);
+                  widget.autoPlaySwitchCallBack?.call(val);
                 }
               });
             },

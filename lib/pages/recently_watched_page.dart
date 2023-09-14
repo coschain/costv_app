@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -42,20 +41,11 @@ import 'package:costv_android/event/watch_video_event.dart';
 import 'package:costv_android/utils/global_util.dart';
 import 'package:costv_android/utils/video_report_util.dart';
 
-
 String videoHistoryLogPrefix = "VideoHistoryPage";
 
 class RecentlyWatchedPage extends StatefulWidget {
-  RecentlyWatchedPage({Key key}) : super(key: key);
+  RecentlyWatchedPage({Key? key}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
   @override
   _RecentlyWatchedPageState createState() => _RecentlyWatchedPageState();
 }
@@ -71,9 +61,9 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
   bool _isFetching = false, _isShowLoading = false, _isSuccessLoad = true;
   String _pageSize = "20";
   bool _isLoggedIn = false, _watchedNewVideo = false;
-  StreamSubscription _eventSubscription;
+  StreamSubscription? _eventSubscription;
   String _uid = "";
-  String _version;
+  String _version = "";
 
   @override
   void initState() {
@@ -100,7 +90,7 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
   @override
   void didUpdateWidget(RecentlyWatchedPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -161,11 +151,6 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
       type: HistoryVideoType.Uploaded,
       icon: AppThemeUtil.getUploadIcn(),
       desc: InternationalLocalizations.myUploadedVideos,
-    ));
-    _videoEntranceList.add(HistoryVideoItemModel(
-      type: HistoryVideoType.ProblemFeedback,
-      icon: AppThemeUtil.getFeedbackIcn(),
-      desc: InternationalLocalizations.problemFeedback,
     ));
   }
 
@@ -326,7 +311,7 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
 
   ///获取观看历史等入口的item
   VideoHistoryEntranceItem _getEntranceItem(int idx) {
-    int listCnt = _videoEntranceList?.length ?? 0;
+    int listCnt = _videoEntranceList.length;
     if (idx >= 0 && idx < listCnt) {
       return VideoHistoryEntranceItem(
         data: _videoEntranceList[idx],
@@ -335,13 +320,14 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
     }
     return VideoHistoryEntranceItem(
       uid: _uid,
+      data: null,
     );
   }
 
   ///获取listView的item个数
   int _getListViewItemCount() {
     int cnt = 1; //最近观看
-    if (_videoEntranceList != null && _videoEntranceList.length > 0) {
+    if (_videoEntranceList.length > 0) {
       cnt += _videoEntranceList.length;
     }
     //暗夜模式开关
@@ -357,8 +343,8 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
           //登录成功
           if (event is LoginStatusEvent) {
             if (event.type == LoginStatusEvent.typeLoginSuccess) {
-              if (Common.checkIsNotEmptyStr(event.uid)) {
-                _uid = event.uid;
+              if (Common.checkIsNotEmptyStr(event.uid ?? "")) {
+                _uid = event.uid ?? "";
                 _isLoggedIn = true;
                 _reloadData();
                 setState(() {});
@@ -387,7 +373,6 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
             if (setting.isEnvSwitched || (setting.oldLan != setting.newLan)) {
               _resetPageData();
               if ((setting.oldLan != setting.newLan) &&
-                  _videoEntranceList != null &&
                   _videoEntranceList.isNotEmpty) {
                 _videoEntranceList.clear();
                 _initHistoryVideoItemData();
@@ -416,7 +401,7 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
     _isShowLoading = false;
     _isSuccessLoad = true;
     _watchedNewVideo = false;
-    if (_videoList != null && _videoList.isNotEmpty) {
+    if (_videoList.isNotEmpty) {
       _videoList.clear();
     }
   }
@@ -424,7 +409,7 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
   ///取消监听消息事件
   void _cancelListenEvent() {
     if (_eventSubscription != null) {
-      _eventSubscription.cancel();
+      _eventSubscription?.cancel();
     }
   }
 
@@ -437,22 +422,12 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
 
   ///登录
   void _startLogIn() {
-    if (Platform.isAndroid) {
-      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
-    } else {
-      Navigator.of(context).push(SlideAnimationRoute(
-        builder: (_) {
-          return WebViewPage(
-            Constant.logInWebViewUrl,
-          );
-        },
-      ));
-    }
+    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl, context);
   }
 
   void _showLoadDataFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 }
@@ -461,7 +436,7 @@ class _RecentlyWatchedPageState extends State<RecentlyWatchedPage>
 class HistoryVideoItem extends StatefulWidget {
   final GetVideoListNewDataListBean video;
 
-  HistoryVideoItem({this.video});
+  HistoryVideoItem({required this.video});
 
   @override
   State<StatefulWidget> createState() {
@@ -473,9 +448,9 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   @override
   Widget build(BuildContext context) {
     double itemWidth = 139, coverHeight = 78.0, fontSize = 11;
-    String imageUrl = widget.video?.videoImageCompress?.videoCompressUrl ?? "";
+    String imageUrl = widget.video.videoImageCompress?.videoCompressUrl ?? "";
     if (ObjectUtil.isEmptyString(imageUrl)) {
-      imageUrl = widget.video?.videoCoverBig ?? '';
+      imageUrl = widget.video.videoCoverBig;
     }
     return Material(
       color: Colors.transparent,
@@ -499,8 +474,8 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                       darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
                   child: InkWell(
                     onTap: () {
-                      _onClickToPlayVideo(widget.video?.id, widget.video?.uid,
-                          widget.video?.videosource);
+                      _onClickToPlayVideo(widget.video.id, widget.video.uid,
+                          widget.video.videosource ?? "");
                     },
                     child: Column(
                       children: <Widget>[
@@ -532,7 +507,6 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                                   );
                                 },
                                 imageUrl: imageUrl,
-                                errorWidget: (context, url, error) => Container(),
                               ),
                             ),
                             _getVideoDurationWidget(),
@@ -545,7 +519,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                           width: itemWidth,
                           margin: EdgeInsets.only(top: 10),
                           child: Text(
-                            widget.video?.title ?? "",
+                            widget.video.title,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 2,
                             style: TextStyle(
@@ -563,7 +537,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                           margin: EdgeInsets.only(top: 2),
                           width: itemWidth,
                           child: Text(
-                            widget.video?.anchorNickname ?? "",
+                            widget.video.anchorNickname,
                             overflow: TextOverflow.ellipsis,
                             maxLines: 1,
                             style: TextStyle(
@@ -587,12 +561,12 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   }
 
   Widget _getVideoDurationWidget() {
-    if (Common.checkVideoDurationValid(widget.video?.duration)) {
+    if (Common.checkVideoDurationValid(widget.video.duration)) {
       return Positioned(
         right: 0,
         bottom: 0,
         child:
-            VideoTimeWidget(Common.formatVideoDuration(widget.video?.duration)),
+            VideoTimeWidget(Common.formatVideoDuration(widget.video.duration)),
       );
     }
     return Container();
@@ -619,7 +593,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
             uid: uid,
             videoSource: videoSource,
             enterSource:
-            VideoDetailsEnterSource.VideoDetailsEnterSourceWatchHistory));
+                VideoDetailsEnterSource.VideoDetailsEnterSourceWatchHistory));
       },
       settings: RouteSettings(name: videoDetailPageRouteName),
       isCheckAnimation: true,
@@ -627,12 +601,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   }
 
   void _reportVideoClick() {
-    if (widget?.video?.id != null) {
-//      DataReportUtil.instance.reportData(
-//          eventName: "Click_video", params: {"Click_video": widget.video.id});
-      VideoReportUtil.reportClickVideo(
-          ClickVideoSource.History, widget.video?.id ?? '');
-    }
+    VideoReportUtil.reportClickVideo(ClickVideoSource.History, widget.video.id);
   }
 }
 
@@ -640,7 +609,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
 class RecentWatchView extends StatefulWidget {
   final List<GetVideoListNewDataListBean> videoList;
 
-  RecentWatchView({this.videoList});
+  RecentWatchView({required this.videoList});
 
   @override
   State<StatefulWidget> createState() {
@@ -693,7 +662,7 @@ class _RecentWatchViewState extends State<RecentWatchView> {
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               physics: AlwaysScrollableScrollPhysics(),
-              itemCount: widget?.videoList?.length ?? 0,
+              itemCount: widget.videoList.length,
               itemBuilder: (BuildContext context, int index) {
                 return _getVideoItem(index);
               },
@@ -704,23 +673,23 @@ class _RecentWatchViewState extends State<RecentWatchView> {
     );
   }
 
-  HistoryVideoItem _getVideoItem(int idx) {
-    int listCnt = widget?.videoList?.length ?? 0;
+  HistoryVideoItem? _getVideoItem(int idx) {
+    int listCnt = widget.videoList.length;
     if (idx >= 0 && idx < listCnt) {
       return HistoryVideoItem(
         video: widget.videoList[idx],
       );
     }
 
-    return HistoryVideoItem();
+    return null;
   }
 }
 
 class VideoHistoryEntranceItem extends StatefulWidget {
-  final HistoryVideoItemModel data;
+  final HistoryVideoItemModel? data;
   final String uid;
 
-  VideoHistoryEntranceItem({this.data, this.uid});
+  VideoHistoryEntranceItem({this.data, required this.uid});
 
   @override
   State<StatefulWidget> createState() {
@@ -801,15 +770,8 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
     );
   }
 
-  String _getMoreIcn() {
-    if (AppThemeUtil.checkIsDarkMode()) {
-      return AppThemeUtil.getRightIcn();
-    }
-    return "assets/images/ic_history_more.png";
-  }
-
   void _onClickEntrance() {
-    HistoryVideoType tp = widget.data?.type;
+    HistoryVideoType? tp = widget.data?.type;
     if (tp != null) {
       if (tp == HistoryVideoType.RecentlyWatched) {
         Navigator.of(context).push(SlideAnimationRoute(
@@ -833,12 +795,6 @@ class _VideoHistoryEntranceItemState extends State<VideoHistoryEntranceItem> {
             return UploadedVideos(
               uid: widget.uid,
             );
-          },
-        ));
-      } else if (tp == HistoryVideoType.ProblemFeedback) {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(Constant.problemFeedbackUrl);
           },
         ));
       }

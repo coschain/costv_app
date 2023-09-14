@@ -20,7 +20,6 @@ import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dar
 import 'package:costv_android/pages/video/video_details_page.dart';
 import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/banner_util.dart';
-import 'package:costv_android/utils/black_list_util.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
@@ -42,8 +41,6 @@ import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:costv_android/widget/single_video_item.dart';
 import 'package:facebook_audience_network/facebook_audience_network.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:io';
 
 const homeLogPrefix = "HomePage";
 const reportResKey = "result";
@@ -67,16 +64,8 @@ const apiLoadAllEvent = "allLoadStatistics";
 const pageKey = "page";
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -102,15 +91,13 @@ class _HomePageState extends State<HomePage> with RouteAware {
       _isScrolling = false;
   List<dynamic> _videoList = [];
   List<CosBannerData> _bannerList = [];
-  ExchangeRateInfoData _rateInfo;
-  dynamic_properties _chainDgpo;
-  static const platformUpdate =
-      const MethodChannel('com.contentos.plugin/update');
+  ExchangeRateInfoData? _rateInfo;
+  dynamic_properties? _chainDgpo;
   double videoItemHeight = 0;
   Map<int, GlobalObjectKey<SingleVideoItemState>> keyMap = {};
   int videoItemIdx = 0, bannerListHeight = 0;
   int latestIdx = 0;
-  StreamSubscription _eventHome;
+  StreamSubscription? _eventHome;
   Map<String, dynamic> _bannerResMap = {reportResKey: "1"};
   Map<String, dynamic> _rateResMap = {reportResKey: "1"};
   Map<String, dynamic> _chainStateResMap = {reportResKey: "1"};
@@ -121,7 +108,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
   @override
   void didUpdateWidget(HomePage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -169,7 +156,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
       }
       AppUpdateVersionBean bean =
           AppUpdateVersionBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleResponse.statusStrSuccess && bean.data != null) {
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         String version = await PlatformUtil.getVersion();
         if (Common.isUpdate(version, bean.data.vercode ?? '0.0.0')) {
           AppUpdateDialog dialog = AppUpdateDialog();
@@ -295,24 +282,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
     return imgHeight;
   }
 
-  void filterListByBlack(){
-    List<dynamic> resultList = [];
-    for (var item in _videoList) {
-      if (item is GetVideoListNewDataListBean ){
-        GetVideoListNewDataListBean video = item;
-        if (BlackListUtil().IsBlackUser(video.uid)){
-          continue;
-        } else if ( BlackListUtil().IsBlackVideo(video.id)){
-          continue;
-        }
-      }
-      resultList.add(item);
-    }
-    _videoList = resultList;
-  }
-
   Widget _getVideoItem(int idx) {
-    int listCnt = _videoList?.length ?? 0;
+    int listCnt = _videoList.length;
     if (idx >= 0 && idx < listCnt) {
       if (_videoList[idx] is GetVideoListNewDataListBean) {
         GetVideoListNewDataListBean video = _videoList[idx];
@@ -342,24 +313,9 @@ class _HomePageState extends State<HomePage> with RouteAware {
             }
           },
           isNeedAutoPlay: isNeedAutoPlay,
-          isNeedMoreAction: true,
-          playVideoCallBack: (GetVideoListNewDataListBean video) {},
-          blockCallBack: (int action){
-            if (action == 0){
-              BlackListUtil.instance.AddVideoIdToBlackList(video.id);
-              filterListByBlack();
-              setState(() {});
-            } else if (action == 1){
-              BlackListUtil.instance.AddUserIdToBlackList(video.uid);
-              filterListByBlack();
-              setState(() {});
-            }
-          },
+          playVideoCallBack: (GetVideoListNewDataListBean? video) {},
         );
       } else if (_videoList[idx] == itemTypeAd) {
-        if(Platform.isIOS){
-          return Container();
-        }
         return Container(
           margin: EdgeInsets.only(
               left: AppDimens.margin_10,
@@ -375,13 +331,11 @@ class _HomePageState extends State<HomePage> with RouteAware {
                 darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
             titleColor: AppThemeUtil.setDifferentModeColor(
               lightColor: AppColors.color_333333,
-              darkColorStr: DarkModelTextColorUtil
-                  .firstLevelBrightnessColorStr,
+              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
             ),
             descriptionColor: AppThemeUtil.setDifferentModeColor(
               lightColor: AppColors.color_333333,
-              darkColorStr: DarkModelTextColorUtil
-                  .firstLevelBrightnessColorStr,
+              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
             ),
             buttonColor: AppThemeUtil.setDifferentModeColor(
               lightColor: AppColors.color_3674ff,
@@ -430,12 +384,12 @@ class _HomePageState extends State<HomePage> with RouteAware {
     }
     int sTimeStamp = DateTime.now().millisecondsSinceEpoch;
     await Future.wait(reqList).then((resList) {
-      if (resList != null && mounted) {
-        int resLen = resList.length ?? 0;
-        List<CosBannerData> bannerList;
-        List<GetVideoListNewDataListBean> videoList;
-        ExchangeRateInfoData rateData = _rateInfo;
-        dynamic_properties dgpo = _chainDgpo;
+      if (mounted) {
+        int resLen = resList.length;
+        List<CosBannerData>? bannerList;
+        List<GetVideoListNewDataListBean>? videoList;
+        ExchangeRateInfoData? rateData = _rateInfo;
+        dynamic_properties? dgpo = _chainDgpo;
         bool isLBannerSuccess = false, isVideoSuccess = false;
         if (resLen >= 1) {
           bannerList = resList[0];
@@ -445,8 +399,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
           videoList = resList[1];
         }
         if (resLen >= 3) {
-          GetChainStateResponse bean = resList[2];
-          if (bean != null && bean.state != null && bean.state.dgpo != null) {
+          GetChainStateResponse? bean = resList[2];
+          if (bean != null) {
             dgpo = bean.state.dgpo;
             _chainDgpo = dgpo;
           }
@@ -475,9 +429,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
                 Common.splitList(videoList, adInsertFlag, adFirstFlag);
             listData.forEach((listVideoBean) {
               _videoList.addAll(listVideoBean);
-              _videoList.add(itemTypeAd);
+              // _videoList.add(itemTypeAd);
             });
-            filterListByBlack();
           } else {
             _videoList = [];
           }
@@ -605,10 +558,10 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   Map<String, dynamic> _getAPIResultMap() {
     Map<String, dynamic> resMap = {};
-    resMap[bannerEventKey] = _bannerResMap.toString() ?? {};
-    resMap[chainStateEventKey] = _chainStateResMap.toString() ?? {};
-    resMap[rateEventKey] = _rateResMap.toString() ?? {};
-    resMap[videoListEventKey] = _videoListResMap.toString() ?? {};
+    resMap[bannerEventKey] = _bannerResMap.toString();
+    resMap[chainStateEventKey] = _chainStateResMap.toString();
+    resMap[rateEventKey] = _rateResMap.toString();
+    resMap[videoListEventKey] = _videoListResMap.toString();
     resMap[reportFinalResKey] = "1";
     return resMap;
   }
@@ -616,23 +569,23 @@ class _HomePageState extends State<HomePage> with RouteAware {
   void _handleChainStateFailCallBack(String error) {
     if (_isFirstLoad) {
       _chainStateResMap[reportResKey] = "0";
-      _chainStateResMap[reportErrKey] = error ?? "";
+      _chainStateResMap[reportErrKey] = error;
     }
   }
 
   void _handleChainStateLoadTimeCallBack(int milliseconds) {
-    _chainStateResMap[loadTimeKey] = milliseconds.toString() ?? "-1";
+    _chainStateResMap[loadTimeKey] = milliseconds.toString();
   }
 
   void _handleGetRateFailCallBack(String error) {
     if (_isFirstLoad) {
       _rateResMap[reportResKey] = "0";
-      _rateResMap[reportErrKey] = error ?? "";
+      _rateResMap[reportErrKey] = error;
     }
   }
 
   void _handleGetRateLoadTime(int milliseconds) {
-    _rateResMap[loadTimeKey] = milliseconds?.toString() ?? "-1";
+    _rateResMap[loadTimeKey] = milliseconds.toString();
   }
 
   ///拉取下页视频数据
@@ -646,8 +599,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
   }
 
   ///获取视频列表
-  Future<List<dynamic>> _loadOperationVideoList(bool isNextPage) async {
-    List<GetVideoListNewDataListBean> list;
+  Future<List<dynamic>?> _loadOperationVideoList(bool isNextPage) async {
+    List<GetVideoListNewDataListBean>? list;
     if (isNextPage && !_hasNextPage) {
       return _videoList;
     }
@@ -680,7 +633,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
           isSuccess ? (bean.data?.list ?? []) : [];
       list = dataList;
       if (isSuccess) {
-        tmpHasMore = bean.data.hasNext == "1";
+        tmpHasMore = bean.data?.hasNext == "1";
         if (isNextPage) {
           _hasNextPage = tmpHasMore;
           _curPage = page;
@@ -689,22 +642,20 @@ class _HomePageState extends State<HomePage> with RouteAware {
                 Common.splitList(dataList, adInsertFlag);
             listData.forEach((listVideoBean) {
               _videoList.addAll(dataList);
-              _videoList.add(itemTypeAd);
+              // _videoList.add(itemTypeAd);
             });
-            filterListByBlack();
-            list = _videoList;
           }
           setState(() {});
         }
       } else {
         CosLogUtil.log(
-            "$homeLogPrefix: fail to request operation video list of page:$page, the error msg is ${bean.message}, "
+            "$homeLogPrefix: fail to request operation video list of page:$page, the error msg is ${bean.msg}, "
             "error code is ${bean.status}");
         list = null;
         if (_isFirstLoad) {
           _videoListResMap[reportResKey] = "0";
           _videoListResMap[reportErrKey] =
-              "code:${bean.status ?? ''}" + "msg:${bean.message ?? ''}";
+              "code:${bean.status}" + "msg:${bean.msg}";
         }
       }
     }).catchError((err) {
@@ -724,7 +675,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
     int eTimeStamp = DateTime.now().millisecondsSinceEpoch;
     _videoListResMap[loadTimeKey] = eTimeStamp - sTimeStamp;
     Map<String, dynamic> videoResMap = {};
-    videoResMap[videoListEventKey] = _videoListResMap.toString() ?? "";
+    videoResMap[videoListEventKey] = _videoListResMap.toString();
     videoResMap[pageKey] = page.toString();
     DataReportUtil.instance
         .reportData(eventName: apiLoadEvent, params: videoResMap);
@@ -732,15 +683,15 @@ class _HomePageState extends State<HomePage> with RouteAware {
   }
 
   ///获取banner列表数据
-  Future<List<CosBannerData>> _loadBannerList() async {
-    List<CosBannerData> bannerList;
+  Future<List<CosBannerData>?> _loadBannerList() async {
+    List<CosBannerData>? bannerList;
     String lan = Common.getRequestLanCodeByLanguage(true);
     int sTimeStamp = DateTime.now().millisecondsSinceEpoch;
     await RequestManager.instance
         .getBannerList(tag, language: lan)
         .then((response) {
       if (response == null || !mounted) {
-        CosLogUtil.log("$homeLogPrefix: fail to request banner list");
+        CosLogUtil.log("$homeLogPrefix: fail to request banner list $response");
         bannerList = null;
         String errDesc = "";
         if (response == null) {
@@ -757,7 +708,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
       }
       CosBannerBean bean = CosBannerBean.fromJson(json.decode(response.data));
       bool isSuccess = (bean.status == SimpleResponse.statusStrSuccess);
-      List<CosBannerData> dataList = isSuccess ? (bean.data ?? []) : [];
+      List<CosBannerData> dataList = isSuccess ? (bean.data) : [];
       if (isSuccess) {
 //        setState(() {
 //          _bannerList = dataList;
@@ -770,8 +721,9 @@ class _HomePageState extends State<HomePage> with RouteAware {
         bannerList = null;
         if (_isFirstLoad) {
           _bannerResMap[reportResKey] = "0";
+          // ignore: dead_null_aware_expression
           _bannerResMap[reportErrKey] =
-              "code:${bean.status ?? ''}" + "msg:${bean.msg ?? ''}";
+              "code:${bean.status}" + "msg:${bean.msg ?? ''}";
         }
       }
     }).catchError((err) {
@@ -787,7 +739,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
     int eTimeStamp = DateTime.now().millisecondsSinceEpoch;
     _bannerResMap[loadTimeKey] = eTimeStamp - sTimeStamp;
     Map<String, dynamic> bannerResMap = {};
-    bannerResMap[bannerEventKey] = _bannerResMap.toString() ?? "";
+    bannerResMap[bannerEventKey] = _bannerResMap.toString();
     DataReportUtil.instance
         .reportData(eventName: apiLoadEvent, params: bannerResMap);
     return bannerList;
@@ -795,7 +747,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   ///检查是否有banner数据
   bool _checkHasBanner() {
-    if (_bannerList != null && _bannerList.isNotEmpty) {
+    if (_bannerList.isNotEmpty) {
       return true;
     }
     return false;
@@ -807,7 +759,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
     if (_checkHasBanner()) {
       cnt += 1;
     }
-    if (_videoList != null && _videoList.length > 0) {
+    if (_videoList.length > 0) {
       cnt += _videoList.length;
     }
     return cnt;
@@ -821,9 +773,8 @@ class _HomePageState extends State<HomePage> with RouteAware {
           if (event is TabSwitchEvent) {
             if (event.from == BottomTabType.TabHome.index) {
               if (event.from == event.to &&
-                  _homeListViewKey != null &&
                   _homeListViewKey.currentState != null) {
-                _homeListViewKey.currentState.scrollToTop();
+                _homeListViewKey.currentState?.scrollToTop();
               } else {
                 _stopPlayVideo();
               }
@@ -850,15 +801,12 @@ class _HomePageState extends State<HomePage> with RouteAware {
               setState(() {});
             }
           } else if (event is VideoSmallWindowsEvent) {
-            if (event.status != null) {
-              if (event.status ==
-                  VideoSmallWindowsEvent.statusSmallWindowsShow) {
-                _stopPlayVideo();
-              } else {
-                if (curTabIndex == BottomTabType.TabHome.index) {
-                  if (mounted && ModalRoute.of(context).isCurrent) {
-                    _startPlayVideo();
-                  }
+            if (event.status == VideoSmallWindowsEvent.statusSmallWindowsShow) {
+              _stopPlayVideo();
+            } else {
+              if (curTabIndex == BottomTabType.TabHome.index) {
+                if (mounted && (ModalRoute.of(context)?.isCurrent ?? false)) {
+                  _startPlayVideo();
                 }
               }
             }
@@ -871,15 +819,15 @@ class _HomePageState extends State<HomePage> with RouteAware {
   ///取消监听消息事件
   void _cancelListenEvent() {
     if (_eventHome != null) {
-      _eventHome.cancel();
+      _eventHome?.cancel();
     }
   }
 
   void _clearData() {
-    if (_videoList != null && _videoList.isNotEmpty) {
+    if (_videoList.isNotEmpty) {
       _videoList.clear();
     }
-    if (_bannerList != null && _bannerList.isNotEmpty) {
+    if (_bannerList.isNotEmpty) {
       _bannerList.clear();
     }
     _hasNextPage = false;
@@ -897,18 +845,17 @@ class _HomePageState extends State<HomePage> with RouteAware {
           CosLogUtil.log(
               "$homeLogPrefix: fail to handle video banner click event,video info empty");
           return;
-        } else if (!Common.checkIsNotEmptyStr(data.videoInfo.id)) {
+        } else if (!Common.checkIsNotEmptyStr(data.videoInfo?.id ?? "")) {
           CosLogUtil.log("$homeLogPrefix: fail to handle video banner click "
-              "event,video info wrong, vid is ${data.videoInfo.id}, uid is ${Constant.uid}");
+              "event,video info wrong, vid is ${data.videoInfo?.id ?? ""}, uid is ${Constant.uid}");
           return;
         }
         Navigator.of(context).push(
           SlideAnimationRoute(
             builder: (_) {
               return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-                vid: data.videoInfo?.id,
-                uid: data.videoInfo?.uid,
-                videoSource: data.videoInfo?.videosource,
+                vid: data.videoInfo?.id ?? "",
+                uid: data.videoInfo?.uid ?? "",
                 enterSource:
                     VideoDetailsEnterSource.VideoDetailsEnterSourceHome,
               ));
@@ -937,66 +884,28 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   void _showNetRequestFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
-//  void _handelAutoPlay(double position) {
-//    if (_videoList == null || _videoList.length < 1) {
-//      return;
-//    }
-//    int idx = 0;
-//    if (_bannerListKey != null && _bannerListKey.currentContext != null) {
-//      bannerListHeight = (_bannerListKey.currentContext.size.height).floor();
-//    }
-//    double itemHeight = 0;
-//    if (keyMap != null && keyMap.containsKey(latestIdx) && keyMap[latestIdx].currentContext != null) {
-//      itemHeight = keyMap[latestIdx].currentContext.size.height;
-//      if (itemHeight >= videoItemHeight) {
-//        videoItemHeight = itemHeight;
-//      }
-//    }
-//    if (videoItemHeight <= 0 ) {
-//      return;
-//    }
-//    if (position > bannerListHeight) {
-//      double val = ((position - bannerListHeight) / videoItemHeight);
-//      int index = val.ceil();
-//      idx = index;
-//    } else {
-//      idx = 0;
-//    }
-//    _autoPlayVideoOfIndex(idx);
-//  }
-//
-//  void _autoPlayVideoOfIndex(int idx) {
-//    VideoUtil.autoPlayVideoOfIndex(idx, videoItemIdx, keyMap);
-//    if (idx != videoItemIdx) {
-//      videoItemIdx = idx;
-//    }
-//  }
-//
   void _stopPlayVideo() {
-    if (_videoList != null && _videoList.length > 0) {
+    if (_videoList.length > 0) {
       int visibleIdx = _getFirstCompletelyVisibleItemIndex();
       if (visibleIdx >= 0 && keyMap.containsKey(visibleIdx)) {
         var itemKey = keyMap[visibleIdx];
         if (itemKey != null && itemKey.currentState != null) {
-          itemKey.currentState.stopPlay();
+          itemKey.currentState?.stopPlay();
         }
       }
     }
   }
 
   void _stopPlayVideoByIndex(int idx) {
-    if (idx >= 0 &&
-        _videoList != null &&
-        _videoList.length > 0 &&
-        idx < _videoList.length) {
+    if (idx >= 0 && _videoList.length > 0 && idx < _videoList.length) {
       if (keyMap.containsKey(idx)) {
         var itemKey = keyMap[idx];
         if (itemKey != null && itemKey.currentState != null) {
-          itemKey.currentState.stopPlay();
+          itemKey.currentState?.stopPlay();
         }
       }
     }
@@ -1010,13 +919,13 @@ class _HomePageState extends State<HomePage> with RouteAware {
     if (_judgeSmallVideoIsShowing()) {
       return;
     }
-    if (_videoList != null && _videoList.length > 0) {
+    if (_videoList.length > 0) {
       int visibleIdx = _getFirstCompletelyVisibleItemIndex();
       _currentPlayIdx = visibleIdx;
       if (visibleIdx >= 0 && keyMap.containsKey(visibleIdx)) {
         var itemKey = keyMap[visibleIdx];
         if (itemKey != null && itemKey.currentState != null) {
-          itemKey.currentState.startPlay();
+          itemKey.currentState?.startPlay();
         }
       }
     }
@@ -1048,7 +957,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
 
   //视频曝光上报
   void _reportVideoExposure() {
-    if (_videoList == null || _videoList.isEmpty) {
+    if (_videoList.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleItemIndex();
@@ -1059,7 +968,7 @@ class _HomePageState extends State<HomePage> with RouteAware {
           if (_videoList[idx] is GetVideoListNewDataListBean) {
             GetVideoListNewDataListBean bean = _videoList[idx];
             VideoReportUtil.reportVideoExposure(
-                VideoExposureType.HomePageType, bean.id ?? '', bean.uid ?? '');
+                VideoExposureType.HomePageType, bean.id, bean.uid);
           }
         }
       }
@@ -1067,28 +976,24 @@ class _HomePageState extends State<HomePage> with RouteAware {
   }
 
   bool _judgeIsNeedLoadNextPageData() {
-    if ((_videoList == null || _videoList.length < _pageSize) && _hasNextPage) {
+    if ((_videoList.length < _pageSize) && _hasNextPage) {
       return true;
     }
     return false;
   }
 
   void _reportChainStateLoadTime() {
-    if (_chainStateResMap != null) {
-      Map<String, dynamic> chainStateResMap = {};
-      chainStateResMap[chainStateEventKey] = _chainStateResMap.toString() ?? "";
-      DataReportUtil.instance
-          .reportData(eventName: apiLoadEvent, params: chainStateResMap);
-    }
+    Map<String, dynamic> chainStateResMap = {};
+    chainStateResMap[chainStateEventKey] = _chainStateResMap.toString();
+    DataReportUtil.instance
+        .reportData(eventName: apiLoadEvent, params: chainStateResMap);
   }
 
   void _reportExchangeRateLoadTime() {
-    if (_rateResMap != null) {
-      Map<String, dynamic> rateResMap = {};
-      rateResMap[rateEventKey] = _rateResMap.toString() ?? "";
-      DataReportUtil.instance
-          .reportData(eventName: apiLoadEvent, params: rateResMap);
-    }
+    Map<String, dynamic> rateResMap = {};
+    rateResMap[rateEventKey] = _rateResMap.toString();
+    DataReportUtil.instance
+        .reportData(eventName: apiLoadEvent, params: rateResMap);
   }
 
   bool _judgeSmallVideoIsShowing() {

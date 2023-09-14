@@ -43,10 +43,10 @@ class VideoWorthWidget extends StatelessWidget {
 
   String _getDesc() {
     String desc = "";
-    if (_symbol != null && _symbol.length > 0) {
+    if (_symbol.length > 0) {
       desc += _symbol + " ";
     }
-    if (_amount != null && _amount.length > 0) {
+    if (_amount.length > 0) {
       desc += _amount;
     }
     return desc;

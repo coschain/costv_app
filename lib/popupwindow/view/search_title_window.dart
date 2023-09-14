@@ -25,15 +25,12 @@ class SearchTitleWindow extends StatefulWidget {
 
   final String _tag;
   final int _from;
-  final OnSearch onSearch;
-  final int selectType;
-  final String searchStr;
-  int searchType;
+  final OnSearch? onSearch;
+  final int? selectType;
+  final String? searchStr;
+  int searchType = 0;
 
-  SearchTitleWindow(this._tag, this._from,
-      {this.onSearch,
-      this.selectType = SearchPageState.selectTypeVideo,
-      this.searchStr}) {
+  SearchTitleWindow(this._tag, this._from, {this.onSearch, this.selectType = SearchPageState.selectTypeVideo, this.searchStr}) {
     if (_from == fromHome) {
       searchType = SearchRequest.searchTypeVideo;
     } else {
@@ -67,21 +64,15 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
 
   /// 获取用户搜索历史
   void _httpSearchGetHistoryListByUid() {
-    RequestManager.instance
-        .searchGetHistoryListByUid(widget._tag, Constant.uid, widget.searchType)
-        .then((response) {
+    RequestManager.instance.searchGetHistoryListByUid(widget._tag, Constant.uid, widget.searchType).then((response) {
       if (response == null || !mounted) {
         _isDelHistoryIng = false;
         return;
       }
-      SearchGetHistoryListByUidBean bean =
-          SearchGetHistoryListByUidBean.fromJson(json.decode(response.data));
-      if (bean != null &&
-          bean.status == SimpleResponse.statusStrSuccess &&
-          !ObjectUtil.isEmptyList(bean.data)) {
+      SearchGetHistoryListByUidBean bean = SearchGetHistoryListByUidBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleResponse.statusStrSuccess && !ObjectUtil.isEmptyList(bean.data)) {
         setState(() {
           _listHistory.clear();
-          _listHistory.add(null);
           _listHistory.addAll(bean.data);
         });
       }
@@ -103,18 +94,16 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
       setState(() {});
     }
 
-    RequestManager.instance
-        .searchDelHistory(widget._tag, Constant.uid, id)
-        .then((response) {
+    RequestManager.instance.searchDelHistory(widget._tag, Constant.uid, id).then((response) {
       if (response == null || !mounted) {
         _isDelHistoryIng = false;
         return;
       }
       SimpleBean bean = SimpleBean.fromJson(json.decode(response.data));
-      if (bean != null && bean.status == SimpleResponse.statusStrSuccess) {
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         _httpSearchGetHistoryListByUid();
       } else {
-        ToastUtil.showToast(bean?.msg ?? '');
+        ToastUtil.showToast(bean.msg ?? "");
         _isDelHistoryIng = false;
       }
     });
@@ -127,23 +116,21 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
     }
     _isDelHistoryIng = true;
     //视觉上先清空列表，避免点了看起来之后没有反应
-    if (_listHistory != null && _listHistory.isNotEmpty) {
+    if (_listHistory.isNotEmpty) {
       _listHistory.clear();
       setState(() {});
     }
-    RequestManager.instance
-        .searchDelAllHistory(widget._tag, Constant.uid, widget.searchType)
-        .then((response) {
+    RequestManager.instance.searchDelAllHistory(widget._tag, Constant.uid, widget.searchType).then((response) {
       if (response == null || !mounted) {
         return;
       }
       SimpleBean bean = SimpleBean.fromJson(json.decode(response.data));
-      if (bean != null && bean.status == SimpleResponse.statusStrSuccess) {
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         setState(() {
           _listHistory.clear();
         });
       } else {
-        ToastUtil.showToast(bean?.msg ?? '');
+        ToastUtil.showToast(bean.msg ?? "");
       }
     }).whenComplete(() {
       _isDelHistoryIng = false;
@@ -152,19 +139,12 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
 
   /// 用户搜索联想词
   void _httpSearchDoSuggest(String keyword) {
-    RequestManager.instance
-        .searchDoSuggest(widget._tag, keyword, widget.searchType,
-            page: pageSuggest, pageSize: pageSizeSuggest)
-        .then((response) {
+    RequestManager.instance.searchDoSuggest(widget._tag, keyword, widget.searchType, page: pageSuggest, pageSize: pageSizeSuggest).then((response) {
       if (response == null || !mounted) {
         return;
       }
-      SearchDoSuggestBean bean =
-          SearchDoSuggestBean.fromJson(json.decode(response.data));
-      if (bean != null &&
-          bean.status == SimpleResponse.statusStrSuccess &&
-          bean.data != null &&
-          !ObjectUtil.isEmptyList(bean.data.list)) {
+      SearchDoSuggestBean bean = SearchDoSuggestBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleResponse.statusStrSuccess && !ObjectUtil.isEmptyList(bean.data.list)) {
         setState(() {
           _listSuggest.clear();
           _listSuggest.addAll(bean.data.list);
@@ -187,16 +167,12 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Container(
-              margin: EdgeInsets.only(
-                  left: AppDimens.margin_15,
-                  top: AppDimens.margin_13_5,
-                  bottom: AppDimens.margin_13_5),
+              margin: EdgeInsets.only(left: AppDimens.margin_15, top: AppDimens.margin_13_5, bottom: AppDimens.margin_13_5),
               child: Text(InternationalLocalizations.searchHistory,
                   style: TextStyle(
                     color: AppThemeUtil.setDifferentModeColor(
                       lightColor: AppColors.color_a0a0a0,
-                      darkColorStr:
-                          DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                     ),
                     fontSize: AppDimens.text_size_13,
                   )),
@@ -241,17 +217,13 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
                 children: <Widget>[
                   Expanded(
                     child: Container(
-                      margin: EdgeInsets.only(
-                          left: AppDimens.margin_15,
-                          top: AppDimens.margin_13_5,
-                          bottom: AppDimens.margin_13_5),
+                      margin: EdgeInsets.only(left: AppDimens.margin_15, top: AppDimens.margin_13_5, bottom: AppDimens.margin_13_5),
                       child: Text(
-                        bean?.search ?? '',
+                        bean.search,
                         style: TextStyle(
                           color: AppThemeUtil.setDifferentModeColor(
                             lightColor: AppColors.color_333333,
-                            darkColorStr: DarkModelTextColorUtil
-                                .firstLevelBrightnessColorStr,
+                            darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                           ),
                           fontSize: AppDimens.text_size_14,
                         ),
@@ -271,8 +243,8 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
                       ),
                     ),
                     onTap: () {
-                      if (!ObjectUtil.isEmptyString(bean?.id)) {
-                        _httpSearchDelHistory(bean?.id, index);
+                      if (!ObjectUtil.isEmptyString(bean.id)) {
+                        _httpSearchDelHistory(bean.id, index);
                       }
                     },
                   )
@@ -283,17 +255,17 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
         ),
         onTap: () {
           if (widget._from == SearchTitleWindow.fromHome) {
-            _reportSearchContent(bean?.content);
+            _reportSearchContent(bean.content??"");
             Navigator.of(context).pop();
             Navigator.of(context).push(SlideAnimationRoute(
               builder: (_) {
-                return SearchPage(bean?.search ?? '');
+                return SearchPage(bean.search);
               },
             ));
           } else {
             Navigator.of(context).pop();
             if (widget.onSearch != null) {
-              widget.onSearch(bean?.search ?? '');
+              widget.onSearch?.call(bean.search);
             }
           }
         },
@@ -305,9 +277,9 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
     SearchDoSuggestListBean bean = _listSuggest[index];
     String showMsg;
     if (widget.selectType == SearchPageState.selectTypeVideo) {
-      showMsg = bean?.title ?? '';
+      showMsg = bean.title;
     } else {
-      showMsg = bean?.nickname ?? '';
+      showMsg = bean.nickname??"";
     }
     return InkWell(
       child: Container(
@@ -329,17 +301,13 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
               children: <Widget>[
                 Expanded(
                   child: Container(
-                    margin: EdgeInsets.only(
-                        left: AppDimens.margin_15,
-                        top: AppDimens.margin_12_5,
-                        bottom: AppDimens.margin_12_5),
+                    margin: EdgeInsets.only(left: AppDimens.margin_15, top: AppDimens.margin_12_5, bottom: AppDimens.margin_12_5),
                     child: Text(
                       showMsg,
                       style: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
                           lightColor: AppColors.color_333333,
-                          darkColorStr: DarkModelTextColorUtil
-                              .firstLevelBrightnessColorStr,
+                          darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                         ),
                         fontSize: AppDimens.text_size_15,
                       ),
@@ -364,7 +332,7 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
         } else {
           Navigator.of(context).pop();
           if (widget.onSearch != null) {
-            widget.onSearch(showMsg);
+            widget.onSearch?.call(showMsg);
           }
         }
       },
@@ -381,9 +349,9 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           SearchTitleWidget(
-            searchStr: widget.searchStr,
+            searchStr: widget.searchStr ?? "",
             onTextChanged: (str) {
-              if (str != null && str.trim().isNotEmpty) {
+              if (str.trim().isNotEmpty) {
                 if (_isShowHistory) {
                   _isShowHistory = false;
                 }
@@ -394,8 +362,7 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
                   if (!ObjectUtil.isEmptyList(_listSuggest)) {
                     _listSuggest.clear();
                   }
-                  if (!ObjectUtil.isEmptyString(Constant.uid) &&
-                      ObjectUtil.isEmptyList(_listHistory)) {
+                  if (!ObjectUtil.isEmptyString(Constant.uid) && ObjectUtil.isEmptyList(_listHistory)) {
                     _httpSearchGetHistoryListByUid();
                   }
                 }
@@ -406,23 +373,19 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
                 _reportSearchContent(str);
                 Navigator.of(context).push(SlideAnimationRoute(
                   builder: (_) {
-                    return SearchPage(str ?? '');
+                    return SearchPage(str);
                   },
                 ));
               } else {
                 if (widget.onSearch != null) {
-                  widget.onSearch(str);
+                  widget.onSearch?.call(str);
                 }
               }
             },
           ),
           Column(
-            children: List.generate(
-                _isShowHistory ? _listHistory.length : _listSuggest.length,
-                (int index) {
-              return _isShowHistory
-                  ? _buildSearchHistoryItem(index)
-                  : _buildSuggestItem(index);
+            children: List.generate(_isShowHistory ? _listHistory.length : _listSuggest.length, (int index) {
+              return _isShowHistory ? _buildSearchHistoryItem(index) : _buildSuggestItem(index);
             }),
           )
         ],
@@ -431,12 +394,10 @@ class _SearchTitleWindowState extends State<SearchTitleWindow> {
   }
 
   void _reportSearchContent(String content) {
-    if (content != null) {
-      print("search content is $content");
-      DataReportUtil.instance.reportData(
-        eventName: "search_go",
-        params: {"search_go": content},
-      );
-    }
+    print("search content is $content");
+    DataReportUtil.instance.reportData(
+      eventName: "search_go",
+      params: {"search_go": content},
+    );
   }
 }

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cosdart/types.dart';
 import 'package:costv_android/bean/exchange_rate_info.dart';
 import 'package:costv_android/bean/get_video_list_new_bean.dart';
@@ -12,7 +11,6 @@ import 'package:costv_android/event/video_small_show_status_event.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/hot/hot_topic_detail.dart';
-import 'package:costv_android/utils/black_list_util.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_long_log_util.dart';
@@ -34,7 +32,7 @@ import 'package:costv_android/widget/single_video_item.dart';
 import 'package:flutter/material.dart';
 
 class PopularPage extends StatefulWidget {
-  PopularPage({Key key}) : super(key: key);
+  PopularPage({Key? key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -50,35 +48,27 @@ class PopularPage extends StatefulWidget {
 }
 
 class _PopularPageState extends State<PopularPage> with RouteAware {
-  GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
-      GlobalKey<NetRequestFailTipsViewState>();
+  GlobalKey<NetRequestFailTipsViewState> _failTipsKey = GlobalKey<NetRequestFailTipsViewState>();
   static const tag = '_PopularPageState';
   final logPrefix = "HotPage";
   int _pageSize = 20, _curPage = 1;
-  bool _hasNextPage = false,
-      _isFetching = false,
-      _isLoading = true,
-      _isSuccessLoad = true,
-      _tmpHasMore = false,
-      _isScrolling = false;
+  bool _hasNextPage = false, _isFetching = false, _isLoading = true, _isSuccessLoad = true, _tmpHasMore = false, _isScrolling = false;
   double videoItemHeight = 0;
   List<GetVideoListNewDataListBean> _videoList = [];
   List<HotTopicModel> _hotList = [];
   Map<String, String> _historyVideoMap = new Map();
-  ExchangeRateInfoData _rateInfo;
-  dynamic_properties _chainDgpo;
+  ExchangeRateInfoData? _rateInfo;
+  dynamic_properties? _chainDgpo;
   String _operateVid = '';
   List<String> tmpOpVid = [];
   int videoItemIdx = 0, topicListHeight = 0;
   int latestIdx = 0;
   Map<int, GlobalObjectKey<SingleVideoItemState>> keyMap = {};
-  GlobalObjectKey<HotTopicListViewState> _topicListKey =
-      GlobalObjectKey<HotTopicListViewState>("topicList");
-  GlobalObjectKey<RefreshAndLoadMoreListViewState> _listViewKey =
-      GlobalObjectKey<RefreshAndLoadMoreListViewState>("hotListView");
+  GlobalObjectKey<HotTopicListViewState> _topicListKey = GlobalObjectKey<HotTopicListViewState>("topicList");
+  GlobalObjectKey<RefreshAndLoadMoreListViewState> _listViewKey = GlobalObjectKey<RefreshAndLoadMoreListViewState>("hotListView");
   var itemRectKeyMap = {};
   Map<int, double> itemHeightMap = {};
-  StreamSubscription _eventHot;
+  StreamSubscription? _eventHot;
   Map<int, double> _visibleFractionMap = {};
 
   @override
@@ -99,7 +89,7 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
   @override
   void didUpdateWidget(PopularPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -202,8 +192,7 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
                     });
                   },
                   scrollStatusCallBack: (scrollNotification) {
-                    if (scrollNotification is ScrollStartCallBack ||
-                        scrollNotification is ScrollUpdateNotification) {
+                    if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
                       _isScrolling = true;
                     }
                   },
@@ -220,7 +209,7 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
   /// 获取ListView的item个数
   int _getTotalItemCount() {
     int cnt = 1; //顶部热门列表第一期写死,所以至少有热门列表的item
-    if (_videoList != null && _videoList.length > 0) {
+    if (_videoList.length > 0) {
       cnt += _videoList.length;
     }
     return cnt;
@@ -228,17 +217,14 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
 
   Widget _getSearchWidget() {
     return Container(
-      color: AppThemeUtil.setDifferentModeColor(
-        lightColorStr: "FFFFFFFF",
-        darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr
-      ),
+      color: AppThemeUtil.setDifferentModeColor(lightColorStr: "FFFFFFFF", darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       child: PageTitleWidget(tag),
     );
   }
 
   /// 获取video item
   SingleVideoItem _getSingleVideoItem(int idx) {
-    int vListCnt = _videoList?.length ?? 0;
+    int vListCnt = _videoList.length;
     if (idx >= 0 && idx < vListCnt) {
       GetVideoListNewDataListBean video = _videoList[idx];
 //      GlobalObjectKey<SingleVideoItemState> myKey = new GlobalObjectKey<SingleVideoItemState>(video.id);
@@ -259,43 +245,15 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
           }
           _visibleFractionMap[index] = visibleFraction;
         },
-        isNeedMoreAction: true,
-        blockCallBack: (int action){
-            if (action == 0){
-              BlackListUtil.instance.AddVideoIdToBlackList(video.id);
-              _videoList = filterListByBlack(_videoList);
-              setState(() {});
-            } else if (action == 1){
-              BlackListUtil.instance.AddUserIdToBlackList(video.uid);
-              _videoList = filterListByBlack(_videoList);
-              setState(() {});
-            }
-          }
       );
       return item;
     }
     return SingleVideoItem();
   }
 
-  List<GetVideoListNewDataListBean> filterListByBlack(List<GetVideoListNewDataListBean> videoList){
-    List<GetVideoListNewDataListBean> resultList = [];
-    for (var item in videoList) {
-      if (item is GetVideoListNewDataListBean ){
-        GetVideoListNewDataListBean video = item;
-        if (BlackListUtil().IsBlackUser(video.uid)){
-          continue;
-        } else if ( BlackListUtil().IsBlackVideo(video.id)){
-          continue;
-        }
-      }
-      resultList.add(item);
-    }
-    return resultList;
-  }
-
   /// 是否有热门列表数据
   bool _judgeHasHotListData() {
-    int num = _hotList?.length ?? 0;
+    int num = _hotList.length;
     return num > 0;
   }
 
@@ -312,25 +270,17 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
   void _loadTopicData() {
     ///第一版写死顶部热门主题
     //游戏
-    _hotList.add(HotTopicModel(
-        topicType: HotTopicType.TopicGame,
-        desc: InternationalLocalizations.hotTopicGame,
-        bgPath: 'assets/images/ic_hot_game.png'));
+    _hotList.add(
+        HotTopicModel(topicType: HotTopicType.TopicGame, desc: InternationalLocalizations.hotTopicGame, bgPath: 'assets/images/ic_hot_game.png'));
     //有趣
-    _hotList.add(HotTopicModel(
-        topicType: HotTopicType.TopicFun,
-        desc: InternationalLocalizations.hotTopicFun,
-        bgPath: 'assets/images/ic_hot_fun.png'));
+    _hotList
+        .add(HotTopicModel(topicType: HotTopicType.TopicFun, desc: InternationalLocalizations.hotTopicFun, bgPath: 'assets/images/ic_hot_fun.png'));
     //萌宠
     _hotList.add(HotTopicModel(
-        topicType: HotTopicType.TopicCutePets,
-        desc: InternationalLocalizations.hotTopicCutePets,
-        bgPath: 'assets/images/ic_hot_cute_pets.png'));
+        topicType: HotTopicType.TopicCutePets, desc: InternationalLocalizations.hotTopicCutePets, bgPath: 'assets/images/ic_hot_cute_pets.png'));
     //音乐
-    _hotList.add(HotTopicModel(
-        topicType: HotTopicType.TopicMusic,
-        desc: InternationalLocalizations.hotTopicMusic,
-        bgPath: 'assets/images/ic_hot_music.png'));
+    _hotList.add(
+        HotTopicModel(topicType: HotTopicType.TopicMusic, desc: InternationalLocalizations.hotTopicMusic, bgPath: 'assets/images/ic_hot_music.png'));
   }
 
   ///重新拉取第一页的数据
@@ -343,20 +293,16 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
     bool isNeedLoadRate = (_rateInfo == null) ? true : false;
     Iterable<Future> reqList;
     if (isNeedLoadRate) {
-      reqList = [
-        _loadHotVideoList(false),
-        VideoUtil.requestExchangeRate(tag),
-        CosSdkUtil.instance.getChainState()
-      ];
+      reqList = [_loadHotVideoList(false), VideoUtil.requestExchangeRate(tag), CosSdkUtil.instance.getChainState()];
     } else {
       reqList = [_loadHotVideoList(false), CosSdkUtil.instance.getChainState()];
     }
     await Future.wait(reqList).then((resList) {
-      if (resList != null && mounted) {
+      if (mounted) {
         int resLen = resList.length;
-        List<GetVideoListNewDataListBean> videoList;
-        ExchangeRateInfoData rateData = _rateInfo;
-        dynamic_properties dgpo = _chainDgpo;
+        List<GetVideoListNewDataListBean>? videoList;
+        ExchangeRateInfoData? rateData = _rateInfo;
+        dynamic_properties? dgpo = _chainDgpo;
         if (resLen >= 1) {
           videoList = resList[0];
         }
@@ -368,23 +314,18 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
         }
 
         if (resLen >= 3) {
-          GetChainStateResponse bean = resList[2];
-          if (bean != null && bean.state != null && bean.state.dgpo != null) {
-            dgpo = bean.state.dgpo;
+          GetChainStateResponse? bean = resList[2];
+          if (bean?.state != null) {
+            dgpo = bean?.state.dgpo;
             _chainDgpo = dgpo;
           }
         }
-        CosLongLogUtil.log(
-            '$tag _reloadHotData() videoList = ${videoList?.toString()}');
-        CosLongLogUtil.log(
-            '$tag _reloadHotData() rateData = ${rateData?.toString()}');
         CosLongLogUtil.log('$tag _reloadHotData() dgpo = ${dgpo?.toString()}');
         if (videoList != null) {
           _videoList = videoList;
           _curPage = 1;
           VideoUtil.clearHistoryVidMap(_historyVideoMap);
-          VideoUtil.addNewVidToHistoryVidMapFromList(
-              videoList, _historyVideoMap);
+          VideoUtil.addNewVidToHistoryVidMapFromList(videoList, _historyVideoMap);
           _getOperateVid(tmpOpVid);
           _isFetching = false;
           _isLoading = false;
@@ -408,16 +349,12 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
         } else {
           _showLoadFailTips();
         }
-      } else if (mounted &&
-          resList == null &&
-          !VideoUtil.checkVideoListIsNotEmpty(_videoList)) {
+      } else if (mounted && resList == null && !VideoUtil.checkVideoListIsNotEmpty(_videoList)) {
         _isSuccessLoad = false;
       }
     }).catchError((err) {
       CosLogUtil.log("$logPrefix: fail to reload data, the error is $err");
-      if (_isLoading &&
-          _isSuccessLoad &&
-          !VideoUtil.checkVideoListIsNotEmpty(_videoList)) {
+      if (_isLoading && _isSuccessLoad && !VideoUtil.checkVideoListIsNotEmpty(_videoList)) {
         _isSuccessLoad = false;
       } else {
         _showLoadFailTips();
@@ -432,9 +369,8 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
   }
 
   ///获取热门视频数据
-  Future<List<GetVideoListNewDataListBean>> _loadHotVideoList(
-      bool isNextPage) async {
-    List<GetVideoListNewDataListBean> list;
+  Future<List<GetVideoListNewDataListBean>?> _loadHotVideoList(bool isNextPage) async {
+    List<GetVideoListNewDataListBean>? list;
     if (isNextPage && !_hasNextPage) {
       return _videoList;
     }
@@ -456,21 +392,18 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
         list = null;
         return;
       }
-      GetVideoListNewBean bean =
-          GetVideoListNewBean.fromJson(json.decode(response.data));
+      GetVideoListNewBean bean = GetVideoListNewBean.fromJson(json.decode(response.data));
       bool isSuccess = (bean.status == SimpleResponse.statusStrSuccess);
-      List<GetVideoListNewDataListBean> dataList =
-          isSuccess ? (bean.data?.list ?? []) : [];
-      dataList = filterListByBlack(dataList);
+      List<GetVideoListNewDataListBean> dataList = isSuccess ? (bean.data?.list ?? []) : [];
       list = dataList;
       if (isSuccess) {
-        _tmpHasMore = bean.data.hasNext == "1";
+        _tmpHasMore = bean.data?.hasNext == "1";
         if (isNextPage) {
           _hasNextPage = _tmpHasMore;
           list = VideoUtil.filterRepeatVideo(dataList, _historyVideoMap);
-          if (list.isNotEmpty) {
-            _videoList.addAll(list);
-            VideoUtil.addNewVidToHistoryVidMapFromList(list, _historyVideoMap);
+          if (list?.isNotEmpty ?? false) {
+            _videoList.addAll(list!);
+            VideoUtil.addNewVidToHistoryVidMapFromList(list!, _historyVideoMap);
             _curPage = page;
           }
           setState(() {});
@@ -479,9 +412,8 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
 //          _getOperateVid(bean.data?.operateVids);
         }
       } else {
-        CosLogUtil.log(
-            "$logPrefix: fail to request hot video list of page:$page, "
-            "the error msg is ${bean.message}, "
+        CosLogUtil.log("$logPrefix: fail to request hot video list of page:$page, "
+            "the error msg is ${bean.msg}, "
             "error code is ${bean.status}");
         list = null;
       }
@@ -500,7 +432,7 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
 
   void _showLoadFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
@@ -552,25 +484,22 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
         if (event != null) {
           if (event is TabSwitchEvent) {
             if (event.from == BottomTabType.TabHot.index) {
-              if (event.from == event.to &&
-                  _listViewKey != null &&
-                  _listViewKey.currentState != null) {
-                _listViewKey.currentState.scrollToTop();
+              if (event.from == event.to && _listViewKey.currentState != null) {
+                _listViewKey.currentState?.scrollToTop();
               }
             }
             if (event.from == 1) {
 //              _stopPlayVideo(false);
             } else if (event.to == 1) {
               //上报点击热门内容
-              DataReportUtil.instance.reportData(
-                  eventName: "Click_hot", params: {"Click_hot": "1"});
+              DataReportUtil.instance.reportData(eventName: "Click_hot", params: {"Click_hot": "1"});
 //              _autoPlayVideoOfIndex(videoItemIdx);
             }
           } else if (event is SettingSwitchEvent) {
             SettingModel setting = event.setting;
             if (setting.isEnvSwitched || (setting.oldLan != setting.newLan)) {
               _clearData();
-              if (_hotList != null && _hotList.isNotEmpty) {
+              if (_hotList.isNotEmpty) {
                 _hotList.clear();
                 _loadTopicData();
               }
@@ -586,12 +515,12 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
   ///取消监听消息事件
   void _cancelListenEvent() {
     if (_eventHot != null) {
-      _eventHot.cancel();
+      _eventHot?.cancel();
     }
   }
 
   void _clearData() {
-    if (_videoList != null && _videoList.isNotEmpty) {
+    if (_videoList.isNotEmpty) {
       _videoList.clear();
     }
     _hasNextPage = false;
@@ -617,7 +546,7 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
 
   //视频曝光上报
   void _reportVideoExposure() {
-    if (_videoList == null || _videoList.isEmpty) {
+    if (_videoList.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleItemIndex();
@@ -626,27 +555,25 @@ class _PopularPageState extends State<PopularPage> with RouteAware {
         int idx = visibleList[i];
         if (idx >= 0 && idx < _videoList.length) {
           GetVideoListNewDataListBean bean = _videoList[idx];
-          VideoReportUtil.reportVideoExposure(
-              VideoExposureType.HotPageType, bean.id ?? '', bean.uid ?? '');
+          VideoReportUtil.reportVideoExposure(VideoExposureType.HotPageType, bean.id, bean.uid);
         }
       }
     }
   }
 }
 
-typedef ClickTopicCallBack = Function(HotTopicModel topic);
+typedef ClickTopicCallBack = Function(HotTopicModel? topic);
 
 /*
  topic list item
  */
 class SingleTopicItem extends StatefulWidget {
-  final HotTopicModel topic;
-  final double bgWidth;
-  final ExchangeRateInfoData rateInfo;
-  final ClickTopicCallBack clickTopicCallBack;
+  final HotTopicModel? topic;
+  final double? bgWidth;
+  final ExchangeRateInfoData? rateInfo;
+  final ClickTopicCallBack? clickTopicCallBack;
 
-  SingleTopicItem(
-      {this.topic, this.bgWidth, this.rateInfo, this.clickTopicCallBack});
+  SingleTopicItem({this.topic, this.bgWidth, this.rateInfo, this.clickTopicCallBack});
 
   @override
   State<StatefulWidget> createState() => _SingleTopicItemState();
@@ -664,7 +591,7 @@ class _SingleTopicItemState extends State<SingleTopicItem> {
         lightColorStr: "FFFFFFFF",
         lightAlpha: 0.01,
         darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
-    ),
+      ),
       child: Material(
         color: Colors.transparent,
         child: Ink(
@@ -684,18 +611,18 @@ class _SingleTopicItemState extends State<SingleTopicItem> {
                 //avatar
                 ClipOval(
                     child: SizedBox(
-                      width: avatarWidth,
-                      height: avatarWidth,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: <Widget>[
-                          Image.asset(widget.topic?.bgPath ?? ""),
-                          _getMask(),
-                        ],
-                      )
-
-                    )
-                ),
+                        width: avatarWidth,
+                        height: avatarWidth,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: <Widget>[
+                            Image.asset(
+                              widget.topic?.bgPath ?? "",
+                              fit: BoxFit.cover,
+                            ),
+                            _getMask(),
+                          ],
+                        ))),
 
                 //desc
                 Container(
@@ -733,19 +660,18 @@ class _SingleTopicItemState extends State<SingleTopicItem> {
     return Container();
   }
 
-  void _jumpToTopicDetail(HotTopicModel topic) {
+  void _jumpToTopicDetail(HotTopicModel? topic) {
     if (topic == null) {
-      CosLogUtil.log(
-          "HotPage: can't jump to topic detail page due to uid is empty");
+      CosLogUtil.log("HotPage: can't jump to topic detail page due to uid is empty");
       return;
     }
     if (widget.clickTopicCallBack != null) {
-      widget.clickTopicCallBack(widget.topic);
+      widget.clickTopicCallBack?.call(widget.topic);
     }
     Navigator.of(context).push(SlideAnimationRoute(
       builder: (_) {
         return HotTopicDetailPage(
-          topicModel: widget.topic,
+          topicModel: widget.topic!,
           rateInfo: widget.rateInfo,
         );
       },
@@ -757,16 +683,16 @@ class _SingleTopicItemState extends State<SingleTopicItem> {
     if (widget.topic != null) {
       String eventName = "";
       Map<String, dynamic> params = {};
-      if (widget.topic.topicType == HotTopicType.TopicGame) {
+      if (widget.topic?.topicType == HotTopicType.TopicGame) {
         eventName = "Click_game";
         params["Click_game"] = "1";
-      } else if (widget.topic.topicType == HotTopicType.TopicFun) {
+      } else if (widget.topic?.topicType == HotTopicType.TopicFun) {
         eventName = "Click_fun";
         params["Click_fun"] = "1";
-      } else if (widget.topic.topicType == HotTopicType.TopicCutePets) {
+      } else if (widget.topic?.topicType == HotTopicType.TopicCutePets) {
         eventName = "Click_pet";
         params["Click_pet"] = "1";
-      } else if (widget.topic.topicType == HotTopicType.TopicMusic) {
+      } else if (widget.topic?.topicType == HotTopicType.TopicMusic) {
         eventName = "Click_music";
         params["Click_music"] = "1";
       }
@@ -777,11 +703,10 @@ class _SingleTopicItemState extends State<SingleTopicItem> {
 
 /// 顶部热门标签列表
 class HotTopicListView extends StatefulWidget {
-  final List<HotTopicModel> topicList;
-  final ClickTopicCallBack topicCallBack;
+  final List<HotTopicModel>? topicList;
+  final ClickTopicCallBack? topicCallBack;
 
-  HotTopicListView({Key key, this.topicList, this.topicCallBack})
-      : super(key: key);
+  HotTopicListView({Key? key, this.topicList, this.topicCallBack}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -804,7 +729,7 @@ class HotTopicListViewState extends State<HotTopicListView> {
         border: Border(
           top: BorderSide(
               color: AppThemeUtil.setDifferentModeColor(
-                lightColor:Common.getColorFromHexString("EBEBEB", 1),
+                lightColor: Common.getColorFromHexString("EBEBEB", 1),
                 darkColorStr: "3E3E3E",
               ),
               width: 0.5),
@@ -839,21 +764,10 @@ class HotTopicListViewState extends State<HotTopicListView> {
     );
   }
 
-  SingleTopicItem _getTopicItem(int index) {
-    int listCnt = widget.topicList?.length ?? 0;
-    if (index >= 0 && index < listCnt) {
-      return SingleTopicItem(
-        topic: widget.topicList[index],
-        bgWidth: MediaQuery.of(context).size.width / listCnt,
-      );
-    }
-    return SingleTopicItem();
-  }
-
   List<SingleTopicItem> _getTopicList() {
     List<SingleTopicItem> list = [];
     int listCnt = widget.topicList?.length ?? 0;
-    for (var topic in widget.topicList) {
+    for (var topic in widget.topicList ?? []) {
       list.add(SingleTopicItem(
         topic: topic,
         bgWidth: MediaQuery.of(context).size.width / listCnt,

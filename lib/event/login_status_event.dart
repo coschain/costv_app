@@ -5,8 +5,7 @@ class LoginStatusEvent {
   static const int typeTokenInvalid = 3;
 
   int type;
-  String uid;
+  String? uid;
 
   LoginStatusEvent(this.type);
-
 }

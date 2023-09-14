@@ -24,10 +24,10 @@ enum HotTopicType {
 }
 
 class HotTopicModel {
-  HotTopicType topicType; //热门类型
-  String desc; //热门描述
-  String bgPath; //背景图片路径
-  String iconUrl; //icon路劲
+  HotTopicType? topicType; //热门类型
+  String? desc; //热门描述
+  String? bgPath; //背景图片路径
+  String? iconUrl; //icon路劲
   HotTopicModel({this.topicType, this.desc, this.bgPath});
 }
 
@@ -37,21 +37,20 @@ enum HistoryVideoType {
   Liked, //点过赞的视频，
   GiftTicketReward, //打赏过礼物派票的视频
   Uploaded, //上传的视频
-  ProblemFeedback, //问题反馈
 }
 
 class HistoryVideoItemModel {
-  HistoryVideoType type; //历史视频类型
-  String icon; //图标路径
-  String desc; //描述
+  HistoryVideoType? type; //历史视频类型
+  String? icon; //图标路径
+  String? desc; //描述
   HistoryVideoItemModel({this.type, this.icon, this.desc});
 }
 
 class VideoUtil {
-  static Future<ExchangeRateInfoData> requestExchangeRate(String tag,
-      {GetExchangeRateFailCallBack failCallBack,
-        GetExchangeRateLoadTimeCallBack loadTimeCallBack}) async {
-    ExchangeRateInfoData data;
+  static Future<ExchangeRateInfoData?> requestExchangeRate(String tag,
+      {GetExchangeRateFailCallBack? failCallBack,
+      GetExchangeRateLoadTimeCallBack? loadTimeCallBack}) async {
+    ExchangeRateInfoData? data;
     int sTime = DateTime.now().millisecondsSinceEpoch;
     await RequestManager.instance.getExchangeRateInfo(tag).then((response) {
       if (response == null) {
@@ -69,7 +68,7 @@ class VideoUtil {
         CosLogUtil.log("fail to fetch rate info,"
             " the error is ${bean.msg}, the error code is ${bean.status}");
         if (failCallBack != null) {
-          failCallBack("code:${bean.status ?? ''},msg:${bean.msg ?? ''}");
+          failCallBack("code:${bean.status},msg:${bean.msg}");
         }
       }
     }).catchError((err) {
@@ -88,7 +87,7 @@ class VideoUtil {
 
   ///解析服务端返回的operation_vids数据(以逗号分隔vid)
   static String parseOperationVid(List<String> strList) {
-    if (strList != null && strList.length > 0) {
+    if (strList.length > 0) {
       return strList.join(",");
     }
     return "";
@@ -96,9 +95,7 @@ class VideoUtil {
 
   ///清除存放历史视频id的map
   static void clearHistoryVidMap(Map<String, String> historyVideoMap) {
-    if (historyVideoMap != null) {
-      historyVideoMap.clear();
-    }
+    historyVideoMap.clear();
   }
 
   ///添加新的的视频id到存放历史视频id的map
@@ -110,7 +107,7 @@ class VideoUtil {
     if (historyVideoMap == null) {
       historyVideoMap = new Map();
     }
-    if (data.id != null && !historyVideoMap.containsKey(data)) {
+    if (!historyVideoMap.containsKey(data)) {
       historyVideoMap[data.id] = data.id;
     }
   }
@@ -132,9 +129,9 @@ class VideoUtil {
       List<GetVideoListNewDataListBean> origin,
       Map<String, String> historyVideoMap) {
     List<GetVideoListNewDataListBean> list = [];
-    if (origin != null && origin.length > 0 && historyVideoMap != null) {
+    if (origin.length > 0) {
       for (var data in origin) {
-        if (data.id != null && !historyVideoMap.containsKey(data.id)) {
+        if (!historyVideoMap.containsKey(data.id)) {
           list.add(data);
         }
       }
@@ -143,18 +140,20 @@ class VideoUtil {
   }
 
   static String formatPlayTimes(
-      BuildContext context, GetVideoListNewDataListBean video) {
+      BuildContext context, GetVideoListNewDataListBean? video) {
+    if (video == null) return "";
     String desc = "";
-    if (Common.checkIsNotEmptyStr(video?.watchNum)) {
+    if (Common.checkIsNotEmptyStr(video.watchNum)) {
       desc += video.watchNum + " " + InternationalLocalizations.playCount;
     }
     return desc;
   }
 
   static String formatVideoCreateTime(
-      BuildContext context, GetVideoListNewDataListBean video) {
+      BuildContext context, GetVideoListNewDataListBean? video) {
     String desc = "";
-    if (Common.checkIsNotEmptyStr(video?.createdAt)) {
+    if (video == null) return "";
+    if (Common.checkIsNotEmptyStr(video.createdAt)) {
       if (formatPlayTimes(context, video).length > 0) {
         desc += "·";
       }
@@ -163,8 +162,8 @@ class VideoUtil {
     return desc;
   }
 
-  static String getVideoWorth(ExchangeRateInfoData exchangeRate,
-      dynamic_properties dgpoBean, GetVideoListNewDataListBean videoData) {
+  static String getVideoWorth(ExchangeRateInfoData? exchangeRate,
+      dynamic_properties? dgpoBean, GetVideoListNewDataListBean? videoData) {
     if (videoData == null) {
       return "0";
     }
@@ -172,7 +171,7 @@ class VideoUtil {
     bool isSettled = false;
     if (videoData.vestStatus == null) {
       CosLogUtil.log(
-          "SingleVideoItem:vest_status is empty on video id:${videoData?.id ?? ""}");
+          "SingleVideoItem:vest_status is empty on video id:${videoData.id}");
 
       /// 没有vest_status，当成已经结算处理
       isSettled = true;
@@ -182,18 +181,18 @@ class VideoUtil {
     double totalVest = 0;
     if (isSettled) {
       ///已经结算直接用vest换算
-      double giftVest = NumUtil.getDoubleByValueStr(videoData?.vestGift ?? "0");
-      double videoVest = NumUtil.getDoubleByValueStr(videoData?.vest ?? "0");
-      double originTotal = NumUtil.add(giftVest, videoVest);
+      double? giftVest = NumUtil.getDoubleByValueStr(videoData.vestGift);
+      double? videoVest = NumUtil.getDoubleByValueStr(videoData.vest);
+      double originTotal = NumUtil.add(giftVest ?? 0, videoVest ?? 0);
       totalVest = NumUtil.divide(originTotal, RevenueCalculationUtil.cosUnit);
     } else {
       ///没有计算用votePower计算
       totalVest = RevenueCalculationUtil.getTotalRevenueVest(
           videoData.votepower, videoData.vestGift, dgpoBean);
     }
-    double money = RevenueCalculationUtil.vestToRevenue(totalVest, exchangeRate);
-    String finalVal =
-        Common.formatDecimalDigit(money, 2);
+    double money =
+        RevenueCalculationUtil.vestToRevenue(totalVest, exchangeRate);
+    String finalVal = Common.formatDecimalDigit(money, 2);
     return Common.formatAmount(finalVal);
   }
 
@@ -226,9 +225,8 @@ class VideoUtil {
 //    }
 //  }
 
-  static bool checkVideoListIsNotEmpty(
-      List<dynamic> videoList) {
-    if (videoList != null && videoList.isNotEmpty) {
+  static bool checkVideoListIsNotEmpty(List<dynamic> videoList) {
+    if (videoList.isNotEmpty) {
       return true;
     }
     return false;
@@ -243,13 +241,23 @@ class VideoUtil {
     var minutes = seconds ~/ 60;
     seconds = seconds % 60;
 
-    final hoursString = hours >= 10 ? '$hours' : hours == 0 ? '00' : '0$hours';
+    final hoursString = hours >= 10
+        ? '$hours'
+        : hours == 0
+            ? '00'
+            : '0$hours';
 
-    final minutesString =
-    minutes >= 10 ? '$minutes' : minutes == 0 ? '00' : '0$minutes';
+    final minutesString = minutes >= 10
+        ? '$minutes'
+        : minutes == 0
+            ? '00'
+            : '0$minutes';
 
-    final secondsString =
-    seconds >= 10 ? '$seconds' : seconds == 0 ? '00' : '0$seconds';
+    final secondsString = seconds >= 10
+        ? '$seconds'
+        : seconds == 0
+            ? '00'
+            : '0$seconds';
 
     final formattedTime =
         '${hoursString == '00' ? '' : hoursString + ':'}$minutesString:$secondsString';

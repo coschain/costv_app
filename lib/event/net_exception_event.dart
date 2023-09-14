@@ -9,7 +9,7 @@ class NetExceptionEvent {
 
   factory NetExceptionEvent.create(tag, str) {
     if (_cache.containsKey(str)) {
-      return _cache[str];
+      return _cache[str]!;
     } else {
       final event = NetExceptionEvent(tag, str);
       _cache[str] = event;

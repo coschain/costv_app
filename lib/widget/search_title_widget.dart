@@ -3,7 +3,6 @@ import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
-import 'package:costv_android/values/app_styles.dart';
 import 'package:flutter/material.dart';
 
 typedef OnTextChanged(String str);
@@ -11,12 +10,10 @@ typedef OnClickSearch(String str);
 
 class SearchTitleWidget extends StatefulWidget {
   final String searchStr;
-  final OnTextChanged onTextChanged;
-  final OnClickSearch onClickSearch;
+  final OnTextChanged? onTextChanged;
+  final OnClickSearch? onClickSearch;
 
-  SearchTitleWidget(
-      {Key key, this.searchStr, this.onTextChanged, this.onClickSearch})
-      : super(key: key);
+  SearchTitleWidget({Key? key, required this.searchStr, this.onTextChanged, this.onClickSearch}) : super(key: key);
 
   @override
   _SearchTitleWidgetState createState() => _SearchTitleWidgetState();
@@ -37,19 +34,14 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
 
   @override
   void dispose() {
-    if (_textController != null) {
-      _textController.dispose();
-      _textController = null;
-    }
+    _textController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppThemeUtil.setDifferentModeColor(
-          lightColor: AppColors.color_ffffff,
-          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+      color: AppThemeUtil.setDifferentModeColor(lightColor: AppColors.color_ffffff, darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       height: AppDimens.item_size_55,
       child: Row(
         mainAxisSize: MainAxisSize.max,
@@ -67,23 +59,20 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
           ),
           Expanded(
             child: Container(
-              margin: EdgeInsets.only(
-                  left: AppDimens.margin_10, right: AppDimens.margin_10),
+              margin: EdgeInsets.only(left: AppDimens.margin_10, right: AppDimens.margin_10),
               height: AppDimens.item_size_32,
               child: Stack(
                 alignment: Alignment.centerRight,
                 children: <Widget>[
                   TextField(
                     onSubmitted: (value) {
-                      if (widget.onClickSearch != null &&
-                          !ObjectUtil.isEmptyString(
-                              _textController.text.trim())) {
+                      if (widget.onClickSearch != null && !ObjectUtil.isEmptyString(_textController.text.trim())) {
                         Navigator.pop(context);
-                        widget.onClickSearch(_textController.text.trim());
+                        widget.onClickSearch?.call(_textController.text.trim());
                       }
                     },
                     onChanged: (str) {
-                      if (str != null && str.trim().isNotEmpty) {
+                      if (str.trim().isNotEmpty) {
                         if (!_isShowDelete) {
                           _isShowDelete = true;
                         }
@@ -93,15 +82,14 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
                         }
                       }
                       if (widget.onTextChanged != null) {
-                        widget.onTextChanged(str);
+                        widget.onTextChanged?.call(str);
                       }
                     },
                     controller: _textController,
                     style: TextStyle(
                       color: AppThemeUtil.setDifferentModeColor(
                         lightColor: AppColors.color_333333,
-                        darkColorStr:
-                            DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                       ),
                       fontSize: AppDimens.text_size_14,
                     ),
@@ -114,26 +102,19 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
                       hintStyle: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
                           lightColor: AppColors.color_858585,
-                          darkColorStr: DarkModelTextColorUtil
-                              .firstLevelBrightnessColorStr,
+                          darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                         ),
                         fontSize: AppDimens.text_size_14,
                       ),
                       hintText: InternationalLocalizations.searchInputHint,
-                      contentPadding: EdgeInsets.only(
-                          left: AppDimens.margin_10,
-                          top: AppDimens.margin_12,
-                          right: AppDimens.margin_20),
+                      contentPadding: EdgeInsets.only(left: AppDimens.margin_10, top: AppDimens.margin_12, right: AppDimens.margin_20),
                       enabledBorder: OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: AppColors.color_transparent),
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.radius_size_21),
+                        borderSide: BorderSide(color: AppColors.color_transparent),
+                        borderRadius: BorderRadius.circular(AppDimens.radius_size_21),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.color_3674ff),
-                        borderRadius:
-                            BorderRadius.circular(AppDimens.radius_size_21),
+                        borderRadius: BorderRadius.circular(AppDimens.radius_size_21),
                       ),
                     ),
                     autofocus: true,
@@ -149,7 +130,7 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
                       onTap: () {
                         _textController.clear();
                         if (widget.onTextChanged != null) {
-                          widget.onTextChanged('');
+                          widget.onTextChanged?.call('');
                         }
                       },
                     ),
@@ -164,10 +145,9 @@ class _SearchTitleWidgetState extends State<SearchTitleWidget> {
               child: Image.asset(AppThemeUtil.getSearchIcn()),
             ),
             onTap: () {
-              if (widget.onClickSearch != null &&
-                  !ObjectUtil.isEmptyString(_textController.text.trim())) {
+              if (widget.onClickSearch != null && !ObjectUtil.isEmptyString(_textController.text.trim())) {
                 Navigator.pop(context);
-                widget.onClickSearch(_textController.text.trim());
+                widget.onClickSearch?.call(_textController.text.trim());
               }
             },
           ),

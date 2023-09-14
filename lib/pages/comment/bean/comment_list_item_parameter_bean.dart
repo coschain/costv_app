@@ -7,15 +7,14 @@ class CommentListItemParameterBean {
   static const int showTypeVideoComment = 1;
   static const int showTypeCommentList = 2;
 
-  int showType;
-  CommentListItemBean commentListItemBean;
-  String total;
-  int index;
-  int commentLength;
-  ExchangeRateInfoData exchangeRateInfoData;
-  ChainState chainStateBean;
-  String uid;
-  bool isLoadMoreComment;
-  int commentPage;
-
+  int showType = 0;
+  late CommentListItemBean commentListItemBean;
+  String total = "";
+  int index = 0;
+  int commentLength = 0;
+  ExchangeRateInfoData? exchangeRateInfoData;
+  ChainState? chainStateBean;
+  String uid = "";
+  bool isLoadMoreComment = false;
+  int commentPage = 0;
 }

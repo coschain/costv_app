@@ -4,7 +4,8 @@ import 'package:costv_android/utils/common_util.dart';
 
 class NetRequestFailTipsView extends StatefulWidget{
   final Widget baseWidget;
-  NetRequestFailTipsView({Key key, @required this.baseWidget}):super(key: key);
+  NetRequestFailTipsView({Key? key, required this.baseWidget}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return NetRequestFailTipsViewState();
@@ -12,10 +13,11 @@ class NetRequestFailTipsView extends StatefulWidget{
 }
 
 class NetRequestFailTipsViewState extends State<NetRequestFailTipsView>
-    with SingleTickerProviderStateMixin{
-  AnimationController _controller;
-  Animation<double> _fade;
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fade;
   bool isAnimation = false, isShowing = false;
+
   @override
   void initState() {
     super.initState();
@@ -23,17 +25,13 @@ class NetRequestFailTipsViewState extends State<NetRequestFailTipsView>
     _fade = Tween<double>(begin: 0.0, end: 0.9).animate(_controller)
       ..addListener(updateState)
       ..addStatusListener(listenAnimationStatus);
-
   }
+
   @override
   void dispose() {
-    if (_controller != null) {
-      _controller.dispose();
-    }
-    if (_fade != null) {
-      _fade.removeListener(updateState);
-      _fade.removeStatusListener(listenAnimationStatus);
-    }
+    _controller.dispose();
+    _fade.removeListener(updateState);
+    _fade.removeStatusListener(listenAnimationStatus);
     super.dispose();
   }
   @override

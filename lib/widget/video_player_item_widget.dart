@@ -1,14 +1,13 @@
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/video_util.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:lottie/lottie.dart';
 import 'package:video_player/video_player.dart';
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 
 class VideoPlayerItemWidget extends StatefulWidget {
-  VideoPlayerItemWidget({Key key}) : super(key: key);
+  VideoPlayerItemWidget({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -16,25 +15,25 @@ class VideoPlayerItemWidget extends StatefulWidget {
   }
 }
 
-class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
-  VideoPlayerController controller;
-  ChewieController chewieController;
-  VideoPlayerValue _latestValue;
-  AnimationController _lottieController;
+class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget> with WidgetsBindingObserver, TickerProviderStateMixin {
+  VideoPlayerController? controller;
+  ChewieController? chewieController;
+  VideoPlayerValue? _latestValue;
+  late AnimationController _lottieController;
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
-    super.initState();
     _lottieController = AnimationController(vsync: this);
+    _lottieController.duration = Duration(seconds: 2);
+    super.initState();
   }
 
   @override
   void dispose() {
     _dispose();
     WidgetsBinding.instance.removeObserver(this);
-    _lottieController?.dispose();
+    _lottieController.dispose();
     super.dispose();
   }
 
@@ -65,13 +64,11 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
   }
 
   Widget _buildPlayStatusParts() {
-    if ((_latestValue != null &&
-        _latestValue.duration == null ||
-        _latestValue.isBuffering) || _latestValue == null) {
+    if ((_latestValue != null && _latestValue?.duration == null || (_latestValue?.isBuffering ?? false)) || _latestValue == null) {
       return Center(
         child: _buildVideoLoadingWidget(),
       );
-    } else if (_latestValue != null && !_latestValue.isPlaying) {
+    } else if (_latestValue != null && !(_latestValue?.isPlaying ?? false)) {
       //暂停状态,不用显示正在播放标志
       return Container();
     }
@@ -117,22 +114,20 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
 //      margin: EdgeInsets.only(right: 5),
       width: 28,
       height: 28,
-      child: Lottie.asset('assets/json/animations/play_status_animation.json', controller: _lottieController,
+      child: Lottie.asset(
+        "assets/json/animations/play_status_animation.json",
+        controller: _lottieController,
+        repeat: true,
         onLoaded: (composition) {
-        // Configure the AnimationController with the duration of the
-        // Lottie file and start the animation.
-        _lottieController
-          ..duration = composition.duration
-          ..forward();
-      },),
+          _lottieController.duration = composition.duration;
+        },
+      ),
     );
   }
 
   Widget _buildVideoDuration() {
-    final duration = _latestValue != null &&
-            _latestValue.duration != null &&
-            _latestValue.position != null
-        ? (_latestValue.duration - _latestValue.position)
+    final duration = _latestValue != null && _latestValue?.duration != null && _latestValue?.position != null
+        ? (_latestValue?.duration ?? Duration.zero - (_latestValue?.position ?? Duration.zero))
         : Duration.zero;
     return Container(
       child: VideoTimeWidget(VideoUtil.formatDuration(duration)),
@@ -144,7 +139,7 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
   void didChangeDependencies() {
     final _oldController = chewieController;
     chewieController = ChewieController.of(context);
-    controller = chewieController.videoPlayerController;
+    controller = chewieController?.videoPlayerController;
     if (_oldController != chewieController) {
       _dispose();
       _initialize();
@@ -153,9 +148,7 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
   }
 
   void _updateState() {
-    if (_latestValue != null &&
-        _latestValue.position == controller.value.position &&
-        _latestValue.isPlaying == controller.value.isPlaying) {
+    if (_latestValue != null && _latestValue?.position == controller?.value.position && _latestValue?.isPlaying == controller?.value.isPlaying) {
       return;
     }
     if (!mounted) {
@@ -163,9 +156,9 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
     }
 
     setState(() {
-      _latestValue = controller.value;
-      if (_latestValue.isPlaying) {
-        _stopPlayAnimation();
+      _latestValue = controller?.value;
+      if (_latestValue?.isPlaying ?? false) {
+        _resumePlayAnimation();
         _startPlayAnimation();
       } else {
         _stopPlayAnimation();
@@ -174,26 +167,23 @@ class VideoPlayerItemWidgetState extends State<VideoPlayerItemWidget>
   }
 
   Future<void> _initialize() async {
-    controller.addListener(_updateState);
+    controller?.addListener(_updateState);
     _updateState();
   }
 
   void _dispose() {
     if (controller != null) {
-      controller.removeListener(_updateState);
+      controller?.removeListener(_updateState);
     }
   }
 
   void _stopPlayAnimation() {
-    if (_lottieController != null && _lottieController.isAnimating) {
-      _lottieController.stop();
-    }
+    _lottieController.stop();
   }
 
   void _startPlayAnimation() {
-    if (_lottieController != null && !_lottieController.isAnimating && _lottieController.value != 0) {
-      _lottieController.repeat();
-    }
+    _lottieController.forward();
   }
 
+  void _resumePlayAnimation() {}
 }

@@ -31,7 +31,5 @@ var commonZhCh = {
     "emojiUnlockTitle": "如何获取 Voepa 专属全套emoji",
     "emojiUnlockHint": "赠送 Voepa 礼物票累计达到 100 张，即可获得 Voepa 专属表情包\"Epamoji\"的全套表情。",
     "emojiUnlockGo": "（注：APP 暂不支持礼物票赠送，请去网页端参与赠送哦）"
-  },
-  "blockVideo":"隐藏影片",
-  "blockCreator":"不要推荐此创作者",
+  }
 };

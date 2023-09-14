@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'package:flutter/foundation.dart' as foundation;
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -27,7 +27,6 @@ import 'package:costv_android/bean/video_comment_bean.dart';
 import 'package:costv_android/bean/video_gift_info_bean.dart';
 import 'package:costv_android/bean/video_report_bean.dart';
 import 'package:costv_android/constant.dart';
-import 'package:costv_android/emoji/emoji_picker.dart';
 import 'package:costv_android/event/base/event_bus_help.dart';
 import 'package:costv_android/event/video_comment_children_list_event.dart';
 import 'package:costv_android/event/video_detail_data_change_event.dart';
@@ -81,18 +80,14 @@ import 'package:decimal/decimal.dart';
 import 'package:dio/dio.dart';
 import 'package:flustars/flustars.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/painting.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_linkify/flutter_linkify.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:share/share.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
-import 'package:visibility_detector/visibility_detector.dart';
-
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
 import 'dialog/energy_not_enough_dialog.dart';
 import 'dialog/video_comment_delete_dialog.dart';
 import 'dialog/video_report_dialog.dart';
@@ -101,7 +96,7 @@ import 'player/costv_fullscreen.dart';
 class VideoDetailsPage extends StatefulWidget {
   final VideoDetailPageParamsBean _videoDetailPageParamsBean;
 
-  VideoDetailsPage(this._videoDetailPageParamsBean, {Key key})
+  VideoDetailsPage(this._videoDetailPageParamsBean, {Key? key})
       : super(key: key);
 
   @override
@@ -112,6 +107,7 @@ enum CommentType {
   commentTypeHot,
   commentTypeTime,
 }
+
 enum CommentSendType {
   commentSendTypeNormal,
   commentSendTypeChildren,
@@ -120,7 +116,7 @@ enum CommentSendType {
 class _VideoDetailsPageState extends State<VideoDetailsPage>
     with SingleTickerProviderStateMixin, RouteAware, WidgetsBindingObserver {
   static const String tag = '_VideoDetailsPageState';
-  VideoDetailPageParamsBean _videoDetailPageParamsBean;
+  late VideoDetailPageParamsBean _videoDetailPageParamsBean;
   final GlobalKey<ScaffoldState> _dialogSKey = GlobalKey<ScaffoldState>();
   final GlobalKey<ScaffoldState> _pageKey = GlobalKey<ScaffoldState>();
   final GlobalObjectKey<VideoAutoPlaySettingWidgetState> _autoPlaySwitchKey =
@@ -140,17 +136,17 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   int settlementTime = Constant.isDebug ? 60 * 5 : 60 * 60 * 24 * 7;
   static const double _triggerY = AppDimens.item_size_100;
 
-  AnimationController _animationController;
+  late AnimationController _animationController;
   List<RelateListItemBean> _listData = [];
   bool _isHaveMoreData = false;
   CommentType _commentTypeCurrent = CommentType.commentTypeHot;
-  TextEditingController _textController;
+  late TextEditingController _textController;
 
   FocusNode _focusNode = FocusNode();
-  VideoPlayerController _videoPlayerController;
-  ChewieController _chewieController;
+  VideoPlayerController? _videoPlayerController;
+  ChewieController? _chewieController;
   bool _isNetIng = false;
-  GetVideoInfoDataBean _getVideoInfoDataBean;
+  GetVideoInfoDataBean? _getVideoInfoDataBean;
   bool _isHideVideoMsg = true;
   bool _isInitFinish = false;
   bool _isVideoLike = false;
@@ -158,65 +154,65 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   bool _isLoadMoreComment = false;
   int _videoPage = 1;
   int _commentPage = 1;
-  CommentListDataBean _commentListDataBean;
+  CommentListDataBean? _commentListDataBean;
   List<CommentListItemBean> _listComment = [];
-  List<RelateListItemBean> _listRelate;
+  List<RelateListItemBean> _listRelate = [];
   int _linkCount = 0;
-  Map<String, dynamic> _mapRemoteResError;
-  Map<String, dynamic> _mapVideoIntegralError;
+  late Map<String, dynamic> _mapRemoteResError;
+  late Map<String, dynamic> _mapVideoIntegralError;
   bool _isAbleSendMsg = false;
   bool _isShowCommentLength = false;
-  int _superfluousLength;
-  VideoReportDialog _videoReportDialog;
-  EnergyNotEnoughDialog _energyNotEnoughDialog;
-  BankPropertyDataBean _bankPropertyDataBean;
-  TimerUtil _timerUtil;
+  int _superfluousLength = 0;
+  VideoReportDialog? _videoReportDialog;
+  EnergyNotEnoughDialog? _energyNotEnoughDialog;
+  BankPropertyDataBean? _bankPropertyDataBean;
+  late TimerUtil _timerUtil;
   int _popReward = popRewardHot;
-  ExchangeRateInfoData _exchangeRateInfoData;
-  ChainState _chainStateBean;
+  ExchangeRateInfoData? _exchangeRateInfoData;
+  ChainState? _chainStateBean;
   String _strSettlementTime = '';
   bool _isRotatedTitle = false;
   bool _isRotatedMoney = false;
   VideoSettlementBean _videoSettlementBean = VideoSettlementBean();
-  VideoGiftInfoDataBean _videoGiftInfoDataBean;
-  IntegralUserInfoDataBean _integralUserInfoDataBean;
+  VideoGiftInfoDataBean? _videoGiftInfoDataBean;
+  IntegralUserInfoDataBean? _integralUserInfoDataBean;
   bool _isGetVideoPop = false;
-  AccountInfo _cosInfoBean;
+  AccountInfo? _cosInfoBean;
   bool _autoPlayWhenBack = false;
   Duration _lastPlayerPosition = Duration.zero;
   Duration _currentPlayerPosition = Duration.zero;
   TimeFormatUtil _timeFormatUtil = TimeFormatUtil();
   CommentSendType _commentSendType = CommentSendType.commentSendTypeNormal;
-  String _commentId;
-  String _commentName;
-  int _sendCommentIndex;
-  String _uid;
+  String? _commentId;
+  String? _commentName;
+  int _sendCommentIndex = 0;
+  String? _uid;
   bool _isFirstLoad = true;
   Map<int, double> _visibleFractionMap = {};
   bool _isScrolling = false;
-  DateTime _videoLoadStartTime;
+  late DateTime _videoLoadStartTime;
   bool _hasReportedVideoPlay = false;
   bool _isVideoReportLoading = false, _isVideoReportSuccess = false;
   String _refreshingVid = '';
   String _pageFlag = DateTime.now().toString();
   int _forwardVideoCount = 0; //前向播放过的视频数量(如首页->A->B,那么B的前向播放过的视频数量为1)
-  VideoCommentDeleteDialog _videoCommentDeleteDialog;
-  GetTicketInfoDataBean _getTicketInfoDataBean;
-  bool _isBuffering;
+  VideoCommentDeleteDialog? _videoCommentDeleteDialog;
+  GetTicketInfoDataBean? _getTicketInfoDataBean;
+  bool _isBuffering = false;
   int _bufferStartTime = -1;
-  OpenCommentChildrenParameterBean _openCommentChildrenParameterBean;
+  OpenCommentChildrenParameterBean? _openCommentChildrenParameterBean;
   int _clickCommentIndex = 0;
 
 //  bool _isShowCommentHint = true;
 //  bool _isShowCommentHintIng = false;
   double _scrollPixels = 0.0;
-  double _startY;
+  double _startY = 0.0;
   bool _isShowSmallWindow = false;
   bool _isVideoChangedInit = false;
   bool _isCanReportVideoEnd = false;
   bool _isInputFace = false;
-  ExclusiveRelationItemBean _exclusiveRelationItemBean;
-  Category _selectCategory;
+  ExclusiveRelationItemBean? _exclusiveRelationItemBean;
+  Category? _selectCategory;
   bool _isInputFaceChildren = false;
 
   @override
@@ -225,21 +221,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     WidgetsBinding.instance.addObserver(this);
     _videoDetailPageParamsBean = widget._videoDetailPageParamsBean;
     _pageFlag =
-        '${_videoDetailPageParamsBean?.getVid ?? ""}${DateTime.now().toString()}';
+        '${_videoDetailPageParamsBean.getVid ?? ""}${DateTime.now().toString()}';
     VideoDetailDataMgr.instance.addPageCachedDataByKey(_pageFlag);
     VideoDetailDataMgr.instance.updateCurrentVideoParamsBeanByKey(
         _pageFlag, _videoDetailPageParamsBean);
     OverlayVideoSmallWindowsUtils.instance.removeVideoSmallWindow();
     Constant.backAnimationType = SlideAnimationRoute.animationTypeHorizontal;
-//    _focusNode.addListener(() {
-//      if (_focusNode.hasFocus) {
-//        if (_isShowCommentHintIng) {
-//          setState(() {
-//            _isShowCommentHintIng = false;
-//          });
-//        }
-//      }
-//    });
     _initPageData();
   }
 
@@ -257,10 +244,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         VideoDetailPageParamsBean.fromTypeVideoSmallWindows) {
       _getVideoInfoDataBean = widget._videoDetailPageParamsBean
           .getVideoSmallWindowsBean?.getVideoInfoDataBean;
-      _linkCount =
-          widget._videoDetailPageParamsBean.getVideoSmallWindowsBean?.linkCount;
-      _popReward =
-          widget._videoDetailPageParamsBean.getVideoSmallWindowsBean?.popReward;
+      _linkCount = widget
+              ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.linkCount ??
+          0;
+      _popReward = widget
+              ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.popReward ??
+          0;
       _videoGiftInfoDataBean = widget._videoDetailPageParamsBean
           .getVideoSmallWindowsBean?.videoGiftInfoDataBean;
       _integralUserInfoDataBean = widget._videoDetailPageParamsBean
@@ -269,24 +258,32 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           .getVideoSmallWindowsBean?.bankPropertyDataBean;
       _exchangeRateInfoData = widget._videoDetailPageParamsBean
           .getVideoSmallWindowsBean?.exchangeRateInfoData;
-      _isVideoLike = widget
-          ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.isVideoLike;
-      _isFollow =
-          widget._videoDetailPageParamsBean.getVideoSmallWindowsBean?.isFollow;
-      _listRelate = widget
-          ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.listRelate;
-      _listData =
-          widget._videoDetailPageParamsBean.getVideoSmallWindowsBean?.listData;
-      _videoPage =
-          widget._videoDetailPageParamsBean.getVideoSmallWindowsBean?.videoPage;
-      _isHaveMoreData = widget
-          ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.isHaveMoreData;
+      _isVideoLike = widget._videoDetailPageParamsBean.getVideoSmallWindowsBean
+              ?.isVideoLike ??
+          false;
+      _isFollow = widget
+              ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.isFollow ??
+          false;
+      _listRelate = widget._videoDetailPageParamsBean.getVideoSmallWindowsBean
+              ?.listRelate ??
+          [];
+      _listData = widget
+              ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.listData ??
+          [];
+      _videoPage = widget
+              ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.videoPage ??
+          0;
+      _isHaveMoreData = widget._videoDetailPageParamsBean
+              .getVideoSmallWindowsBean?.isHaveMoreData ??
+          false;
       _commentListDataBean = widget._videoDetailPageParamsBean
           .getVideoSmallWindowsBean?.commentListDataBean;
-      _listComment = widget
-          ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.listComment;
-      _commentPage = widget
-          ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.commentPage;
+      _listComment = widget._videoDetailPageParamsBean.getVideoSmallWindowsBean
+              ?.listComment ??
+          [];
+      _commentPage = widget._videoDetailPageParamsBean.getVideoSmallWindowsBean
+              ?.commentPage ??
+          0;
       _exclusiveRelationItemBean = widget._videoDetailPageParamsBean
           .getVideoSmallWindowsBean?.exclusiveRelationItemBean;
       initSettlementTime();
@@ -304,17 +301,18 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     _chainInfoInit();
     _cosAccountInfoInit();
     if (Common.checkIsNotEmptyStr(_videoDetailPageParamsBean.getVideoSource)) {
-      Duration startAt;
+      Duration startAt = Duration.zero;
       if (widget._videoDetailPageParamsBean.getFromType ==
           VideoDetailPageParamsBean.fromTypeVideoSmallWindows) {
-        startAt =
-            widget._videoDetailPageParamsBean.getVideoSmallWindowsBean?.startAt;
+        startAt = widget
+                ._videoDetailPageParamsBean.getVideoSmallWindowsBean?.startAt ??
+            Duration.zero;
       }
       _initVideoPlayers(
           _videoDetailPageParamsBean.getVideoSource, false, startAt);
     }
-    _loadFollowingRecommendVideo(
-        _videoDetailPageParamsBean?.getUid, _videoDetailPageParamsBean?.getVid);
+    _loadFollowingRecommendVideo(_videoDetailPageParamsBean.getUid ?? "",
+        _videoDetailPageParamsBean.getVid ?? "");
   }
 
   void _initTimeUtil() {
@@ -336,7 +334,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -348,10 +346,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         VideoNotificationUtil.instance.closeVideoNotification();
         break;
       case AppLifecycleState.paused: // 应用程序不可见，后台
-        bool isPlay = _videoPlayerController?.value?.isPlaying ?? false;
+        bool isPlay = _videoPlayerController?.value.isPlaying ?? false;
         if (_getVideoInfoDataBean != null && isPlay) {
           VideoNotificationUtil.instance.openVideoNotification(
-              json.encode(_getVideoInfoDataBean.toJson()));
+              json.encode(_getVideoInfoDataBean?.toJson()));
         }
         break;
       case AppLifecycleState.detached:
@@ -365,38 +363,20 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     RequestManager.instance.cancelAllNetworkRequest(tag);
     VideoDetailDataMgr.instance.clearCachedDataByKey(_pageFlag);
     routeObserver.unsubscribe(this);
-    if (_chewieController != null) {
-      _chewieController.dispose();
-      _chewieController = null;
-    }
+    _chewieController?.dispose();
     if (!_isShowSmallWindow) {
       clearVideoPlayerController();
     }
-    if (_animationController != null) {
-      _animationController.dispose();
-      _animationController = null;
-    }
-    if (_focusNode != null) {
-      _focusNode.dispose();
-      _focusNode = null;
-    }
-    if (_textController != null) {
-      _textController.dispose();
-      _textController = null;
-    }
-    if (_timerUtil != null) {
-      _timerUtil.cancel();
-      _timerUtil = null;
-    }
+    _animationController.dispose();
+    _focusNode.dispose();
+    _textController.dispose();
+    _timerUtil.cancel();
     super.dispose();
   }
 
   void clearVideoPlayerController() {
-    if (_videoPlayerController != null) {
-      _videoPlayerController.pause();
-      _videoPlayerController.dispose();
-      _videoPlayerController = null;
-    }
+    _videoPlayerController?.pause();
+    _videoPlayerController?.dispose();
   }
 
   @override
@@ -412,12 +392,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   void didPushNext() {
     super.didPushNext();
     _autoPlayWhenBack = _chewieController != null &&
-        !_chewieController.isFullScreen &&
+        !(_chewieController?.isFullScreen ?? false) &&
         _videoPlayerController != null &&
-        _videoPlayerController.value != null &&
-        _videoPlayerController.value.isPlaying;
-    if (_autoPlayWhenBack) {
-      _chewieController.pause();
+        _videoPlayerController?.value != null &&
+        (_videoPlayerController?.value.isPlaying ?? false);
+    if (_autoPlayWhenBack && !_isRotatedMoney) {
+      _chewieController?.pause();
     }
   }
 
@@ -444,43 +424,42 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   void _fetchExChangeRate(bool isUpdateState) async {
-    RequestManager.instance.getExchangeRateInfo(tag).then((response) {
-      _processExchangeRateInfo(response);
-      if (_exchangeRateInfoData != null && isUpdateState) {
-        setState(() {});
-      }
-    });
+    var response = await RequestManager.instance.getExchangeRateInfo(tag);
+    _processExchangeRateInfo(response);
+    if (_exchangeRateInfoData != null && isUpdateState) {
+      setState(() {});
+    }
   }
 
   void _loadVideoDetailsInfo() {
     setState(() {
       _isNetIng = true;
     });
-    List<Future<Response>> listFuture = [
+    List<Future<Response?>> listFuture = [
       RequestManager.instance.getVideoDetailsInfo(
         tag,
-        _videoDetailPageParamsBean?.getVid ?? '',
+        _videoDetailPageParamsBean.getVid ?? '',
         Common.getCurrencyMoneyByLanguage(),
         uid: Constant.uid ?? '',
-        fuid: _videoDetailPageParamsBean?.getUid ?? '',
+        fuid: _videoDetailPageParamsBean.getUid ?? '',
       ),
       RequestManager.instance.videoRelateList(
-          tag, _videoDetailPageParamsBean?.getVid ?? '',
+          tag, _videoDetailPageParamsBean.getVid ?? '',
           page: _videoPage.toString(), pageSize: videoPageSize.toString()),
       RequestManager.instance.videoCommentListNew(
           tag,
-          _videoDetailPageParamsBean?.getVid ?? '',
+          _videoDetailPageParamsBean.getVid ?? '',
           _commentPage,
           commentPageSize,
           uid: Constant.uid ?? '',
           orderBy: VideoCommentListResponse.orderByHot),
     ];
     if (!ObjectUtil.isEmpty(Constant.uid)) {
-      listFuture.add(RequestManager.instance.exclusiveRelation(
-          tag, Constant.uid ?? ''));
+      listFuture.add(
+          RequestManager.instance.exclusiveRelation(tag, Constant.uid ?? ''));
     }
     Future.wait(listFuture).then((listResponse) {
-      if (listResponse == null || !mounted) {
+      if (!mounted) {
         return;
       }
       bool isHaveBasicData = true,
@@ -527,13 +506,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       _isFirstLoad = false;
       if (_videoPlayerController == null &&
           !Common.checkIsNotEmptyStr(
-              _videoDetailPageParamsBean?.getVideoSource)) {
+              _videoDetailPageParamsBean.getVideoSource)) {
         bool isFullScreen = false;
-        if (_chewieController != null && _chewieController.isFullScreen) {
+        if (_chewieController != null && _chewieController!.isFullScreen) {
           isFullScreen = true;
         }
-        _initVideoPlayers(
-                _getVideoInfoDataBean?.videosource ?? '', isFullScreen, null)
+        _initVideoPlayers(_getVideoInfoDataBean?.videosource ?? '',
+                isFullScreen, Duration.zero)
             .then((_) {
           setState(() {});
         });
@@ -543,13 +522,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _isNetIng = false;
       });
       if (_judgeIsNeedLoadNextPageData(
-          _videoDetailPageParamsBean?.getVid ?? '')) {
+          _videoDetailPageParamsBean.getVid ?? '')) {
         _httpVideoRelateList(true);
       }
     });
   }
 
-  bool _processVideoDetailsInfo(Response response) {
+  bool _processVideoDetailsInfo(Response? response) {
     if (response == null) {
       return false;
     }
@@ -558,7 +537,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     return _processVideoDetailsInfoByData(bean);
   }
 
-  bool _processVideoDetailsInfoByData(CosVideoDetailsBean bean) {
+  bool _processVideoDetailsInfoByData(CosVideoDetailsBean? bean) {
     if (bean == null) {
       return false;
     }
@@ -591,14 +570,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         return true;
       } else {
         CosLogUtil.log("VideoDetailPage: fetch empty video details info, "
-            "vid is ${_videoDetailPageParamsBean?.getVid ?? ''}, "
+            "vid is ${_videoDetailPageParamsBean.getVid ?? ''}, "
             "uid is ${Constant.uid ?? ''}");
         return false;
       }
     } else {
       CosLogUtil.log("VideoDetailPage: fail to fetch video details info, "
           "the error code is ${bean.status}, msg is ${bean.msg}, "
-          "vid is ${_videoDetailPageParamsBean?.getVid ?? ''}, "
+          "vid is ${_videoDetailPageParamsBean.getVid ?? ''}, "
           "uid is ${Constant.uid ?? ''}");
       return false;
     }
@@ -636,9 +615,9 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       return;
     }
     bool originVal = usrAutoPlaySetting;
-    SettingData data = await _loadUserSettingInfo(true);
+    SettingData? data = await _loadUserSettingInfo(true);
     bool isNeedRefresh = false;
-    if (data != null && data.profilesList != null) {
+    if (data != null) {
       isNeedRefresh = originVal == usrAutoPlaySetting;
     } else {
       bool isEqual = await _getAutoPlaySettingFromLocal();
@@ -646,23 +625,20 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         isNeedRefresh = true;
       }
     }
-    if (isNeedRefresh &&
-        _isInitFinish &&
-        _listData != null &&
-        _listData.isNotEmpty) {
+    if (isNeedRefresh && _isInitFinish && _listData.isNotEmpty) {
       setState(() {});
     }
   }
 
-  Future<SettingData> _loadUserSettingInfo(bool isSaveToLocal) async {
-    SettingData data;
+  Future<SettingData?> _loadUserSettingInfo(bool isSaveToLocal) async {
+    SettingData? data;
     if (!Common.judgeHasLogIn()) {
       //没登录就没必要去请求接口
       return null;
     }
     await RequestManager.instance
         .getUserSetting(
-      Constant.uid ?? '',
+      Constant.uid,
       tag: tag,
     )
         .then((response) {
@@ -692,11 +668,11 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     return data;
   }
 
-  bool _processUserSetting(SettingData data) {
+  bool _processUserSetting(SettingData? data) {
     if (data == null) {
       return usrAutoPlaySetting;
     }
-    if (data.profilesList != null && data.profilesList.isNotEmpty) {
+    if (data.profilesList.isNotEmpty) {
       data.profilesList.forEach((profilesData) {
         if (profilesData.type ==
             UserSettingType.AutoPlaySetting.index.toString()) {
@@ -751,10 +727,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   void _httpAddWatchHistory() {
     RequestManager.instance
         .addHistory(
-            tag, Constant.uid ?? '', _videoDetailPageParamsBean?.getVid ?? '')
+            tag, Constant.uid ?? '', _videoDetailPageParamsBean.getVid ?? '')
         .then((response) {
       if (response != null) {
-        SimpleBean bean = SimpleBean.fromJson(json.decode(response?.data));
+        SimpleBean bean = SimpleBean.fromJson(json.decode(response.data));
         if (bean.status == SimpleResponse.statusStrSuccess) {
           EventBusHelp.getInstance()
               .fire(WatchVideoEvent(_videoDetailPageParamsBean.getVid ?? ""));
@@ -768,8 +744,8 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         .getFollowingNewRecommendVideo(Constant.uid, uid ?? '', vid ?? '',
             tag: tag)
         .then((response) {
-      String curUid = _videoDetailPageParamsBean?.getUid ?? '';
-      String curVid = _videoDetailPageParamsBean?.getVid ?? '';
+      String curUid = _videoDetailPageParamsBean.getUid ?? '';
+      String curVid = _videoDetailPageParamsBean.getVid ?? '';
       if (response != null) {
         if (mounted) {
           if (curUid == uid && vid == curVid) {
@@ -777,9 +753,9 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                 GetVideoListNewBean.fromJson(json.decode(response.data));
             if (bean.status == SimpleResponse.statusStrSuccess &&
                 bean.data != null &&
-                bean.data.list != null) {
+                bean.data?.list != null) {
               VideoDetailDataMgr.instance.updateFollowingRecommendVideoByKey(
-                  _pageFlag, bean.data.list);
+                  _pageFlag, bean.data!.list);
               EventBusHelp.getInstance().fire(
                   FetchFollowingRecommendVideoFinishEvent(_pageFlag, true));
             }
@@ -794,10 +770,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
     }).catchError((err) {
       CosLogUtil.log("loadFollowingRecommendVideo: fail to load following "
-          "uid:${_videoDetailPageParamsBean?.getUid ?? ""}'s recommend "
+          "uid:${_videoDetailPageParamsBean.getUid ?? ""}'s recommend "
           "video list, the error is $err");
-      String curUid = _videoDetailPageParamsBean?.getUid ?? '';
-      String curVid = _videoDetailPageParamsBean?.getVid ?? '';
+      String curUid = _videoDetailPageParamsBean.getUid ?? '';
+      String curVid = _videoDetailPageParamsBean.getVid ?? '';
       if (curUid == uid && vid == curVid) {
         EventBusHelp.getInstance()
             .fire(FetchFollowingRecommendVideoFinishEvent(_pageFlag, false));
@@ -848,7 +824,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   void initTotalRevenue() {
     if (_getVideoInfoDataBean != null && _exchangeRateInfoData != null) {
-      _videoSettlementBean.setVestStatus = _getVideoInfoDataBean.vestStatus;
+      _videoSettlementBean.setVestStatus = _getVideoInfoDataBean!.vestStatus;
       _videoSettlementBean.setMoneySymbol =
           Common.getCurrencySymbolByLanguage();
       if (_getVideoInfoDataBean?.vestStatus ==
@@ -856,18 +832,18 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         /// 奖励完成
         ///已经结算直接用vest换算
         double settlementBonusVest = NumUtil.divide(
-            double.parse(_getVideoInfoDataBean?.vest ?? 0),
+            double.parse(_getVideoInfoDataBean!.vest),
             RevenueCalculationUtil.cosUnit);
         double settlementBonus = RevenueCalculationUtil.vestToRevenue(
             settlementBonusVest, _exchangeRateInfoData);
         double giftRevenueVest = NumUtil.divide(
-            double.parse(_getVideoInfoDataBean?.vestGift ?? 0),
+            double.parse(_getVideoInfoDataBean!.vestGift),
             RevenueCalculationUtil.cosUnit);
         double giftRevenue = RevenueCalculationUtil.vestToRevenue(
             giftRevenueVest, _exchangeRateInfoData);
         double totalRevenueVest = NumUtil.divide(
-            NumUtil.add(double.parse(_getVideoInfoDataBean?.vest ?? 0),
-                double.parse(_getVideoInfoDataBean?.vestGift ?? 0)),
+            NumUtil.add(double.parse(_getVideoInfoDataBean!.vest),
+                double.parse(_getVideoInfoDataBean!.vestGift)),
             RevenueCalculationUtil.cosUnit);
 //        String totalRevenue = RevenueCalculationUtil.vestToRevenue(
 //                totalRevenueVest, _exchangeRateInfoData)
@@ -878,7 +854,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
         _videoSettlementBean.setSettlementTime =
             TimeUtil.secondToYYYYMMddHHmmss(
-                int.parse(_getVideoInfoDataBean.vestTime ?? '0'));
+                int.parse(_getVideoInfoDataBean!.vestTime));
         _strSettlementTime = _videoSettlementBean.getSettlementTime;
         _videoSettlementBean.setSettlementBonusVest =
             settlementBonusVest.toStringAsFixed(2);
@@ -894,7 +870,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _videoSettlementBean.setSettlementTime = calculationSettlementTime();
         _strSettlementTime = _videoSettlementBean.getSettlementTime;
         double settlementBonusVest = RevenueCalculationUtil.getVideoRevenueVest(
-            _getVideoInfoDataBean?.votepower, _chainStateBean?.dgpo);
+            _getVideoInfoDataBean!.votepower, _chainStateBean?.dgpo);
         _videoSettlementBean.setSettlementBonusVest =
             settlementBonusVest.toStringAsFixed(2);
         _videoSettlementBean.setSettlementBonus =
@@ -902,7 +878,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                     settlementBonusVest, _exchangeRateInfoData)
                 .toStringAsFixed(2);
         double giftRevenueVest = RevenueCalculationUtil.getGiftRevenueVest(
-            _getVideoInfoDataBean?.vestGift);
+            _getVideoInfoDataBean!.vestGift);
         _videoSettlementBean.setGiftRevenueVest = giftRevenueVest.toString();
         _videoSettlementBean.setGiftRevenue =
             RevenueCalculationUtil.vestToRevenue(
@@ -912,10 +888,6 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
             NumUtil.add(settlementBonusVest, giftRevenueVest);
         _videoSettlementBean.setTotalRevenueVest =
             totalRevenueVest.toStringAsFixed(2);
-//      _videoSettlementBean.setTotalRevenue =
-//          RevenueCalculationUtil.vestToRevenue(
-//                  totalRevenueVest, _exchangeRateInfoData)
-//              .toStringAsFixed(2);
         double money = RevenueCalculationUtil.vestToRevenue(
             totalRevenueVest, _exchangeRateInfoData);
         String totalRevenue = Common.formatDecimalDigit(money, 2);
@@ -925,7 +897,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   Future<void> _initAuthorFollowStatus(String authorUid) async {
-    Response response = await RequestManager.instance
+    Response? response = await RequestManager.instance
         .accountIsFollow(tag, Constant.uid ?? '', authorUid ?? '');
     if (response == null) {
       return;
@@ -947,7 +919,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     });
     RequestManager.instance
         .videoIsLike(
-            tag, Constant.uid ?? '', _videoDetailPageParamsBean?.getVid ?? '')
+            tag, Constant.uid ?? '', _videoDetailPageParamsBean.getVid ?? '')
         .then((response) {
       if (response == null || !mounted) {
         return;
@@ -957,22 +929,23 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   /// 处理视频详情接口返回数据
-  bool _processGetVideoInfo(GetVideoInfoDataBean videoInfo) {
+  bool _processGetVideoInfo(GetVideoInfoDataBean? videoInfo) {
     if (videoInfo != null) {
       _getVideoInfoDataBean = videoInfo;
-      if (!TextUtil.isEmpty(_getVideoInfoDataBean.likeCount)) {
-        _linkCount = int.parse(_getVideoInfoDataBean.likeCount);
+      if (!TextUtil.isEmpty(_getVideoInfoDataBean!.likeCount)) {
+        _linkCount = int.parse(_getVideoInfoDataBean!.likeCount);
       } else {
         _linkCount = 0;
       }
-      if (_getVideoInfoDataBean.platform == VideoInfoResponse.platformUGC ||
-          _getVideoInfoDataBean.topicClass == VideoInfoResponse.topicClassYes) {
+      if (_getVideoInfoDataBean!.platform == VideoInfoResponse.platformUGC ||
+          _getVideoInfoDataBean!.topicClass ==
+              VideoInfoResponse.topicClassYes) {
         _popReward = popRewardHot;
       } else {
         _popReward = popRewardNormal;
       }
       if (TextUtil.isEmpty(_videoDetailPageParamsBean.getUid)) {
-        _videoDetailPageParamsBean.setUid = _getVideoInfoDataBean.uid ?? '';
+        _videoDetailPageParamsBean.setUid = _getVideoInfoDataBean!.uid;
       }
       return true;
     } else {
@@ -987,26 +960,22 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     _videoPlayerController = VideoPlayerController.network(videoUrl);
     _hasReportedVideoPlay = false;
     _videoLoadStartTime = DateTime.now();
-    _isBuffering = null;
-    if (startAt == null) {
-      startAt = Duration();
-    }
-    await _videoPlayerController.initialize().then((_) {
+    await _videoPlayerController?.initialize().then((_) {
       setState(() {
         _chewieController = ChewieController(
-          videoPlayerController: _videoPlayerController,
-          aspectRatio: _videoPlayerController.value.aspectRatio,
+          videoPlayerController: _videoPlayerController!,
+          aspectRatio: _videoPlayerController?.value.aspectRatio,
           autoPlay: true,
           startAt: startAt,
           looping: false,
           showControlsOnInitialize: false,
           allowMuting: false,
-          isLive: _videoPlayerController.value.duration == Duration.zero,
+          isLive: _videoPlayerController?.value.duration == Duration.zero,
           customControls: CosTVControls(
             _pageFlag,
             playNextVideoCallBack: () {
-              if (_listData != null && _listData.isNotEmpty) {
-                VideoPlayerValue playerValue = _videoPlayerController?.value;
+              if (_listData.isNotEmpty) {
+                VideoPlayerValue? playerValue = _videoPlayerController?.value;
                 if (playerValue != null) {
                   reportVideoEnd(playerValue);
                 }
@@ -1017,7 +986,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
             videoPlayEndCallBack: () {
               _handleCurVideoPlayEnd();
             },
-            clickRecommendVideoCallBack: (RelateListItemBean info) {
+            clickRecommendVideoCallBack: (RelateListItemBean? info) {
               if (info != null) {
                 _handlePlayNextVideo(
                     info,
@@ -1028,17 +997,17 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
               }
             },
             refreshRecommendVideoCallBack: () {
-              _refreshRecommendVideoInfo(_videoDetailPageParamsBean?.getVid);
+              _refreshRecommendVideoInfo(_videoDetailPageParamsBean.getVid);
             },
             handelFollowCallBack: () {
               _checkAbleAccountFollow();
             },
             fetchFollowingRecommendVideoCallBack: () {
-              _loadFollowingRecommendVideo(_videoDetailPageParamsBean?.getUid,
-                  _videoDetailPageParamsBean?.getVid);
+              _loadFollowingRecommendVideo(_videoDetailPageParamsBean.getUid,
+                  _videoDetailPageParamsBean.getVid);
             },
             playCreatorRecommendVideoCallBack:
-                (GetVideoListNewDataListBean videoInfo) {
+                (GetVideoListNewDataListBean? videoInfo) {
               if (videoInfo != null) {
                 VideoDetailDataMgr.instance
                     .updateCachedNextVideoInfoByKey(_pageFlag, null);
@@ -1064,26 +1033,26 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           ),
           materialProgressColors: CosTVControlColor.MaterialProgressColors,
           routePageBuilder: CosTvFullScreenBuilder.of(
-              _videoPlayerController.value.aspectRatio),
+              _videoPlayerController?.value.aspectRatio ?? 0),
           deviceOrientationsAfterFullScreen: [DeviceOrientation.portraitUp],
           isInitFullScreen: isFullScreen,
         );
         _isVideoChangedInit = true;
-        _videoPlayerController.addListener(videoPlayerChanged);
+        _videoPlayerController?.addListener(videoPlayerChanged);
       });
     });
   }
 
   void videoPlayerChanged() {
-    VideoPlayerValue playerValue = _videoPlayerController?.value;
+    VideoPlayerValue? playerValue = _videoPlayerController?.value;
     if (playerValue == null) {
       return;
     }
 
-    if (_isBuffering == null || playerValue.isBuffering != _isBuffering) {
+    if (playerValue.isBuffering != _isBuffering) {
       _isBuffering = playerValue.isBuffering;
       String vid = _getVideoId();
-      String videoUrl = _videoDetailPageParamsBean?.getVideoSource ?? "";
+      String videoUrl = _videoDetailPageParamsBean.getVideoSource ?? "";
       if (Common.checkIsNotEmptyStr(videoUrl)) {
         videoUrl = _getVideoInfoDataBean?.videosource ?? "";
       }
@@ -1094,7 +1063,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
             params: {"vid": vid, "videourl": videoUrl});
       } else {
         int curTime = DateTime.now().millisecondsSinceEpoch;
-        if (_bufferStartTime != null && _bufferStartTime != -1) {
+        if (_bufferStartTime != -1) {
           int bufferTime = curTime - _bufferStartTime;
           DataReportUtil.instance.reportData(
               eventName: "Play_buffer_end",
@@ -1110,9 +1079,9 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
     // 对接看视频得POP倒计时
     if (playerValue.isPlaying) {
-      if (_timerUtil != null && !_timerUtil.isActive()) {
+      if (!_timerUtil.isActive()) {
         _timerUtil.startCountDown();
-        String vid = _videoDetailPageParamsBean?.getVid ?? '';
+        String vid = _videoDetailPageParamsBean.getVid ?? '';
         if (ObjectUtil.isEmptyString(vid)) {
           vid = _getVideoInfoDataBean?.id ?? '';
         }
@@ -1123,7 +1092,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         }
       }
     } else {
-      if (_timerUtil != null && _timerUtil.isActive()) {
+      if (_timerUtil.isActive()) {
         _timerUtil.cancel();
       }
     }
@@ -1202,8 +1171,9 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       _hasReportedVideoPlay = true;
       String videoSource = _videoDetailPageParamsBean.getVideoSource ?? '';
       if (!Common.checkIsNotEmptyStr(videoSource)) {
-        if (Common.checkIsNotEmptyStr(_getVideoInfoDataBean?.videosource)) {
-          videoSource = _getVideoInfoDataBean?.videosource;
+        if (Common.checkIsNotEmptyStr(
+            _getVideoInfoDataBean?.videosource ?? "")) {
+          videoSource = _getVideoInfoDataBean?.videosource ?? "";
         }
       }
       DataReportUtil.instance.reportData(
@@ -1214,29 +1184,27 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         },
       );
 
-      if (_videoLoadStartTime != null) {
-        DataReportUtil.instance.reportData(
-          eventName: "Video_loading",
-          params: {
-            "vid": _getVideoId(),
-            "uid": Constant.uid ?? "0",
-            "loadingms": DateTime.now().millisecondsSinceEpoch -
-                _videoLoadStartTime.millisecondsSinceEpoch,
-            "videourl": videoSource
-          },
-        );
-      }
+      DataReportUtil.instance.reportData(
+        eventName: "Video_loading",
+        params: {
+          "vid": _getVideoId(),
+          "uid": Constant.uid ?? "0",
+          "loadingms": DateTime.now().millisecondsSinceEpoch -
+              _videoLoadStartTime.millisecondsSinceEpoch,
+          "videourl": videoSource
+        },
+      );
     }
   }
 
   ///视频停止、切换、播放完成、退到后台时的上报
   void reportVideoEnd(VideoPlayerValue playerValue) {
     num playTimeProportion = NumUtil.getNumByValueDouble(
-        NumUtil.multiply(
-            NumUtil.divide(_currentPlayerPosition.inSeconds,
-                playerValue.duration.inSeconds),
-            100),
-        2);
+            NumUtil.multiply(_currentPlayerPosition.inSeconds,
+                    playerValue.duration.inSeconds) /
+                100,
+            2) ??
+        0;
     DataReportUtil.instance.reportData(
       eventName: "Play_time_proportion",
       params: {
@@ -1280,7 +1248,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     });
     if (_cosInfoBean == null) {
       //先公链获取视频account信息,否则点赞成功之后没法计算视频的增值
-      AccountResponse bean = await CosSdkUtil.instance
+      AccountResponse? bean = await CosSdkUtil.instance
           .getAccountChainInfo(Constant.accountName ?? '');
       if (bean != null) {
         _cosInfoBean = bean.info;
@@ -1290,7 +1258,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
     }
     RequestManager.instance
-        .videoLike(tag, _videoDetailPageParamsBean?.getVid ?? '',
+        .videoLike(tag, _videoDetailPageParamsBean.getVid ?? '',
             Constant.accountName ?? '')
         .then((response) {
       if (response == null || !mounted) {
@@ -1298,8 +1266,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
       SimpleProxyBean bean =
           SimpleProxyBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleProxyResponse.statusStrSuccess &&
-          bean.data != null) {
+      if (bean.status == SimpleProxyResponse.statusStrSuccess) {
         if (bean.data.ret == SimpleProxyResponse.responseSuccess) {
           _linkCount++;
           _isVideoLike = true;
@@ -1307,26 +1274,22 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
               _cosInfoBean,
               _exchangeRateInfoData,
               _chainStateBean,
-              _getVideoInfoDataBean.votepower,
-              _getVideoInfoDataBean.vestGift);
+              _getVideoInfoDataBean?.votepower,
+              _getVideoInfoDataBean?.vestGift);
           if (Common.checkIsNotEmptyStr(addVal)) {
-            var videoWorthKey =
-                Common.getAddMoneyViewKeyFromSymbol(_getVideoInfoDataBean.id);
-            if (videoWorthKey != null && videoWorthKey.currentState != null) {
-              videoWorthKey.currentState.startShowWithAni(
+            var videoWorthKey = Common.getAddMoneyViewKeyFromSymbol(
+                _getVideoInfoDataBean?.id ?? "");
+            if (videoWorthKey.currentState != null) {
+              videoWorthKey.currentState?.startShowWithAni(
                   "+ " + '${Common.getCurrencySymbolByLanguage()} $addVal');
             }
           }
           _addVoterPowerToVideo();
         } else {
-          if (_mapRemoteResError != null && bean.data.ret != null) {
-            ToastUtil.showToast(_mapRemoteResError[bean.data.ret] ?? '');
-          } else {
-            ToastUtil.showToast(bean?.data?.error ?? '');
-          }
+          ToastUtil.showToast(_mapRemoteResError[bean.data.ret] ?? '');
         }
       } else {
-        ToastUtil.showToast(bean?.data?.error ?? '');
+        ToastUtil.showToast(bean.data.error ?? '');
       }
     }).whenComplete(() {
       if (!mounted) {
@@ -1384,7 +1347,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
             int originFollowCnt =
                 int.parse(_getVideoInfoDataBean?.followerCount ?? "0");
             originFollowCnt += 1;
-            _getVideoInfoDataBean.followerCount = originFollowCnt.toString();
+            _getVideoInfoDataBean?.followerCount = originFollowCnt.toString();
           }
           EventBusHelp.getInstance()
               .fire(FollowStatusChangeEvent(_pageFlag, true, true));
@@ -1393,7 +1356,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         if (bean.status == "50007") {
           ToastUtil.showToast(InternationalLocalizations.followSelfErrorTips);
         } else {
-          ToastUtil.showToast(bean.msg);
+          ToastUtil.showToast(bean.msg ?? "");
         }
         EventBusHelp.getInstance()
             .fire(FollowStatusChangeEvent(_pageFlag, true, false));
@@ -1433,13 +1396,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
             int originFollowCnt =
                 int.parse(_getVideoInfoDataBean?.followerCount ?? "0");
             originFollowCnt -= 1;
-            _getVideoInfoDataBean.followerCount = originFollowCnt.toString();
+            _getVideoInfoDataBean?.followerCount = originFollowCnt.toString();
           }
           EventBusHelp.getInstance()
               .fire(FollowStatusChangeEvent(_pageFlag, false, true));
         }
       } else {
-        ToastUtil.showToast(bean.msg);
+        ToastUtil.showToast(bean.msg ?? "");
         EventBusHelp.getInstance()
             .fire(FollowStatusChangeEvent(_pageFlag, false, false));
       }
@@ -1482,22 +1445,21 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
       VideoCommentBean bean =
           VideoCommentBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleProxyResponse.statusStrSuccess &&
-          bean.data != null) {
+      if (bean.status == SimpleProxyResponse.statusStrSuccess) {
         if (bean.data.ret == SimpleProxyResponse.responseSuccess) {
-          _httpGetTicketInfo(vid, uid, bean.data?.replyid ?? '', content);
+          _httpGetTicketInfo(vid, uid, bean.data.replyid ?? '', content);
         } else {
-          if (_mapRemoteResError != null && bean.data.ret != null) {
+          if (bean.data.ret != null) {
             ToastUtil.showToast(_mapRemoteResError[bean.data.ret] ?? '');
           } else {
-            ToastUtil.showToast(bean?.data?.error ?? '');
+            ToastUtil.showToast(bean.data.error ?? '');
           }
           setState(() {
             _isNetIng = false;
           });
         }
       } else {
-        ToastUtil.showToast(bean?.data?.error ?? '');
+        ToastUtil.showToast(bean.data.error ?? '');
         setState(() {
           _isNetIng = false;
         });
@@ -1515,7 +1477,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _listComment.insert(0, commentListItemBean);
       }
       if (!TextUtil.isEmpty(_commentListDataBean?.total)) {
-        int total = int.parse(_commentListDataBean?.total);
+        int total = int.parse(_commentListDataBean?.total ?? "");
         total++;
         _commentListDataBean?.total = total.toString();
       }
@@ -1525,15 +1487,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         });
       });
     } else {
-      if (_listComment.length > _sendCommentIndex &&
-          _listComment[_sendCommentIndex] is CommentListItemBean) {
+      if (_listComment.length > _sendCommentIndex) {
         CommentListItemBean commentListItemBean =
             _listComment[_sendCommentIndex];
         CommentListChildrenBean commentListChildrenBean =
             _buildCommentChildrenBean(
-                commentListItemBean?.cid ?? '', replyId, content);
-        if (!ObjectUtil.isEmptyList(commentListItemBean?.children)) {
-          commentListItemBean.children.insert(0, commentListChildrenBean);
+                commentListItemBean.cid ?? '', replyId, content);
+        if (!ObjectUtil.isEmptyList(commentListItemBean.children)) {
+          commentListItemBean.children?.insert(0, commentListChildrenBean);
         } else {
           commentListItemBean.children = [commentListChildrenBean];
         }
@@ -1556,9 +1517,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
       AccountGetInfoBean bean =
           AccountGetInfoBean.fromJson(json.decode(response.data));
-      if (bean != null &&
-          bean.status == SimpleResponse.statusStrSuccess &&
-          bean.data != null) {
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         Constant.accountGetInfoDataBean = bean.data;
         refreshCommentTop(replyId, content);
       } else {
@@ -1625,7 +1584,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   /// 处理评论列表返回数据
   bool _processVideoCommentList(
-      Response response, bool isLoadMore, bool isClearData) {
+      Response? response, bool isLoadMore, bool isClearData) {
     if (response == null) {
       return false;
     }
@@ -1634,38 +1593,35 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   /// 处理当前用户与创作者之间的关系
-  _processExclusiveRelation(Response response) {
+  _processExclusiveRelation(Response? response) {
     if (response == null) {
       return false;
     }
     ExclusiveRelationBean bean =
         ExclusiveRelationBean.fromJson(json.decode(response.data));
-    if (bean != null &&
-        bean.status == SimpleResponse.statusStrSuccess &&
-        bean.data != null &&
-        !ObjectUtil.isEmptyList(bean.data.list) &&
-        bean.data.list[0] != null) {
+    if (bean.status == SimpleResponse.statusStrSuccess &&
+        !ObjectUtil.isEmptyList(bean.data.list)) {
       _exclusiveRelationItemBean = bean.data.list[0];
     }
   }
 
   bool _processVideoCommentListByData(
-      CommentListBean bean, bool isLoadMore, bool isClearData) {
+      CommentListBean? bean, bool isLoadMore, bool isClearData) {
     if (bean == null) {
       return false;
     }
-    if (bean.status == SimpleResponse.statusStrSuccess && bean.data != null) {
+    if (bean.status == SimpleResponse.statusStrSuccess) {
       if (!ObjectUtil.isEmptyList(bean.data.list) || bean.data.top != null) {
         _commentListDataBean = bean.data;
         if (!isLoadMore || isClearData) {
           _listComment.clear();
-          if (_commentListDataBean.top != null) {
-            _listComment.add(_commentListDataBean.top);
+          if (_commentListDataBean?.top != null) {
+            _listComment.add(_commentListDataBean?.top as CommentListItemBean);
           }
         }
       }
       if (!ObjectUtil.isEmptyList(_commentListDataBean?.list)) {
-        _listComment.addAll(_commentListDataBean.list);
+        _listComment.addAll(_commentListDataBean!.list);
         _commentPage++;
       }
 //      if (bean.data.isCommented == CommentListDataBean.isCommentedNo &&
@@ -1681,7 +1637,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     } else if (bean.status == SimpleResponse.statusStrSuccess) {
       return true;
     } else {
-      ToastUtil.showToast(bean.msg);
+      ToastUtil.showToast(bean.msg ?? "");
       return false;
     }
   }
@@ -1693,7 +1649,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     });
     if (_cosInfoBean == null) {
       //先公链获取视频account信息,否则点赞成功之后没法计算评论的增值
-      AccountResponse bean = await CosSdkUtil.instance
+      AccountResponse? bean = await CosSdkUtil.instance
           .getAccountChainInfo(Constant.accountName ?? '');
       if (bean != null) {
         _cosInfoBean = bean.info;
@@ -1710,16 +1666,15 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
       SimpleProxyBean bean =
           SimpleProxyBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleProxyResponse.statusStrSuccess &&
-          bean.data != null) {
+      if (bean.status == SimpleProxyResponse.statusStrSuccess) {
         GlobalObjectKey<VideoAddMoneyWidgetState> commentKey;
         String addVal = "";
         if (bean.data.ret == SimpleProxyResponse.responseSuccess) {
           CommentListItemBean commentListItemBean = _listComment[index];
-          commentListItemBean?.isLike = '1';
-          if (!TextUtil.isEmpty(commentListItemBean?.likeCount)) {
-            commentListItemBean?.likeCount =
-                (int.parse(commentListItemBean?.likeCount) + 1).toString();
+          commentListItemBean.isLike = '1';
+          if (!TextUtil.isEmpty(commentListItemBean.likeCount)) {
+            commentListItemBean.likeCount =
+                (int.parse(commentListItemBean.likeCount ?? "") + 1).toString();
           }
           commentKey =
               Common.getAddMoneyViewKeyFromSymbol(commentListItemBean.cid);
@@ -1730,20 +1685,19 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
               commentListItemBean.votepower);
           _addVoterPowerToComment(commentListItemBean);
           if (Common.checkIsNotEmptyStr(addVal) &&
-              commentKey != null &&
               commentKey.currentState != null) {
-            commentKey.currentState.startShowWithAni(
+            commentKey.currentState?.startShowWithAni(
                 "+ " + '${Common.getCurrencySymbolByLanguage()} $addVal');
           }
         } else {
-          if (_mapRemoteResError != null && bean.data.ret != null) {
+          if (bean.data.ret != null) {
             ToastUtil.showToast(_mapRemoteResError[bean.data.ret] ?? '');
           } else {
-            ToastUtil.showToast(bean?.data?.error ?? '');
+            ToastUtil.showToast(bean.data.error ?? "");
           }
         }
       } else {
-        ToastUtil.showToast(bean?.data?.error ?? '');
+        ToastUtil.showToast(bean.data.error ?? "");
       }
     }).whenComplete(() {
       if (!mounted) {
@@ -1788,7 +1742,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   /// 处理视频相关推荐列表返回数据
-  bool _processVideoRelateList(Response response, bool isLoading) {
+  bool _processVideoRelateList(Response? response, bool isLoading) {
     if (response == null) {
       return false;
     }
@@ -1796,25 +1750,21 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     return _processVideoRelateListByData(bean, isLoading);
   }
 
-  bool _processVideoRelateListByData(RelateListBean bean, bool isLoading) {
+  bool _processVideoRelateListByData(RelateListBean? bean, bool isLoading) {
     if (bean == null) {
       return false;
     }
-    if (bean.status == SimpleResponse.statusStrSuccess &&
-        bean.data != null &&
-        bean.data[0] != null) {
-      if (bean.data[0].list != null) {
-        if (bean.data[0].list.isNotEmpty) {
-          _listRelate = bean.data[0].list;
-          _listData.addAll(_listRelate);
-        }
-        if (!isLoading) {
-          Future.delayed(Duration(seconds: 1), () {
-            if (!_isScrolling) {
-              _reportVideoExposure();
-            }
-          });
-        }
+    if (bean.status == SimpleResponse.statusStrSuccess) {
+      if (bean.data[0].list.isNotEmpty) {
+        _listRelate = bean.data[0].list;
+        _listData.addAll(_listRelate);
+      }
+      if (!isLoading) {
+        Future.delayed(Duration(seconds: 1), () {
+          if (!_isScrolling) {
+            _reportVideoExposure();
+          }
+        });
       }
       _videoPage++;
       _isHaveMoreData = bean.data[0].hasNext == "1";
@@ -1822,30 +1772,28 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     } else if (bean.status == SimpleResponse.statusStrSuccess) {
       return true;
     } else {
-      ToastUtil.showToast(bean?.msg ?? '');
+      ToastUtil.showToast(bean.msg ?? '');
       return false;
     }
   }
 
   String _getVideoId() {
     String vid = '';
-    if (_getVideoInfoDataBean != null && _getVideoInfoDataBean.id != null) {
-      vid = _getVideoInfoDataBean.id;
-    } else if (_videoDetailPageParamsBean != null &&
-        _videoDetailPageParamsBean.getVid != null) {
+    if (_getVideoInfoDataBean != null && _getVideoInfoDataBean?.id != null) {
+      vid = _getVideoInfoDataBean!.id;
+    } else
       vid = _videoDetailPageParamsBean.getVid;
-    }
+
     return vid;
   }
 
   String _getUidOfVideo() {
     String uid = '';
-    if (_getVideoInfoDataBean != null && _getVideoInfoDataBean.uid != null) {
-      uid = _getVideoInfoDataBean.uid;
-    } else if (_videoDetailPageParamsBean != null &&
-        _videoDetailPageParamsBean.getUid != null) {
+    if (_getVideoInfoDataBean != null && _getVideoInfoDataBean?.uid != null) {
+      uid = _getVideoInfoDataBean!.uid;
+    } else
       uid = _videoDetailPageParamsBean.getUid;
-    }
+
     return uid;
   }
 
@@ -1866,21 +1814,21 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _isGetVideoPop = false;
         return;
       }
-      IntegralVideoIntegralBean bean =
+      IntegralVideoIntegralBean? bean =
           IntegralVideoIntegralBean.fromJson(json.decode(response.data));
       if (bean.status == SimpleProxyResponse.statusStrSuccess) {
         if (_bankPropertyDataBean != null &&
-            _bankPropertyDataBean.popcorn != null &&
-            !TextUtil.isEmpty(_bankPropertyDataBean.popcorn.popcornbal)) {
-          _bankPropertyDataBean.popcorn.popcornbal =
-              (int.parse(_bankPropertyDataBean.popcorn.popcornbal) + _popReward)
+            !TextUtil.isEmpty(_bankPropertyDataBean!.popcorn.popcornbal)) {
+          _bankPropertyDataBean!.popcorn.popcornbal =
+              (int.parse(_bankPropertyDataBean!.popcorn.popcornbal) +
+                      _popReward)
                   .toString();
         }
       } else {
-        if (_mapVideoIntegralError != null && bean.status != null) {
+        if (_mapVideoIntegralError != null) {
           ToastUtil.showToast(_mapVideoIntegralError[bean.status]);
         } else {
-          ToastUtil.showToast(bean?.msg);
+          ToastUtil.showToast(bean.msg ?? "");
         }
       }
     }).whenComplete(() {
@@ -1889,7 +1837,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   /// 处理查询汇率返回数据
-  void _processExchangeRateInfo(Response response) {
+  void _processExchangeRateInfo(Response? response) {
     if (response == null) {
       return;
     }
@@ -1903,7 +1851,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   void _checkAbleVideoLike() {
     if (!_isVideoLike &&
         _getVideoInfoDataBean != null &&
-        !TextUtil.isEmpty(_getVideoInfoDataBean.id)) {
+        !TextUtil.isEmpty(_getVideoInfoDataBean?.id)) {
       if (!ObjectUtil.isEmptyString(Constant.accountName)) {
         if (_checkIsEnergyEnough()) {
           _httpVideoLike();
@@ -1911,29 +1859,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           _showEnergyNotEnoughDialog();
         }
       } else {
-        if (Platform.isAndroid) {
-          WebViewUtil.instance
-              .openWebViewResult(Constant.logInWebViewUrl)
-              .then((isSuccess) {
-            if (isSuccess != null && isSuccess) {
-              _httpVideoIsLike(true);
-              _httpAddWatchHistory();
-            }
-          });
-        } else {
-          Navigator.of(context).push(SlideAnimationRoute(
-            builder: (_) {
-              return WebViewPage(
-                Constant.logInWebViewUrl,
-              );
-            },
-          )).then((isSuccess) {
-            if (isSuccess != null && isSuccess) {
-              _httpVideoIsLike(true);
-              _httpAddWatchHistory();
-            }
-          });
-        }
+        WebViewUtil.instance
+            .openWebViewResult(Constant.logInWebViewUrl, context)
+            .then((isSuccess) {
+          if (isSuccess) {
+            _httpVideoIsLike(true);
+            _httpAddWatchHistory();
+          }
+        });
       }
     }
   }
@@ -1946,63 +1879,31 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _httpAccountFollow();
       }
     } else {
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) async {
-          if (isSuccess != null && isSuccess) {
-            if (!_isNetIng) {
+      WebViewUtil.instance
+          .openWebViewResult(Constant.logInWebViewUrl, context)
+          .then((isSuccess) async {
+        if (isSuccess) {
+          if (!_isNetIng) {
+            setState(() {
+              _isNetIng = true;
+            });
+          }
+          bool oldStatus = _isFollow;
+          await _initAuthorFollowStatus(_getVideoInfoDataBean?.uid ?? '');
+          if (oldStatus == _isFollow) {
+            _checkAbleAccountFollow();
+          } else {
+            EventBusHelp.getInstance()
+                .fire(FollowStatusChangeEvent(_pageFlag, _isFollow, true));
+            if (_isNetIng) {
               setState(() {
-                _isNetIng = true;
+                _isNetIng = false;
               });
             }
-            bool oldStatus = _isFollow;
-            await _initAuthorFollowStatus(_getVideoInfoDataBean?.uid ?? '');
-            if (oldStatus == _isFollow) {
-              _checkAbleAccountFollow();
-            } else {
-              EventBusHelp.getInstance()
-                  .fire(FollowStatusChangeEvent(_pageFlag, _isFollow, true));
-              if (_isNetIng) {
-                setState(() {
-                  _isNetIng = false;
-                });
-              }
-            }
-            _httpAddWatchHistory();
           }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) async {
-          if (isSuccess != null && isSuccess) {
-            if (!_isNetIng) {
-              setState(() {
-                _isNetIng = true;
-              });
-            }
-            bool oldStatus = _isFollow;
-            await _initAuthorFollowStatus(_getVideoInfoDataBean?.uid ?? '');
-            if (oldStatus == _isFollow) {
-              _checkAbleAccountFollow();
-            } else {
-              EventBusHelp.getInstance()
-                  .fire(FollowStatusChangeEvent(_pageFlag, _isFollow, true));
-              if (_isNetIng) {
-                setState(() {
-                  _isNetIng = false;
-                });
-              }
-            }
-            _httpAddWatchHistory();
-          }
-        });
-      }
+          _httpAddWatchHistory();
+        }
+      });
     }
   }
 
@@ -2016,29 +1917,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         }
       }
     } else {
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleCommentLike(isLike, cid, index);
-            _httpAddWatchHistory();
-          }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleCommentLike(isLike, cid, index);
-            _httpAddWatchHistory();
-          }
-        });
-      }
+      WebViewUtil.instance
+          .openWebViewResult(Constant.logInWebViewUrl, context)
+          .then((isSuccess) {
+        if (isSuccess) {
+          _checkAbleCommentLike(isLike, cid, index);
+          _httpAddWatchHistory();
+        }
+      });
     }
   }
 
@@ -2061,38 +1947,23 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _httpVideoComment(Constant.accountName, id, content, vid, uid);
       }
     } else {
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleVideoComment(id, vid, uid);
-            _httpAddWatchHistory();
-          }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleVideoComment(id, vid, uid);
-            _httpAddWatchHistory();
-          }
-        });
-      }
+      WebViewUtil.instance
+          .openWebViewResult(Constant.logInWebViewUrl, context)
+          .then((isSuccess) {
+        if (isSuccess) {
+          _checkAbleVideoComment(id, vid, uid);
+          _httpAddWatchHistory();
+        }
+      });
     }
   }
 
   bool _checkIsEnergyEnough() {
     double energy = RevenueCalculationUtil.calCurrentEnergy(
-        _cosInfoBean?.votePower?.toString(),
-        _cosInfoBean?.vest?.value?.toString());
+        _cosInfoBean?.votePower.toString() ?? "",
+        _cosInfoBean?.vest.value.toString() ?? "");
     double lowest = RevenueCalculationUtil.calLowestEnergyConsume(
-        _cosInfoBean?.vest?.value?.toString());
+        _cosInfoBean?.vest.value.toString() ?? "");
 
     CosLogUtil.log('$tag energy: $energy, lowest: $lowest');
 
@@ -2106,15 +1977,15 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     }
 
     double energy = RevenueCalculationUtil.calCurrentEnergy(
-        _cosInfoBean?.votePower?.toString(),
-        _cosInfoBean?.vest?.value?.toString());
+        _cosInfoBean?.votePower.toString() ?? "",
+        _cosInfoBean?.vest.value.toString() ?? "");
     double maxEnergy = RevenueCalculationUtil.vestToEnergy(
-        _cosInfoBean?.vest?.value?.toString());
+        _cosInfoBean?.vest.value.toString() ?? "");
     int resumeMinutes =
         RevenueCalculationUtil.calResumeLowestEnergyMinutes(energy, maxEnergy);
 
-    _energyNotEnoughDialog.initData(resumeMinutes.toString());
-    _energyNotEnoughDialog.show();
+    _energyNotEnoughDialog?.initData(resumeMinutes.toString());
+    _energyNotEnoughDialog?.show();
   }
 
   Widget _buildPopShow() {
@@ -2152,7 +2023,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
               child: Image.asset('assets/images/ic_pop_number.png'),
             ),
             AutoSizeText(
-              _bankPropertyDataBean?.popcorn?.popcornbal ?? '',
+              _bankPropertyDataBean?.popcorn.popcornbal ?? '',
               style: AppStyles.text_style_f7b500_bold_14,
               minFontSize: 8,
             ),
@@ -2230,7 +2101,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                 child: Image.asset('assets/images/ic_pop_number.png'),
               ),
               AutoSizeText(
-                _bankPropertyDataBean?.popcorn?.popcornbal ?? '',
+                _bankPropertyDataBean?.popcorn.popcornbal ?? '',
                 style: AppStyles.text_style_f7b500_14,
                 minFontSize: 8,
               ),
@@ -2242,29 +2113,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       return InkWell(
         onTap: () {
           if (Common.isAbleClick()) {
-            if (Platform.isAndroid) {
-              WebViewUtil.instance
-                  .openWebViewResult(Constant.logInWebViewUrl)
-                  .then((isSuccess) {
-                if (isSuccess != null && isSuccess) {
-                  setState(() {});
-                  _httpAddWatchHistory();
-                }
-              });
-            } else {
-              Navigator.of(context).push(SlideAnimationRoute(
-                builder: (_) {
-                  return WebViewPage(
-                    Constant.logInWebViewUrl,
-                  );
-                },
-              )).then((isSuccess) {
-                if (isSuccess != null && isSuccess) {
-                  setState(() {});
-                  _httpAddWatchHistory();
-                }
-              });
-            }
+            WebViewUtil.instance
+                .openWebViewResult(Constant.logInWebViewUrl, context)
+                .then((isSuccess) {
+              if (isSuccess) {
+                setState(() {});
+                _httpAddWatchHistory();
+              }
+            });
           }
         },
         child: Padding(
@@ -2291,7 +2147,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     if (_getVideoInfoDataBean != null &&
         !TextUtil.isEmpty(_getVideoInfoDataBean?.createdAt)) {
       millisecondsSinceEpoch =
-          int.parse(_getVideoInfoDataBean.createdAt) * 1000;
+          int.parse(_getVideoInfoDataBean?.createdAt ?? "") * 1000;
     }
     DateTime dateTime =
         DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch);
@@ -2461,7 +2317,8 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                       onTap: () {
                         if (Common.isAbleClick()) {
                           if (_getVideoInfoDataBean != null) {
-                            final RenderBox box = context.findRenderObject();
+                            RenderBox box =
+                                context.findRenderObject() as RenderBox;
                             Share.share(
                                 '${_getVideoInfoDataBean?.title ?? ''}_COS.TV\n${_getVideoInfoDataBean?.introduction ?? ''}\n${Constant.shareUrl}${_getVideoInfoDataBean?.id ?? ''}',
                                 subject: _getVideoInfoDataBean?.title ?? '',
@@ -2501,10 +2358,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                             _videoReportDialog =
                                 VideoReportDialog(tag, _pageKey, _dialogSKey);
                           }
-                          _videoReportDialog.initData(
+                          _videoReportDialog?.initData(
                               _getVideoInfoDataBean?.id ?? '',
                               _getVideoInfoDataBean?.duration ?? '0');
-                          _videoReportDialog.showVideoReportDialog();
+                          _videoReportDialog?.showVideoReportDialog();
                         }
                       },
                       child: Container(
@@ -2598,7 +2455,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                     children: <Widget>[
                       VideoAddMoneyWidget(
                           key: Common.getAddMoneyViewKeyFromSymbol(
-                              _getVideoInfoDataBean?.id),
+                              _getVideoInfoDataBean?.id ?? ""),
                           textStyle: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
@@ -2609,7 +2466,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                             fontWeight: FontWeight.w700,
                           ),
                           baseWidget: AutoSizeText(
-                            '${Common.getCurrencySymbolByLanguage()} ${_videoSettlementBean.getTotalRevenue ?? ""}',
+                            '${Common.getCurrencySymbolByLanguage()} ${_videoSettlementBean.getTotalRevenue}',
                             style: TextStyle(
                                 color: AppThemeUtil.setDifferentModeColor(
                                   lightColor: AppColors.color_333333,
@@ -2859,8 +2716,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                                     CosLogUtil.log('$tag error: $error');
                                     return;
                                   }
-                                  if (uri != null &&
-                                      uri.path.startsWith(Constant
+                                  if (uri.path.startsWith(Constant
                                           .webPageVideoPlayPathLeading) &&
                                       uri.pathSegments.length ==
                                           Constant
@@ -2947,7 +2803,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   bool _checkHasTag() {
-    int cnt = _getVideoInfoDataBean?.tagName?.length ?? 0;
+    int cnt = _getVideoInfoDataBean?.tagName.length ?? 0;
     if (cnt > 0) {
       return true;
     }
@@ -2956,10 +2812,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   List<Widget> _getTagListWidget() {
     List<Widget> list = [];
-    int cnt = _getVideoInfoDataBean?.tagName?.length ?? 0;
+    int cnt = _getVideoInfoDataBean?.tagName.length ?? 0;
     if (cnt > 0) {
       for (int i = 0; i < cnt; ++i) {
-        TagNameBean tagName = _getVideoInfoDataBean?.tagName[i];
+        TagNameBean? tagName = _getVideoInfoDataBean?.tagName[i];
         var tagWidget = Container(
           margin: EdgeInsets.only(right: AppDimens.margin_7),
           child: Stack(
@@ -3028,12 +2884,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     double timeCountNum = 0;
     if (!TextUtil.isEmpty(_getVideoInfoDataBean?.blocknumber)) {
       if (_chainStateBean != null &&
-          _chainStateBean.dgpo != null &&
-          _chainStateBean.dgpo.headBlockNumber != null) {
+          _chainStateBean?.dgpo != null &&
+          _chainStateBean?.dgpo.headBlockNumber != null) {
         double difference = NumUtil.subtract(
             NumUtil.add(settlementTime,
-                double.parse(_getVideoInfoDataBean.blocknumber)),
-            _chainStateBean.dgpo.headBlockNumber.toInt());
+                double.parse(_getVideoInfoDataBean?.blocknumber ?? "")),
+            num.parse(_chainStateBean?.dgpo.headBlockNumber.toString() ?? ""));
         timeCountNum = difference > 0
             ? NumUtil.add(NumUtil.multiply(difference, 1000),
                 DateTime.now().millisecondsSinceEpoch)
@@ -3042,8 +2898,8 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     } else {
       if (!TextUtil.isEmpty(_getVideoInfoDataBean?.createdAt)) {
         timeCountNum = NumUtil.multiply(
-            NumUtil.add(
-                double.parse(_getVideoInfoDataBean?.createdAt), settlementTime),
+            NumUtil.add(double.parse(_getVideoInfoDataBean?.createdAt ?? ""),
+                settlementTime),
             1000);
       }
     }
@@ -3059,7 +2915,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     return InkWell(
       onTap: () {
         if (Common.isAbleClick()) {
-          String sort;
+          String sort = '';
           setState(() {
             if (_commentTypeCurrent == CommentType.commentTypeHot) {
               _commentTypeCurrent = CommentType.commentTypeTime;
@@ -3103,17 +2959,19 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       CommentListItemBean commentListItemBean, int index, bool isReply) {
     OpenCommentChildrenParameterBean bean = OpenCommentChildrenParameterBean();
     bean.isReply = isReply;
-    bean.vid = commentListItemBean?.vid ?? '';
-    bean.pid = commentListItemBean?.cid ?? '';
+    bean.vid = commentListItemBean.vid ?? '';
+    bean.pid = commentListItemBean.cid ?? '';
     bean.uid = Constant.uid;
     bean.mapRemoteResError = _mapRemoteResError;
     bean.vestStatus = _getVideoInfoDataBean?.vestStatus ?? '';
-    bean.cosInfoBean = _cosInfoBean;
+    if (_cosInfoBean != null) {
+      bean.cosInfoBean = _cosInfoBean!;
+    }
     bean.chainStateBean = _chainStateBean;
     bean.exchangeRateInfoData = _exchangeRateInfoData;
     bean.commentListItemBean = commentListItemBean;
     bean.creatorUid = _getVideoInfoDataBean?.uid ?? '';
-    bean.isCertification = commentListItemBean?.user?.isCertification ?? '';
+    bean.isCertification = commentListItemBean.user.isCertification ?? '';
     setState(() {
       _openCommentChildrenParameterBean = bean;
       _clickCommentIndex = index;
@@ -3124,22 +2982,19 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       CommentListItemBean commentListItemBean, int index) {
     setState(() {
       _commentSendType = CommentSendType.commentSendTypeChildren;
-      _commentId = commentListItemBean?.cid ?? '';
-      _commentName = commentListItemBean?.user?.nickname ?? '';
+      _commentId = commentListItemBean.cid ?? '';
+      _commentName = commentListItemBean.user.nickname ?? '';
       _sendCommentIndex = index;
-      _uid = commentListItemBean?.uid ?? '';
+      _uid = commentListItemBean.uid ?? '';
     });
   }
 
   CommentListItemBean _buildCommentBean(String commentId, String content) {
     String vid = _getVideoInfoDataBean?.id ?? '';
     String uid = _getVideoInfoDataBean?.uid ?? '';
-    int timestamp =
-        (Decimal.parse(DateTime.now().millisecondsSinceEpoch.toString()) /
-                Decimal.parse('1000'))
-            .toInt();
-    String nickName = Constant?.accountGetInfoDataBean?.nickname ?? '';
-    String avatar = Constant?.accountGetInfoDataBean?.avatar ?? '';
+    int timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    String nickName = Constant.accountGetInfoDataBean?.nickname ?? '';
+    String avatar = Constant.accountGetInfoDataBean?.avatar ?? '';
     String isCreator = CommentListItemBean.isCreatorNo;
     String isCertification = "0";
     if (Constant.uid == uid) {
@@ -3166,9 +3021,9 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       '',
       '',
       new CommentListUserBean(nickName, avatar, '',
-          Constant?.accountGetInfoDataBean?.imageCompress, isCertification),
+          Constant.accountGetInfoDataBean?.imageCompress, isCertification),
       '',
-      null,
+      [],
       '0',
       '0',
       _getTicketInfoDataBean?.isTicket ?? '0',
@@ -3185,12 +3040,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       String pid, String commentId, String content) {
     String vid = _getVideoInfoDataBean?.id ?? '';
     String uid = _getVideoInfoDataBean?.uid ?? '';
-    int timestamp =
+    int timestamp = int.parse(
         (Decimal.parse(DateTime.now().millisecondsSinceEpoch.toString()) /
                 Decimal.parse('1000'))
-            .toInt();
-    String nickName = Constant?.accountGetInfoDataBean?.nickname ?? '';
-    String avatar = Constant?.accountGetInfoDataBean?.avatar ?? '';
+            .toString());
+    String nickName = Constant.accountGetInfoDataBean?.nickname ?? '';
+    String avatar = Constant.accountGetInfoDataBean?.avatar ?? '';
     String isCreator = CommentListItemBean.isCreatorNo;
     String isCertification = "0";
     if (Constant.uid == uid) {
@@ -3215,7 +3070,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
             '',
             '',
             new CommentListChildrenUserBean(nickName, avatar,
-                Constant?.accountGetInfoDataBean?.imageCompress),
+                Constant.accountGetInfoDataBean?.imageCompress),
             _getTicketInfoDataBean?.isTicket ?? '0',
             '0',
             isCreator,
@@ -3227,24 +3082,23 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   Widget _buildVideoItem(int index) {
     RelateListItemBean relateListItemBean = _listData[index];
-    String totalRevenue;
-    if (relateListItemBean != null && _exchangeRateInfoData != null) {
-      if (relateListItemBean?.vestStatus ==
-          VideoInfoResponse.vestStatusFinish) {
+    String? totalRevenue;
+    if (_exchangeRateInfoData != null) {
+      if (relateListItemBean.vestStatus == VideoInfoResponse.vestStatusFinish) {
         /// 奖励完成
         double totalRevenueVest =
             RevenueCalculationUtil.getStatusFinishTotalRevenueVest(
-                relateListItemBean?.vest ?? '',
-                relateListItemBean?.vestGift ?? '');
+                relateListItemBean.vest ?? '',
+                relateListItemBean.vestGift ?? '');
         totalRevenue = RevenueCalculationUtil.vestToRevenue(
                 totalRevenueVest, _exchangeRateInfoData)
             .toStringAsFixed(2);
       } else {
         /// 奖励未完成
         double settlementBonusVest = RevenueCalculationUtil.getVideoRevenueVest(
-            relateListItemBean?.votepower, _chainStateBean?.dgpo);
+            relateListItemBean.votepower, _chainStateBean?.dgpo);
         double giftRevenueVest = RevenueCalculationUtil.getGiftRevenueVest(
-            relateListItemBean?.vestGift);
+            relateListItemBean.vestGift);
         totalRevenue = RevenueCalculationUtil.vestToRevenue(
                 NumUtil.add(settlementBonusVest, giftRevenueVest),
                 _exchangeRateInfoData)
@@ -3252,9 +3106,9 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
     }
     Widget _getVideoDurationWidget() {
-      if (Common.checkVideoDurationValid(relateListItemBean?.duration)) {
+      if (Common.checkVideoDurationValid(relateListItemBean.duration)) {
         return VideoTimeWidget(
-            Common.formatVideoDuration(relateListItemBean?.duration));
+            Common.formatVideoDuration(relateListItemBean.duration));
       }
       return Container();
     }
@@ -3265,13 +3119,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       videoDescWidth = MediaQuery.of(context).size.width / 3;
     }
     String videoUrl =
-        relateListItemBean?.videoImageCompress?.videoCompressUrl ?? '';
+        relateListItemBean.videoImageCompress?.videoCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(videoUrl)) {
-      videoUrl = relateListItemBean?.videoCoverBig ?? '';
+      videoUrl = relateListItemBean.videoCoverBig ?? '';
     }
     return InkWell(
       child: VisibilityDetector(
-        key: Key(relateListItemBean.id ?? index),
+        key: Key(relateListItemBean.id ?? index.toString()),
         onVisibilityChanged: (VisibilityInfo info) {
           if (_visibleFractionMap == null) {
             _visibleFractionMap = {};
@@ -3387,7 +3241,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Text(
-                          relateListItemBean?.title ?? '',
+                          relateListItemBean.title ?? '',
                           style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
@@ -3419,7 +3273,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                               margin:
                                   EdgeInsets.only(top: AppDimens.margin_2_5),
                               child: Text(
-                                relateListItemBean?.anchorNickname ?? '',
+                                relateListItemBean.anchorNickname ?? '',
                                 style: TextStyle(
                                   color: AppThemeUtil.setDifferentModeColor(
                                     lightColor: AppColors.color_333333,
@@ -3445,7 +3299,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       ),
       onTap: () {
         if (Common.isAbleClick()) {
-          VideoPlayerValue playerValue = _videoPlayerController?.value;
+          VideoPlayerValue? playerValue = _videoPlayerController?.value;
           if (playerValue != null) {
             reportVideoEnd(playerValue);
           }
@@ -3458,7 +3312,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 //            params: {"Click_video": relateListItemBean?.id ?? ''},
 //          );
           VideoReportUtil.reportClickVideo(
-              ClickVideoSource.VideoDetail, relateListItemBean?.id ?? '');
+              ClickVideoSource.VideoDetail, relateListItemBean.id ?? '');
         }
       },
     );
@@ -3477,7 +3331,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       bean.commentListItemBean = _listComment[index];
       bean.total = _commentListDataBean?.total ?? '';
       bean.index = index;
-      bean.commentLength = _listComment?.length ?? 0;
+      bean.commentLength = _listComment.length ?? 0;
       bean.exchangeRateInfoData = _exchangeRateInfoData;
       bean.chainStateBean = _chainStateBean;
       bean.uid = _getVideoInfoDataBean?.uid ?? '';
@@ -3486,10 +3340,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       return CommentListItem(
           bean: bean,
           clickCommentLike: (commentListDataListBean, index) {
-            if (commentListDataListBean?.vestStatus !=
+            if (commentListDataListBean.vestStatus !=
                 VideoInfoResponse.vestStatusFinish) {
-              _checkAbleCommentLike(commentListDataListBean?.isLike ?? '',
-                  commentListDataListBean?.cid ?? '', index);
+              _checkAbleCommentLike(commentListDataListBean.isLike ?? '',
+                  commentListDataListBean.cid ?? '', index);
             } else {
               ToastUtil.showToast(
                   InternationalLocalizations.videoLinkFinishHint);
@@ -3504,16 +3358,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
               _videoCommentDeleteDialog =
                   VideoCommentDeleteDialog(tag, _pageKey, _dialogSKey);
             }
-            _videoCommentDeleteDialog.initData(
-                commentListDataListBean?.id ?? '',
-                commentListDataListBean?.vid ?? '',
+            _videoCommentDeleteDialog?.initData(
+                commentListDataListBean.id ?? '',
+                commentListDataListBean.vid ?? '',
                 _getVideoInfoDataBean?.uid ?? '', () {
-              if (index != null &&
-                  _listComment != null &&
-                  index < _listComment.length) {
+              if (index < _listComment.length) {
                 _listComment.removeAt(index);
                 if (!TextUtil.isEmpty(_commentListDataBean?.total)) {
-                  int total = int.parse(_commentListDataBean?.total);
+                  int total = int.parse(_commentListDataBean?.total ?? "");
                   total--;
                   _commentListDataBean?.total = total.toString();
                 }
@@ -3522,7 +3374,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                 });
               }
             }, handleDeleteCallBack: (isProcessing, isSuccess) {});
-            _videoCommentDeleteDialog.showVideoCommentDeleteDialog();
+            _videoCommentDeleteDialog?.showVideoCommentDeleteDialog();
           },
           clickCommentChildren: (commentChildrenParameterBean) {
             setState(() {
@@ -3716,11 +3568,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   void refreshCommentTotal() {
     setState(() {
-      if (_openCommentChildrenParameterBean?.changeCommentTotal != null) {
+      if (_openCommentChildrenParameterBean?.changeCommentTotal != 0) {
         CommentListItemBean commentListItemBean =
             _listComment[_clickCommentIndex];
-        commentListItemBean?.childrenCount =
-            _openCommentChildrenParameterBean?.changeCommentTotal?.toString();
+        commentListItemBean.childrenCount =
+            _openCommentChildrenParameterBean?.changeCommentTotal.toString() ??
+                "";
       }
       _openCommentChildrenParameterBean = null;
     });
@@ -3735,11 +3588,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       _videoPlayerController?.pause();
       VideoSmallWindowsBean bean = VideoSmallWindowsBean();
       bean.isVideoDetailsInit = true;
-      bean.listDataItem.add(_getVideoInfoDataBean);
+      if (_getVideoInfoDataBean != null) {
+        bean.listDataItem.add(_getVideoInfoDataBean!);
+      }
       if (!ObjectUtil.isEmptyList(_listData)) {
         bean.listDataItem.addAll(_listData);
       }
-      bean.startAt = _videoPlayerController?.value?.position;
+      bean.startAt = _videoPlayerController?.value.position;
       bean.vid = _videoDetailPageParamsBean.getVid;
       bean.uid = _videoDetailPageParamsBean.getUid;
       bean.videoSource = _videoDetailPageParamsBean.getVideoSource;
@@ -3796,11 +3651,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         child: (_chewieController != null && _videoPlayerController != null)
             ? ClipRect(
                 child: Chewie(
-                controller: _chewieController,
+                controller: _chewieController!,
               ))
             : Center(
                 child: Theme(
-                data: Theme.of(context).copyWith(accentColor: Colors.white),
+                data: Theme.of(context).copyWith(
+                    colorScheme: ColorScheme.fromSwatch()
+                        .copyWith(secondary: Colors.white)),
                 child: CircularProgressIndicator(),
               )),
       ),
@@ -3852,11 +3709,10 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   ///创建评论回复的输入框相关widget
   Widget _buildCommentInputWidget() {
-    if (_getVideoInfoDataBean == null &&
-        (_listComment == null || _listComment.isEmpty)) {
+    if (_getVideoInfoDataBean == null && (_listComment.isEmpty)) {
       return Container();
     }
-    double inputHeight;
+    double inputHeight = 0;
     if (!_isShowCommentLength) {
       inputHeight = AppDimens.item_size_32;
     }
@@ -3995,7 +3851,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
                           _checkAbleVideoComment(
                               id,
                               _getVideoInfoDataBean?.id ?? '',
-                              Constant?.uid ?? '');
+                              Constant.uid ?? '');
                         }
                       },
                       child: Container(
@@ -4017,36 +3873,55 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         ),
         Offstage(
           offstage: !_isInputFace,
-          child: EmojiPicker(
-            rows: 5,
-            columns: 10,
-            bgColor: AppThemeUtil.setDifferentModeColor(
-              lightColor: AppColors.color_f3f3f3,
-              darkColor: AppColors.color_3e3e3e,
+          child: SizedBox(
+            height: 300,
+            child: EmojiPicker(
+              textEditingController: _textController,
+              config: Config(
+                columns: 10,
+                bgColor: AppThemeUtil.setDifferentModeColor(
+                  lightColor: AppColors.color_f3f3f3,
+                  darkColor: AppColors.color_3e3e3e,
+                ),
+                emojiSizeMax: 32 *
+                    (foundation.defaultTargetPlatform == TargetPlatform.iOS
+                        ? 1.30
+                        : 1.0),
+                verticalSpacing: 0,
+                horizontalSpacing: 0,
+                gridPadding: EdgeInsets.zero,
+                initCategory: Category.RECENT,
+                indicatorColor: Colors.blue,
+                iconColor: Colors.grey,
+                iconColorSelected: Colors.blue,
+                backspaceColor: Colors.blue,
+                skinToneDialogBgColor: Colors.white,
+                skinToneIndicatorColor: Colors.grey,
+                enableSkinTones: true,
+                recentTabBehavior: RecentTabBehavior.RECENT,
+                recentsLimit: 28,
+                replaceEmojiOnLimitExceed: false,
+                noRecents: const Text(
+                  'No Recents',
+                  style: TextStyle(fontSize: 20, color: Colors.black26),
+                  textAlign: TextAlign.center,
+                ),
+                loadingIndicator: const SizedBox.shrink(),
+                tabIndicatorAnimDuration: kTabScrollDuration,
+                categoryIcons: const CategoryIcons(),
+                buttonMode: ButtonMode.MATERIAL,
+                checkPlatformCompatibility: true,
+              ),
             ),
-            buttonMode: ButtonMode.MATERIAL,
-            categoryIcons: CategoryIcons(
-                epamoji: Image.asset('assets/images/ic_face_voepa.png')),
-            level: _exclusiveRelationItemBean?.level ??
-                ExclusiveRelationItemBean.levelLock,
-            selectedCategory: _selectCategory,
-            onEmojiSelected: (emoji, category) {
-              CosLogUtil.log('$tag $category $emoji');
-              _textController.text = _textController.text + emoji.emoji;
-              commentChange(_textController.text);
-            },
-            onSelectCategoryChange: (selectedCategory) {
-              _selectCategory = selectedCategory;
-            },
           ),
-        )
+        ),
       ],
     );
   }
 
   /// 处理输入框文字变化
   void commentChange(String str) {
-    if (str != null && str.trim().isNotEmpty) {
+    if (str.trim().isNotEmpty) {
       if (str.trim().length > commentMaxLength) {
         setState(() {
           _superfluousLength = commentMaxLength - str.trim().length;
@@ -4083,11 +3958,11 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   int _getTotalItemCount() {
     int count = 1; //评论tab
-    if (_listComment != null && _listComment.isNotEmpty) {
+    if (_listComment.isNotEmpty) {
       count += _listComment.length;
     }
     count += 1;
-    if (_listData != null && _listData.isNotEmpty) {
+    if (_listData.isNotEmpty) {
       count += _listData.length;
     }
     return count;
@@ -4102,19 +3977,17 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         _getVideoInfoDataBean?.vestStatus !=
             VideoInfoResponse.vestStatusFinish &&
         _getVideoInfoDataBean != null) {
-      Decimal val = Decimal.parse(_getVideoInfoDataBean.votepower);
+      Decimal val = Decimal.parse(_getVideoInfoDataBean?.votepower ?? "");
       val += _getUserMaxPower();
-      _getVideoInfoDataBean.votepower = val.toStringAsFixed(0);
+      _getVideoInfoDataBean?.votepower = val.toStringAsFixed(0);
       initTotalRevenue();
     }
   }
 
   void _addVoterPowerToComment(CommentListItemBean bean) {
-    if (bean != null) {
-      Decimal val = Decimal.parse(bean.votepower);
-      val += _getUserMaxPower();
-      bean.votepower = val.toStringAsFixed(0);
-    }
+    Decimal val = Decimal.parse(bean.votepower);
+    val += _getUserMaxPower();
+    bean.votepower = val.toStringAsFixed(0);
   }
 
   List<int> _getVisibleItemIndex() {
@@ -4129,7 +4002,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   //视频曝光上报
   void _reportVideoExposure() {
-    if (_listRelate == null || _listRelate.isEmpty) {
+    if (_listRelate.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleItemIndex();
@@ -4163,7 +4036,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           setState(() {
             _isNetIng = true;
           });
-          SettingData settingData = await _loadUserSettingInfo(false);
+          SettingData? settingData = await _loadUserSettingInfo(false);
           if (settingData == null) {
             //获取失败,则当修改失败处理因为不知道具体状态
             ToastUtil.showToast(
@@ -4226,20 +4099,20 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
   }
 
   void _updateAutoPlaySwitchEnableStatus(bool enable) {
-    if (_autoPlaySwitchKey != null && _autoPlaySwitchKey.currentState != null) {
-      _autoPlaySwitchKey.currentState.updateSwitchEnableStatus(enable);
+    if (_autoPlaySwitchKey.currentState != null) {
+      _autoPlaySwitchKey.currentState?.updateSwitchEnableStatus(enable);
     }
   }
 
   void _updateAutoPlaySwitchValue(bool val) {
-    if (_autoPlaySwitchKey != null && _autoPlaySwitchKey.currentState != null) {
-      _autoPlaySwitchKey.currentState.updateValue(val);
+    if (_autoPlaySwitchKey.currentState != null) {
+      _autoPlaySwitchKey.currentState?.updateValue(val);
     }
   }
 
   void _hideAutoPlayFunctionDesc() {
-    if (_autoPlaySwitchKey != null && _autoPlaySwitchKey.currentState != null) {
-      _autoPlaySwitchKey.currentState.updateFunctionDescShowingStatus(false);
+    if (_autoPlaySwitchKey.currentState != null) {
+      _autoPlaySwitchKey.currentState?.updateFunctionDescShowingStatus(false);
     }
   }
 
@@ -4267,38 +4140,37 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   Future<void> _handlePlayNextVideo(RelateListItemBean relateListItem,
       VideoDetailsEnterSource enterSource) async {
-    if (relateListItem != null) {
-      if (!_isNetIng) {
-        _forwardVideoCount += 1;
-        VideoDetailDataMgr.instance.updateLoadStatuesByKey(_pageFlag, true);
-        _resetPlayerControlInfo();
-        bool isCachedNextVideo = false;
-        VideoDetailAllDataBean cachedNextVideoInfo =
-            VideoDetailDataMgr.instance.getCachedNextVideoDataByKey(_pageFlag);
-        if (cachedNextVideoInfo != null &&
-            cachedNextVideoInfo.videoDetailsBean != null) {
-          if (_listData != null && _listData.isNotEmpty) {
-            RelateListItemBean recVideo = _listData[0];
-            String recVid = recVideo?.id ?? "";
-            String cachedVid = cachedNextVideoInfo
-                ?.videoDetailsBean?.data?.videoGetVideoInfo?.id;
-            if (cachedVid == recVid) {
-              isCachedNextVideo = true;
-            }
+    if (!_isNetIng) {
+      _forwardVideoCount += 1;
+      VideoDetailDataMgr.instance.updateLoadStatuesByKey(_pageFlag, true);
+      _resetPlayerControlInfo();
+      bool isCachedNextVideo = false;
+      VideoDetailAllDataBean? cachedNextVideoInfo =
+          VideoDetailDataMgr.instance.getCachedNextVideoDataByKey(_pageFlag);
+      if (cachedNextVideoInfo != null &&
+          cachedNextVideoInfo.videoDetailsBean != null) {
+        if (_listData.isNotEmpty) {
+          RelateListItemBean recVideo = _listData[0];
+          String recVid = recVideo.id ?? "";
+          String cachedVid = cachedNextVideoInfo
+                  .videoDetailsBean?.data.videoGetVideoInfo?.id ??
+              "";
+          if (cachedVid == recVid) {
+            isCachedNextVideo = true;
           }
         }
-        VideoDetailPageParamsBean oldBean =
-            _copyPageParamsBean(_videoDetailPageParamsBean);
-        VideoDetailDataMgr.instance
-            .pushPreVideoPageParamsByKey(_pageFlag, oldBean);
-        _resetPageData();
-        _videoDetailPageParamsBean.setVid = relateListItem?.id ?? '';
-        _videoDetailPageParamsBean.setUid = relateListItem.uid ?? '';
-        _videoDetailPageParamsBean.setVideoSource = relateListItem.videosource;
-        _videoDetailPageParamsBean.setEnterSource = enterSource;
-        _handelReplaceVideoSource(cachedNextVideoInfo, isCachedNextVideo,
-            relateListItem?.videosource);
       }
+      VideoDetailPageParamsBean? oldBean =
+          _copyPageParamsBean(_videoDetailPageParamsBean);
+      VideoDetailDataMgr.instance
+          .pushPreVideoPageParamsByKey(_pageFlag, oldBean);
+      _resetPageData();
+      _videoDetailPageParamsBean.setVid = relateListItem.id ?? '';
+      _videoDetailPageParamsBean.setUid = relateListItem.uid ?? '';
+      _videoDetailPageParamsBean.setVideoSource = relateListItem.videosource;
+      _videoDetailPageParamsBean.setEnterSource = enterSource;
+      _handelReplaceVideoSource(
+          cachedNextVideoInfo, isCachedNextVideo, relateListItem.videosource);
     }
   }
 
@@ -4307,14 +4179,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       if (!VideoDetailDataMgr.instance.getHasPreVideo(_pageFlag)) {
         return;
       }
-      VideoPlayerValue playerValue = _videoPlayerController?.value;
+      VideoPlayerValue? playerValue = _videoPlayerController?.value;
       if (playerValue != null) {
         reportVideoEnd(playerValue);
       }
       if (_forwardVideoCount > 1) {
         _forwardVideoCount--;
       }
-      VideoDetailPageParamsBean pageParamsBean =
+      VideoDetailPageParamsBean? pageParamsBean =
           VideoDetailDataMgr.instance.popPreVideoPageParamsByKey(_pageFlag);
       if (pageParamsBean == null) {
         return;
@@ -4323,12 +4195,12 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       _resetPlayerControlInfo();
       _resetPageData();
       _videoDetailPageParamsBean = pageParamsBean;
-      _handelReplaceVideoSource(null, false, pageParamsBean?.getVideoSource);
+      _handelReplaceVideoSource(null, false, pageParamsBean.getVideoSource);
     }
   }
 
-  VideoDetailPageParamsBean _copyPageParamsBean(
-      VideoDetailPageParamsBean origin) {
+  VideoDetailPageParamsBean? _copyPageParamsBean(
+      VideoDetailPageParamsBean? origin) {
     if (origin != null) {
       VideoDetailPageParamsBean bean = VideoDetailPageParamsBean();
       bean.setVid = origin.getVid;
@@ -4352,14 +4224,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     _isScrolling = false;
     _isRotatedTitle = false;
     _isRotatedMoney = false;
-    _isBuffering = null;
+    _isBuffering = false;
     _bufferStartTime = -1;
     VideoDetailDataMgr.instance.updateCurrentVideoParamsBeanByKey(
         _pageFlag, _videoDetailPageParamsBean);
-    if (_listData != null && _listData.isNotEmpty) {
+    if (_listData.isNotEmpty) {
       _listData.clear();
     }
-    if (_listComment != null && _listComment.isNotEmpty) {
+    if (_listComment.isNotEmpty) {
       _listComment.clear();
     }
     _commentListDataBean = null;
@@ -4384,16 +4256,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     _isVideoLike = false;
     _isVideoReportLoading = false;
     _popReward = popRewardHot;
-    if (_timerUtil != null) {
-      _timerUtil.cancel();
-      _timerUtil = null;
-    }
+    _timerUtil.cancel();
     _initTimeUtil();
     _openCommentChildrenParameterBean = null;
   }
 
   Future<void> _handelReplaceVideoSource(
-      VideoDetailAllDataBean cachedNextVideoInfo,
+      VideoDetailAllDataBean? cachedNextVideoInfo,
       bool isCachedNextVideo,
       String videoSource) async {
     final oldPlayerController = _videoPlayerController;
@@ -4425,11 +4294,11 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           isRelateListSuc = false,
           isCommentListSuc = false;
       isVideoSuccess =
-          _processVideoDetailsInfoByData(cachedNextVideoInfo.videoDetailsBean);
+          _processVideoDetailsInfoByData(cachedNextVideoInfo?.videoDetailsBean);
       isRelateListSuc = _processVideoRelateListByData(
-          cachedNextVideoInfo.recommendListBean, false);
+          cachedNextVideoInfo?.recommendListBean, false);
       isCommentListSuc = _processVideoCommentListByData(
-          cachedNextVideoInfo.commentListDataBean, false, true);
+          cachedNextVideoInfo?.commentListDataBean, false, true);
       VideoDetailDataMgr.instance
           .updateCachedNextVideoInfoByKey(_pageFlag, null);
       initTotalRevenue();
@@ -4440,14 +4309,14 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       if (Common.judgeHasLogIn()) {
         _httpAddWatchHistory();
       }
-      _loadFollowingRecommendVideo(_videoDetailPageParamsBean?.getUid,
-          _videoDetailPageParamsBean?.getVid);
+      _loadFollowingRecommendVideo(
+          _videoDetailPageParamsBean.getUid, _videoDetailPageParamsBean.getVid);
       if (_judgeIsNeedLoadNextPageData(
-          _videoDetailPageParamsBean?.getVid ?? '')) {
+          _videoDetailPageParamsBean.getVid ?? '')) {
         _httpVideoRelateList(true);
       }
     }
-    await _initVideoPlayers(videoSource ?? '', isFullScreen, null);
+    await _initVideoPlayers(videoSource ?? '', isFullScreen, Duration.zero);
     _updatePlayerControlInfo();
     if (isFullScreen) {
       Future.delayed(Duration(milliseconds: 500), () {
@@ -4465,13 +4334,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   void _handleCurVideoPlayEnd() {
     _bufferStartTime = -1;
-    if (usrAutoPlaySetting && ((_listData?.isNotEmpty) ?? false)) {
+    if (usrAutoPlaySetting && _listData.isNotEmpty) {
       RelateListItemBean recVideo = _listData[0];
       VideoDetailPageParamsBean nextVideoParams =
           VideoDetailPageParamsBean.createInstance(
-              vid: recVideo.id ?? "", uid: recVideo?.uid ?? "");
-      String curVid = _videoDetailPageParamsBean?.getVid ?? "";
-      VideoDetailAllDataBean cachedVideoInfo =
+              vid: recVideo.id ?? "", uid: recVideo.uid ?? "");
+      String curVid = _videoDetailPageParamsBean.getVid ?? "";
+      VideoDetailAllDataBean? cachedVideoInfo =
           VideoDetailDataMgr.instance.getCachedNextVideoDataByKey(_pageFlag);
       if (cachedVideoInfo == null) {
         //没有缓存下一个视频,提前请求接口拉取下一个视频的数据
@@ -4479,7 +4348,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         return;
       }
       RelateListItemBean nextRecVideoInfo = _listData[0];
-      String nextVid = nextRecVideoInfo?.id ?? "";
+      String nextVid = nextRecVideoInfo.id ?? "";
       if (TextUtil.isEmpty(nextVid)) {
         CosLogUtil.log(
             "AutoPlay: next video id is empty when advance fetch next video info");
@@ -4487,7 +4356,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
 
       String cachedVid =
-          cachedVideoInfo?.videoDetailsBean?.data?.videoGetVideoInfo?.id ?? "";
+          cachedVideoInfo.videoDetailsBean?.data.videoGetVideoInfo?.id ?? "";
 
       if (TextUtil.isEmpty(cachedVid) || cachedVid != nextVid) {
         VideoDetailDataMgr.instance
@@ -4499,31 +4368,30 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   void advanceLoadNextVideoInfo(
       String curVid, VideoDetailPageParamsBean nextVideoInfo) {
-    if (nextVideoInfo == null ||
-        !Common.checkIsNotEmptyStr(nextVideoInfo.getVid)) {
+    if (!Common.checkIsNotEmptyStr(nextVideoInfo.getVid)) {
       return;
     }
     Future.wait([
       RequestManager.instance.getVideoDetailsInfo(
         tag,
-        nextVideoInfo?.getVid ?? '',
+        nextVideoInfo.getVid ?? '',
         Common.getCurrencyMoneyByLanguage(),
         uid: Constant.uid ?? '',
-        fuid: nextVideoInfo?.getUid ?? '',
+        fuid: nextVideoInfo.getUid ?? '',
       ),
-      RequestManager.instance.videoRelateList(tag, nextVideoInfo?.getVid ?? '',
+      RequestManager.instance.videoRelateList(tag, nextVideoInfo.getVid ?? '',
           page: _videoPage.toString(), pageSize: videoPageSize.toString()),
       RequestManager.instance.videoCommentListNew(
-          tag, nextVideoInfo?.getVid ?? '', _commentPage, commentPageSize,
+          tag, nextVideoInfo.getVid ?? '', _commentPage, commentPageSize,
           uid: Constant.uid ?? '',
           orderBy: VideoCommentListResponse.orderByHot),
     ]).then((listResponse) {
-      if (listResponse == null || !mounted) {
+      if (!mounted) {
         return;
       }
-      CosVideoDetailsBean videoDetailsBean;
-      CommentListBean commentListDataBean;
-      RelateListBean recommendListBean;
+      CosVideoDetailsBean? videoDetailsBean;
+      CommentListBean? commentListDataBean;
+      RelateListBean? recommendListBean;
       bool isVideoInfoSuccess = false,
           isRelateListSuc = false,
           isCommentListSuc = false;
@@ -4533,13 +4401,13 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
           return;
         }
         CosVideoDetailsBean bean =
-            CosVideoDetailsBean.fromJson(json.decode(listResponse[0].data));
+            CosVideoDetailsBean.fromJson(json.decode(listResponse[0]?.data));
         if (bean.status == SimpleResponse.statusStrSuccess) {
-          String vid = bean?.data?.videoGetVideoInfo?.id ?? "";
+          String vid = bean.data.videoGetVideoInfo?.id ?? "";
           if (TextUtil.isEmpty(vid)) {
             return;
           }
-          if (curVid != (_videoDetailPageParamsBean?.getVid ?? "")) {
+          if (curVid != (_videoDetailPageParamsBean.getVid ?? "")) {
             return;
           }
           videoDetailsBean = bean;
@@ -4552,7 +4420,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       if (listResponse.length >= 2) {
         if (listResponse[1] != null) {
           RelateListBean relateListBean =
-              RelateListBean.fromJson(json.decode(listResponse[1].data));
+              RelateListBean.fromJson(json.decode(listResponse[1]?.data));
           if (relateListBean.status == SimpleResponse.statusStrSuccess) {
             isRelateListSuc = true;
             recommendListBean = relateListBean;
@@ -4563,7 +4431,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       if (listResponse.length >= 3) {
         if (listResponse[2] != null) {
           CommentListBean commentListBean =
-              CommentListBean.fromJson(json.decode(listResponse[2].data));
+              CommentListBean.fromJson(json.decode(listResponse[2]?.data));
           if (commentListBean.status == SimpleResponse.statusStrSuccess) {
             isCommentListSuc = true;
             commentListDataBean = commentListBean;
@@ -4578,7 +4446,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
       }
     }).catchError((err) {
       CosLogUtil.log("AutoPlay: advance load next "
-          "vid:${nextVideoInfo?.getVid ?? ""} exception, the error is $err");
+          "vid:${nextVideoInfo.getVid ?? ""} exception, the error is $err");
     }).whenComplete(() {});
   }
 
@@ -4586,7 +4454,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     if (_videoDetailPageParamsBean.getEnterSource == null) {
       return "misc";
     }
-    VideoDetailsEnterSource enterSource =
+    VideoDetailsEnterSource? enterSource =
         _videoDetailPageParamsBean.getEnterSource;
     if (enterSource == VideoDetailsEnterSource.VideoDetailsEnterSourceHome) {
       return "home";
@@ -4655,7 +4523,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     if (!mounted) {
       return;
     }
-    if (vid != (_videoDetailPageParamsBean?.getVid ?? "")) {
+    if (vid != (_videoDetailPageParamsBean.getVid ?? "")) {
       return;
     }
     if (Common.checkIsNotEmptyStr(_refreshingVid) && _refreshingVid == vid) {
@@ -4671,8 +4539,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
         .then((response) {
       if (response != null) {
         if (mounted) {
-          if (vid == (_videoDetailPageParamsBean?.getVid ?? "") &&
-              _listData != null &&
+          if (vid == (_videoDetailPageParamsBean.getVid ?? "") &&
               _listData.isEmpty) {
             RelateListBean bean =
                 RelateListBean.fromJson(json.decode(response.data));
@@ -4693,7 +4560,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
     }).catchError((err) {
       CosLogUtil.log("refreshRecommendVideoInfo: fail to refresh vid:$vid's "
           "recommend video, the error is $err");
-      if (vid == (_videoDetailPageParamsBean?.getVid ?? "")) {
+      if (vid == (_videoDetailPageParamsBean.getVid ?? "")) {
         EventBusHelp.getInstance()
             .fire(RefreshRecommendVideoFinishEvent(_pageFlag, false));
       }
@@ -4704,7 +4571,7 @@ class _VideoDetailsPageState extends State<VideoDetailsPage>
 
   bool _judgeIsNeedLoadNextPageData(String vid) {
     String curVid = _getVideoId();
-    if ((_listData == null || _listData.length < videoPageSize) &&
+    if ((_listData.length < videoPageSize) &&
         _isHaveMoreData &&
         curVid == vid) {
       return true;

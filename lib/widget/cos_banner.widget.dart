@@ -15,13 +15,13 @@ typedef BannerClickCallBack = void Function(CosBannerData data);
 
 class CosBannerWidget extends StatefulWidget {
   final List<CosBannerData> dataList;
-  final BannerClickCallBack clickCallBack;
+  final BannerClickCallBack? clickCallBack;
   final Curve curve;
   final bool hasBottomSeparate;
 
   CosBannerWidget({
-    Key key,
-    this.dataList,
+    Key? key,
+    required this.dataList,
     this.clickCallBack,
     this.curve = Curves.linear,
     this.hasBottomSeparate = false,
@@ -34,20 +34,18 @@ class CosBannerWidget extends StatefulWidget {
 }
 
 class CosBannerWidgetState extends State<CosBannerWidget> {
-  PageController _pageController;
+  late PageController _pageController;
   int _curIndex = 0;
   int totalPage = 0;
-  Timer _timer;
+  Timer? _timer;
   double widthRatio = 345.0 / 375.0;
   bool isFirstLoad = true;
 
   @override
   void dispose() {
-    if (_pageController != null) {
-      _pageController.dispose();
-    }
+    _pageController.dispose();
     if (_timer != null) {
-      _timer.cancel();
+      _timer?.cancel();
       _timer = null;
     }
     super.dispose();
@@ -56,7 +54,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
   @override
   void initState() {
     super.initState();
-    totalPage = widget.dataList?.length ?? 0;
+    totalPage = widget.dataList.length ?? 0;
     _pageController = PageController(
       initialPage: 0,
       viewportFraction: widthRatio,
@@ -68,7 +66,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.dataList != null && totalPage != widget.dataList.length) {
+    if (totalPage != widget.dataList.length) {
       totalPage = widget.dataList.length;
     }
     return Container(
@@ -86,15 +84,13 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
   Widget _buildPageView() {
     double coverRatio = 194.0 / 345.0;
     double screenWidth = MediaQuery.of(context).size.width;
-    double coverWidth = screenWidth * widthRatio,
-        coverHeight = coverWidth * coverRatio;
+    double coverWidth = screenWidth * widthRatio, coverHeight = coverWidth * coverRatio;
     double paddingTop = 10;
     return Container(
       height: coverHeight + paddingTop,
       width: screenWidth,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.vertical(
-            top: Radius.circular(AppDimens.radius_size_4)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radius_size_4)),
 //        boxShadow: [
 //          BoxShadow(
 //            color: Color.fromRGBO(0,0,0,0.30),
@@ -104,9 +100,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
       ),
       padding: EdgeInsets.only(top: paddingTop),
       child: PageView.builder(
-        physics: totalPage > 1
-            ? AlwaysScrollableScrollPhysics()
-            : NeverScrollableScrollPhysics(),
+        physics: totalPage > 1 ? AlwaysScrollableScrollPhysics() : NeverScrollableScrollPhysics(),
         controller: _pageController,
         itemBuilder: (context, index) {
           if (index == 0 && isFirstLoad) {
@@ -122,9 +116,8 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
           if (totalPage == 1 && index > 0) {
             return Container();
           }
-          CosBannerData video = _getDataOfPage(index % totalPage);
-          String imageUrl =
-              video?.videoInfo?.videoImageCompress?.videoCompressUrl ?? "";
+          CosBannerData? video = _getDataOfPage(index % totalPage);
+          String imageUrl = video?.videoInfo?.videoImageCompress?.videoCompressUrl ?? "";
           if (ObjectUtil.isEmptyString(imageUrl)) {
             imageUrl = video?.image ?? '';
           }
@@ -148,8 +141,8 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
               _onClickBanner(index % totalPage);
             },
             child: Stack(
+              clipBehavior: Clip.none,
               alignment: Alignment.bottomCenter,
-              overflow: Overflow.visible,
               children: <Widget>[
                 Container(
                   margin: EdgeInsets.fromLTRB(index == 0 ? 0 : 5, 0, 5, 0),
@@ -157,8 +150,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
                   height: coverHeight,
 //                    color: Colors.transparent,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(AppDimens.radius_size_4)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radius_size_4)),
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -169,15 +161,13 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
                     ),
                   ),
                   child: ClipRRect(
-                      borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(AppDimens.radius_size_4)),
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radius_size_4)),
                       child: CachedNetworkImage(
                         fit: BoxFit.fitHeight,
                         imageUrl: imageUrl,
                         placeholder: (context, url) => Container(
                           decoration: BoxDecoration(
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(AppDimens.radius_size_4)),
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radius_size_4)),
                             gradient: LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
@@ -195,19 +185,18 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
                   width: screenWidth,
                   height: 6,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(AppDimens.radius_size_4)),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(AppDimens.radius_size_4)),
                     boxShadow: [
                       BoxShadow(
-                        color: Color.fromRGBO(0,0,0,0.30),
+                        color: Color.fromRGBO(0, 0, 0, 0.30),
                         offset: Offset(0, 0),
                         blurRadius: 4,
-                      )],
+                      )
+                    ],
                   ),
                 ),
               ],
             ),
-
           );
         },
         onPageChanged: (index) {
@@ -217,8 +206,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
               if (index == 0 && totalPage > 1) {
                 _curIndex = totalPage;
 //                _pageController.jumpToPage(_curIndex);
-                _pageController.animateToPage(_curIndex,
-                    duration: Duration(milliseconds: 10), curve: Curves.linear);
+                _pageController.animateToPage(_curIndex, duration: Duration(milliseconds: 10), curve: Curves.linear);
               }
             });
           }
@@ -230,10 +218,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
   Widget _buildBottomDesc() {
     double bgWidth = MediaQuery.of(context).size.width;
     return Container(
-      color: AppThemeUtil.setDifferentModeColor(
-        lightColorStr: "FFFFFFFF",
-        darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr
-      ),
+      color: AppThemeUtil.setDifferentModeColor(lightColorStr: "FFFFFFFF", darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       width: bgWidth,
       height: AppDimens.item_size_37,
       padding: EdgeInsets.only(
@@ -254,10 +239,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.left,
                   style: TextStyle(
-                    color: AppThemeUtil.setDifferentModeColor(
-                      lightColorStr: "333333",
-                      darkColorStr: "FFFFFF "
-                    ),
+                    color: AppThemeUtil.setDifferentModeColor(lightColorStr: "333333", darkColorStr: "FFFFFF "),
                     fontSize: 14,
                   ),
                   maxLines: 1,
@@ -271,10 +253,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
               textAlign: TextAlign.right,
               style: TextStyle(
                 fontSize: 14.0,
-                color: AppThemeUtil.setDifferentModeColor(
-                  lightColorStr: "000000",
-                  darkColorStr: "FFFFFF"
-                ),
+                color: AppThemeUtil.setDifferentModeColor(lightColorStr: "000000", darkColorStr: "FFFFFF"),
                 fontFamily: "DIN",
               ),
             )
@@ -284,7 +263,7 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
 
   _cancelTimer() {
     if (_timer != null) {
-      _timer.cancel();
+      _timer?.cancel();
       _timer = null;
 //      _initTimer();
     }
@@ -307,18 +286,17 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
 
   _onClickBanner(int idx) {
     if (widget.clickCallBack != null) {
-      int listCnt = widget.dataList?.length ?? 0;
+      int listCnt = widget.dataList.length ?? 0;
       if (idx >= 0 && idx < listCnt) {
-        widget.clickCallBack(widget.dataList[idx]);
+        widget.clickCallBack?.call(widget.dataList[idx]);
       } else {
-        CosLogUtil.log(
-            "Banner: fail to call back,index is $idx, data list is $listCnt");
+        CosLogUtil.log("Banner: fail to call back,index is $idx, data list is $listCnt");
       }
     }
   }
 
-  CosBannerData _getDataOfPage(int idx) {
-    int listCnt = widget.dataList?.length ?? 0;
+  CosBannerData? _getDataOfPage(int idx) {
+    int listCnt = widget.dataList.length ?? 0;
     if (idx >= 0 && idx < listCnt) {
       return widget.dataList[idx];
     } else {
@@ -327,17 +305,13 @@ class CosBannerWidgetState extends State<CosBannerWidget> {
   }
 
   String _getPageNumberDesc() {
-    if (_curIndex != null) {
-      int idx = _curIndex % totalPage;
-      return "${idx + 1}/$totalPage";
-    }
+    int idx = _curIndex % totalPage;
+    return "${idx + 1}/$totalPage";
     return "";
   }
 
   String _getBannerDesc() {
-    if (_curIndex != null) {
-      return widget.dataList[_curIndex % totalPage].banner;
-    }
+    return widget.dataList[_curIndex % totalPage].banner;
     return "";
   }
 }

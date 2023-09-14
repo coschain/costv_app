@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,7 +14,6 @@ import 'package:costv_android/bean/exclusive_relation_bean.dart';
 import 'package:costv_android/bean/simple_proxy_bean.dart';
 import 'package:costv_android/bean/video_comment_bean.dart';
 import 'package:costv_android/constant.dart';
-import 'package:costv_android/emoji/emoji_picker.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/net/request_manager.dart';
 import 'package:costv_android/pages/comment/bean/comment_children_list_item_parameter_bean.dart';
@@ -25,7 +23,6 @@ import 'package:costv_android/pages/comment/widget/comment_list_children_item.da
 import 'package:costv_android/pages/video/bean/video_detail_page_params_bean.dart';
 import 'package:costv_android/pages/video/dialog/video_comment_delete_dialog.dart';
 import 'package:costv_android/pages/video/video_details_page.dart';
-import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/cos_sdk_util.dart';
@@ -45,15 +42,16 @@ import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:decimal/decimal.dart';
+import 'package:emoji_picker_flutter/emoji_picker_flutter.dart';
+
 
 class CommentChildrenListPage extends StatefulWidget {
   final CommentListParameterBean _bean;
 
-  CommentChildrenListPage(this._bean, {Key key}) : super(key: key);
+  CommentChildrenListPage(this._bean, {Key? key}) : super(key: key);
 
   @override
-  _CommentChildrenListPageState createState() =>
-      _CommentChildrenListPageState();
+  _CommentChildrenListPageState createState() => _CommentChildrenListPageState();
 }
 
 class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
@@ -72,38 +70,36 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   bool _isFirstSuccessLoad = false;
   bool _isVideoDelete = false;
   bool _isCommentDelete = false;
-  GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
-      new GlobalKey<NetRequestFailTipsViewState>();
-  ChildrenListByMessageDataBean _childrenListByMessageDataBean;
+  GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
+  ChildrenListByMessageDataBean? _childrenListByMessageDataBean;
   List<dynamic> _listCommentChildren = [];
-  ExchangeRateInfoData _exchangeRateInfoData;
-  ChainState _chainStateBean;
-  AccountInfo _cosInfoBean;
-  Map<String, dynamic> _mapRemoteResError;
-  Map<String, dynamic> _mapCommentError;
-  VideoCommentDeleteDialog _videoCommentDeleteDialog;
+  ExchangeRateInfoData? _exchangeRateInfoData;
+  ChainState? _chainStateBean;
+  AccountInfo? _cosInfoBean;
+  late Map<String, dynamic> _mapRemoteResError;
+  late Map<String, dynamic> _mapCommentError;
+  VideoCommentDeleteDialog? _videoCommentDeleteDialog;
   bool _isAbleSendMsg = false;
   bool _isShowCommentLength = false;
-  int _superfluousLength;
+  int _superfluousLength = 0;
   TextEditingController _textController = TextEditingController();
   FocusNode _focusNode = FocusNode();
-  String _commentId;
-  String _commentName;
-  String _uid;
+  late String _commentId;
+  late String _commentName;
+  late String _uid;
   bool isReturnCommentTotal = false;
   bool _isInputFace = false;
-  ExclusiveRelationItemBean _exclusiveRelationItemBean;
-  Category _selectCategory;
+  ExclusiveRelationItemBean? _exclusiveRelationItemBean;
+  Category? _selectCategory;
 
   @override
   void initState() {
     super.initState();
-    _mapRemoteResError =
-        InternationalLocalizations.mapNetValue['remoteResError'];
+    _mapRemoteResError = InternationalLocalizations.mapNetValue['remoteResError'];
     _mapCommentError = InternationalLocalizations.mapNetValue['commentError'];
-    _commentName = widget?._bean?.nickName ?? '';
-    _commentId = widget?._bean?.pid ?? '';
-    _uid = widget?._bean?.uid;
+    _commentName = widget._bean.nickName;
+    _commentId = widget._bean.pid;
+    _uid = widget._bean.uid;
     _isLoggedIn = Common.judgeHasLogIn();
     if (_isLoggedIn) {
       _loadInitInfo();
@@ -116,14 +112,8 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   @override
   void dispose() {
     RequestManager.instance.cancelAllNetworkRequest(tag);
-    if(_focusNode != null){
-      _focusNode.dispose();
-      _focusNode = null;
-    }
-    if(_textController != null){
-      _textController.dispose();
-      _textController = null;
-    }
+    _focusNode.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
@@ -132,58 +122,43 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
       _isFetching = true;
       _isShowLoading = true;
     });
-    Future<Response> childrenListFuture;
-    if (widget._bean.showType ==
-        CommentListParameterBean.showTypeVideoComment) {
-      childrenListFuture = RequestManager.instance.videoCommentChildrenList(tag,
-          widget._bean.vid ?? '', widget._bean.pid ?? '', _curPage, pageSize,
-          uid: widget._bean.creatorUid ?? '');
+    Future<Response?> childrenListFuture;
+    if (widget._bean.showType == CommentListParameterBean.showTypeVideoComment) {
+      childrenListFuture =
+          RequestManager.instance.videoCommentChildrenList(tag, widget._bean.vid, widget._bean.pid, _curPage, pageSize, uid: widget._bean.creatorUid);
     } else {
       childrenListFuture = RequestManager.instance.getChildrenListByMessage(
-          tag,
-          widget._bean.vid ?? '',
-          widget._bean.creatorUid ?? '',
-          widget._bean.cid ?? '',
-          widget._bean.pid ?? '',
-          Constant.uid ?? '',
-          _curPage,
-          pageSize);
+          tag, widget._bean.vid, widget._bean.creatorUid, widget._bean.cid, widget._bean.pid, Constant.uid, _curPage, pageSize);
     }
     Future.wait([
       childrenListFuture,
       RequestManager.instance.getExchangeRateInfo(tag),
       CosSdkUtil.instance.getChainState(),
-      RequestManager.instance.exclusiveRelation(
-          tag, Constant.uid ?? '')
+      RequestManager.instance.exclusiveRelation(tag, Constant.uid)
     ]).then((listResponse) {
-      if (listResponse == null || !mounted) {
+      if (!mounted) {
         return;
       }
-      bool isHaveComment = false,
-          isHaveExchangeRateInfo = false,
-          isHaveChainState = false;
+      bool isHaveComment = false, isHaveExchangeRateInfo = false, isHaveChainState = false;
       //评论列表数据
       if (listResponse.length >= 1) {
-        if (widget._bean.showType ==
-            CommentListParameterBean.showTypeVideoComment) {
-          isHaveComment = _processVideoCommentChildrenList(
-              listResponse[0], false, _curPage);
+        if (widget._bean.showType == CommentListParameterBean.showTypeVideoComment) {
+          isHaveComment = _processVideoCommentChildrenList(listResponse[0] as Response?, false, _curPage);
         } else {
-          isHaveComment =
-              _processChildrenListByMessage(listResponse[0], false, _curPage);
+          isHaveComment = _processChildrenListByMessage(listResponse[0] as Response?, false, _curPage);
         }
       }
       //汇率数据
       if (listResponse.length >= 2) {
-        isHaveExchangeRateInfo = _processExchangeRateInfo(listResponse[1]);
+        isHaveExchangeRateInfo = _processExchangeRateInfo(listResponse[1] as Response?);
       }
       //公链信息
       if (listResponse.length >= 3) {
-        isHaveChainState = _processChainState(listResponse[2]);
+        isHaveChainState = _processChainState(listResponse[2] as GetChainStateResponse?);
       }
       //查看是否解锁创作者表情
       if (listResponse.length >= 4) {
-        _processExclusiveRelation(listResponse[3]);
+        _processExclusiveRelation(listResponse[3] as Response?);
       }
       if (isHaveComment && isHaveExchangeRateInfo && isHaveChainState) {
         _isSuccessLoad = true;
@@ -204,36 +179,27 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
 
   void _cosAccountInfoInit() {
     CosSdkUtil.instance.getAccountChainInfo(Constant.accountName).then((bean) {
-      if (bean != null) {
-        _cosInfoBean = bean.info;
-      }
+      _cosInfoBean = bean?.info;
     });
   }
 
   /// 处理评论列二级列表返回数据
-  bool _processChildrenListByMessage(
-      Response response, bool isLoadMore, int page) {
-    ChildrenListByMessageBean bean =
-        ChildrenListByMessageBean.fromJson(json.decode(response.data));
+  bool _processChildrenListByMessage(Response? response, bool isLoadMore, int page) {
+    ChildrenListByMessageBean? bean = ChildrenListByMessageBean.fromJson(json.decode(response?.data));
     if (bean.status == SimpleResponse.statusStrSuccess) {
       if (bean.data != null) {
-        if (bean.data.cidStatus ==
-            ChildrenListByMessageDataBean.cidStatusDelete) {
+        if (bean.data.cidStatus == ChildrenListByMessageDataBean.cidStatusDelete) {
           _isCommentDelete = true;
         } else {
           _childrenListByMessageDataBean = bean.data;
           if (!isLoadMore) {
             _listCommentChildren.clear();
-            if (bean.data.pidInfo != null) {
-              bean.data.pidInfo.isShowParentColor = true;
-              _listCommentChildren.add(bean.data.pidInfo);
+            bean.data.pidInfo.isShowParentColor = true;
+            _listCommentChildren.add(bean.data.pidInfo);
+            if (!_isFirstSuccessLoad) {
+              bean.data.top.isShowTopColor = true;
             }
-            if (bean.data.top != null) {
-              if (!_isFirstSuccessLoad) {
-                bean.data.top.isShowTopColor = true;
-              }
-              _listCommentChildren.add(bean.data.top);
-            }
+            _listCommentChildren.add(bean.data.top);
           }
           if (!ObjectUtil.isEmptyList(bean.data.list)) {
             _listCommentChildren.addAll(bean.data.list);
@@ -264,9 +230,8 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   /// 处理查询汇率返回数据
-  bool _processExchangeRateInfo(Response response) {
-    ExchangeRateInfoBean info =
-        ExchangeRateInfoBean.fromJson(json.decode(response.data));
+  bool _processExchangeRateInfo(Response? response) {
+    ExchangeRateInfoBean info = ExchangeRateInfoBean.fromJson(json.decode(response?.data));
     if (info.status == SimpleResponse.statusStrSuccess) {
       _exchangeRateInfoData = info.data;
       return true;
@@ -276,9 +241,9 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   /// 处理公链返回数据
-  bool _processChainState(GetChainStateResponse response) {
+  bool _processChainState(GetChainStateResponse? response) {
     if (response != null) {
-      _chainStateBean = response?.state;
+      _chainStateBean = response.state;
       return true;
     } else {
       return false;
@@ -286,17 +251,12 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   /// 处理当前用户与创作者之间的关系
-  _processExclusiveRelation(Response response) {
+  _processExclusiveRelation(Response? response) {
     if (response == null) {
       return false;
     }
-    ExclusiveRelationBean bean =
-    ExclusiveRelationBean.fromJson(json.decode(response.data));
-    if (bean != null &&
-        bean.status == SimpleResponse.statusStrSuccess &&
-        bean.data != null &&
-        !ObjectUtil.isEmptyList(bean.data.list) &&
-        bean.data.list[0] != null) {
+    ExclusiveRelationBean bean = ExclusiveRelationBean.fromJson(json.decode(response.data));
+    if (bean.status == SimpleResponse.statusStrSuccess && !ObjectUtil.isEmptyList(bean.data.list)) {
       _exclusiveRelationItemBean = bean.data.list[0];
     }
   }
@@ -309,14 +269,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
     int page = isLoadMore ? _curPage + 1 : 1;
     await RequestManager.instance
         .getChildrenListByMessage(
-            tag,
-            widget._bean?.vid ?? '',
-            widget._bean?.creatorUid ?? '',
-            widget._bean?.cid ?? '',
-            widget._bean?.pid ?? '',
-            Constant.uid ?? '',
-            _curPage,
-            pageSize)
+            tag, widget._bean.vid, widget._bean.creatorUid, widget._bean.cid, widget._bean.pid, Constant.uid, _curPage, pageSize)
         .then((response) {
       if (response == null || !mounted) {
         if (mounted && !isLoadMore) {
@@ -341,20 +294,16 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   /// 处理评论的回复列表（子评论）
-  bool _processVideoCommentChildrenList(
-      Response response, bool isLoadMore, int page) {
-    CommentChildrenListBean bean =
-        CommentChildrenListBean.fromJson(json.decode(response.data));
-    if (bean.status == SimpleResponse.statusStrSuccess && bean.data != null) {
+  bool _processVideoCommentChildrenList(Response? response, bool isLoadMore, int page) {
+    CommentChildrenListBean bean = CommentChildrenListBean.fromJson(json.decode(response?.data));
+    if (bean.status == SimpleResponse.statusStrSuccess) {
       _hasNextPage = (bean.data.hasNext == "1");
       _curPage = page;
       _isSuccessLoad = true;
       _isFirstSuccessLoad = true;
       if (!isLoadMore) {
         _listCommentChildren.clear();
-        if (widget._bean.parentBean != null) {
-          _listCommentChildren.add(widget._bean.parentBean);
-        }
+        _listCommentChildren.add(widget._bean.parentBean);
       }
       if (!ObjectUtil.isEmptyList(bean.data.list)) {
         _listCommentChildren.addAll(bean.data.list);
@@ -375,9 +324,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
     }
     int page = isLoadMore ? _curPage + 1 : 1;
     await RequestManager.instance
-        .videoCommentChildrenList(
-            tag, widget._bean.vid, widget._bean.pid, _curPage, pageSize,
-            uid: widget._bean.creatorUid ?? '')
+        .videoCommentChildrenList(tag, widget._bean.vid, widget._bean.pid, _curPage, pageSize, uid: widget._bean.creatorUid)
         .then((response) {
       if (response == null || !mounted) {
         if (mounted && !isLoadMore) {
@@ -409,8 +356,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
     }
     _isFetching = true;
     _isShowLoading = true;
-    if (widget._bean.showType ==
-        CommentListParameterBean.showTypeVideoComment) {
+    if (widget._bean.showType == CommentListParameterBean.showTypeVideoComment) {
       await _httpVideoCommentChildrenList(false);
     } else {
       await _httpChildrenListByMessage(false);
@@ -426,8 +372,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
       return;
     }
     _isFetching = true;
-    if (widget._bean.showType ==
-        CommentListParameterBean.showTypeVideoComment) {
+    if (widget._bean.showType == CommentListParameterBean.showTypeVideoComment) {
       await _httpVideoCommentChildrenList(true);
     } else {
       await _httpChildrenListByMessage(true);
@@ -447,22 +392,12 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
 
   ///登录
   void _startLogIn() {
-    if (Platform.isAndroid) {
-      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
-    } else {
-      Navigator.of(context).push(SlideAnimationRoute(
-        builder: (_) {
-          return WebViewPage(
-            Constant.logInWebViewUrl,
-          );
-        },
-      ));
-    }
+    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl, context);
   }
 
   void _showLoadDataFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
@@ -471,19 +406,15 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   void _addVoterPowerToComment(CommentListItemBean bean) {
-    if (bean != null) {
-      Decimal val = Decimal.parse(bean.votepower);
-      val += _getUserMaxPower();
-      bean.votepower = val.toStringAsFixed(0);
-    }
+    Decimal val = Decimal.parse(bean.votepower);
+    val += _getUserMaxPower();
+    bean.votepower = val.toStringAsFixed(0);
   }
 
   void _addVoterPowerToCommentChildren(CommentChildrenListItemBean bean) {
-    if (bean != null) {
-      Decimal val = Decimal.parse(bean.votePower);
-      val += _getUserMaxPower();
-      bean.votePower = val.toStringAsFixed(0);
-    }
+    Decimal val = Decimal.parse(bean.votePower);
+    val += _getUserMaxPower();
+    bean.votePower = val.toStringAsFixed(0);
   }
 
   /// 添加评论点赞
@@ -494,8 +425,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
     });
     if (_cosInfoBean == null) {
       //先公链获取视频account信息,否则点赞成功之后没法计算评论的增值
-      AccountResponse bean = await CosSdkUtil.instance
-          .getAccountChainInfo(Constant.accountName ?? '');
+      AccountResponse? bean = await CosSdkUtil.instance.getAccountChainInfo(Constant.accountName);
       if (bean != null) {
         _cosInfoBean = bean.info;
       } else {
@@ -503,71 +433,52 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
         return;
       }
     }
-    RequestManager.instance
-        .commentLike(tag, cid ?? '', accountName)
-        .then((response) {
+    RequestManager.instance.commentLike(tag, cid, accountName).then((response) {
       if (response == null || !mounted) {
         return;
       }
-      SimpleProxyBean bean =
-          SimpleProxyBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleProxyResponse.statusStrSuccess &&
-          bean.data != null) {
+      SimpleProxyBean bean = SimpleProxyBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleProxyResponse.statusStrSuccess) {
         if (bean.data.ret == SimpleProxyResponse.responseSuccess) {
           if (_listCommentChildren[index] is CommentListItemBean) {
-            CommentListItemBean commentListItemBean =
-                _listCommentChildren[index];
-            commentListItemBean?.isLike = '1';
-            if (!TextUtil.isEmpty(commentListItemBean?.likeCount)) {
-              commentListItemBean?.likeCount =
-                  (int.parse(commentListItemBean?.likeCount) + 1).toString();
+            CommentListItemBean commentListItemBean = _listCommentChildren[index];
+            commentListItemBean.isLike = '1';
+            if (!TextUtil.isEmpty(commentListItemBean.likeCount)) {
+              commentListItemBean.likeCount = (int.parse(commentListItemBean.likeCount ?? "") + 1).toString();
             }
-            String addVal = Common.calcCommentAddedIncome(
-                _cosInfoBean,
-                _exchangeRateInfoData,
-                _chainStateBean,
-                commentListItemBean.votepower);
+            String addVal = Common.calcCommentAddedIncome(_cosInfoBean, _exchangeRateInfoData, _chainStateBean, commentListItemBean.votepower);
             if (Common.checkIsNotEmptyStr(addVal)) {
-              var key = Common.getAddMoneyViewKeyFromSymbol(
-                  "$cid + ${index.toString}");
-              if (key != null && key.currentState != null) {
-                key.currentState.startShowWithAni(addVal);
+              var key = Common.getAddMoneyViewKeyFromSymbol("$cid + ${index.toString}");
+              if (key.currentState != null) {
+                key.currentState?.startShowWithAni(addVal);
               }
             }
             _addVoterPowerToComment(commentListItemBean);
-          } else if (_listCommentChildren[index]
-              is CommentChildrenListItemBean) {
-            CommentChildrenListItemBean commentChildrenListItemBean =
-                _listCommentChildren[index];
-            commentChildrenListItemBean?.isLike = '1';
-            if (!TextUtil.isEmpty(commentChildrenListItemBean?.likeCount)) {
-              commentChildrenListItemBean?.likeCount =
-                  (int.parse(commentChildrenListItemBean?.likeCount) + 1)
-                      .toString();
+          } else if (_listCommentChildren[index] is CommentChildrenListItemBean) {
+            CommentChildrenListItemBean commentChildrenListItemBean = _listCommentChildren[index];
+            commentChildrenListItemBean.isLike = '1';
+            if (!TextUtil.isEmpty(commentChildrenListItemBean.likeCount)) {
+              commentChildrenListItemBean.likeCount = (int.parse(commentChildrenListItemBean.likeCount) + 1).toString();
             }
-            String addVal = Common.calcCommentAddedIncome(
-                _cosInfoBean,
-                _exchangeRateInfoData,
-                _chainStateBean,
-                commentChildrenListItemBean.votePower);
+            String addVal =
+                Common.calcCommentAddedIncome(_cosInfoBean, _exchangeRateInfoData, _chainStateBean, commentChildrenListItemBean.votePower);
             if (Common.checkIsNotEmptyStr(addVal)) {
-              var key = Common.getAddMoneyViewKeyFromSymbol(
-                  "$cid + ${index.toString}");
-              if (key != null && key.currentState != null) {
-                key.currentState.startShowWithAni(addVal);
+              var key = Common.getAddMoneyViewKeyFromSymbol("$cid + ${index.toString}");
+              if (key.currentState != null) {
+                key.currentState?.startShowWithAni(addVal);
               }
             }
             _addVoterPowerToCommentChildren(commentChildrenListItemBean);
           }
         } else {
-          if (_mapRemoteResError != null && bean.data.ret != null) {
+          if (bean.data.ret != null) {
             ToastUtil.showToast(_mapRemoteResError[bean.data.ret] ?? '');
           } else {
-            ToastUtil.showToast(bean?.data?.error ?? '');
+            ToastUtil.showToast(bean.data.error ?? "");
           }
         }
       } else {
-        ToastUtil.showToast(bean?.data?.error ?? '');
+        ToastUtil.showToast(bean.data.error ?? "");
       }
     }).whenComplete(() {
       if (!mounted) {
@@ -583,48 +494,28 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   void _checkAbleCommentLike(bool isLike, String cid, int index) {
     if (!ObjectUtil.isEmptyString(Constant.accountName)) {
       if (!isLike) {
-        _httpCommentLike(cid, index, Constant.accountName ?? '');
+        _httpCommentLike(cid, index, Constant.accountName);
       }
     } else {
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleCommentLike(isLike, cid, index);
-          }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleCommentLike(isLike, cid, index);
-          }
-        });
-      }
+      WebViewUtil.instance.openWebViewResult(Constant.logInWebViewUrl, context).then((isSuccess) {
+        if (isSuccess) {
+          _checkAbleCommentLike(isLike, cid, index);
+        }
+      });
     }
   }
 
   Widget _buildVideoCover(double coverWidth, double coverHeight) {
     String videoImage;
-    if (widget._bean.showType ==
-        CommentListParameterBean.showTypeVideoComment) {
-      videoImage = widget._bean?.videoImage ?? '';
+    if (widget._bean.showType == CommentListParameterBean.showTypeVideoComment) {
+      videoImage = widget._bean.videoImage;
     } else {
-      videoImage = _childrenListByMessageDataBean
-              ?.videoInfo?.videoImageCompress?.videoCompressUrl ??
-          '';
+      videoImage = _childrenListByMessageDataBean?.videoInfo.videoImageCompress?.videoCompressUrl ?? '';
       if (ObjectUtil.isEmptyString(videoImage)) {
-        videoImage =
-            _childrenListByMessageDataBean?.videoInfo?.videoCoverBig ?? '';
+        videoImage = _childrenListByMessageDataBean?.videoInfo.videoCoverBig ?? '';
       }
       if (ObjectUtil.isEmptyString(videoImage)) {
-        videoImage = widget._bean?.videoImage ?? '';
+        videoImage = widget._bean.videoImage;
       }
     }
     return Container(
@@ -652,30 +543,25 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   Widget _getCommentChildrenListItem(int index) {
-    CommentChildrenListItemParameterBean bean =
-        CommentChildrenListItemParameterBean();
+    CommentChildrenListItemParameterBean bean = CommentChildrenListItemParameterBean();
     bean.showType = CommentChildrenListItemParameterBean.showTypeCommentList;
     bean.commentChildrenListItemBean = _listCommentChildren[index];
     bean.exchangeRateInfoData = _exchangeRateInfoData;
     bean.chainStateBean = _chainStateBean;
-    bean.creatorUid = widget._bean?.creatorUid ?? '';
+    bean.creatorUid = widget._bean.creatorUid;
     bean.index = index;
-    String vestStatus;
+    String vestStatus = "";
     if (_listCommentChildren[index] is CommentListItemBean) {
       CommentListItemBean commentListItemBean = _listCommentChildren[index];
-      vestStatus = commentListItemBean?.vestStatus ?? '';
+      vestStatus = commentListItemBean.vestStatus;
     } else if (_listCommentChildren[index] is CommentChildrenListItemBean) {
-      CommentChildrenListItemBean commentChildrenListItemBean =
-          _listCommentChildren[index];
-      vestStatus = commentChildrenListItemBean?.vestStatus ?? '';
+      CommentChildrenListItemBean commentChildrenListItemBean = _listCommentChildren[index];
+      vestStatus = commentChildrenListItemBean.vestStatus;
     }
     bean.vestStatus = vestStatus;
     return CommentListChildrenItem(bean, (clickCommentChildrenItemBean) {
       if (vestStatus != VideoInfoResponse.vestStatusFinish) {
-        _checkAbleCommentLike(
-            clickCommentChildrenItemBean.isLike ?? '',
-            clickCommentChildrenItemBean.cid ?? '',
-            clickCommentChildrenItemBean.index);
+        _checkAbleCommentLike(clickCommentChildrenItemBean.isLike, clickCommentChildrenItemBean.cid, clickCommentChildrenItemBean.index);
       } else {
         ToastUtil.showToast(InternationalLocalizations.videoLinkFinishHint);
       }
@@ -688,31 +574,24 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
       FocusScope.of(context).requestFocus(_focusNode);
     }, (clickCommentChildrenItemBean) {
       if (_videoCommentDeleteDialog == null) {
-        _videoCommentDeleteDialog =
-            VideoCommentDeleteDialog(tag, _pageKey, _dialogSKey);
+        _videoCommentDeleteDialog = VideoCommentDeleteDialog(tag, _pageKey, _dialogSKey);
       }
-      _videoCommentDeleteDialog.initData(
-          clickCommentChildrenItemBean.id ?? '',
-          clickCommentChildrenItemBean.vid ?? '',
-          widget._bean?.creatorUid ?? '', () {
-        if (index != null &&
-            _listCommentChildren != null &&
-            index < _listCommentChildren.length) {
+      _videoCommentDeleteDialog?.initData(clickCommentChildrenItemBean.id, clickCommentChildrenItemBean.vid, widget._bean.creatorUid, () {
+        if (index < _listCommentChildren.length) {
           setState(() {
             _listCommentChildren.removeAt(index);
             isReturnCommentTotal = true;
           });
         }
       }, handleDeleteCallBack: (isProcessing, isSuccess) {});
-      _videoCommentDeleteDialog.showVideoCommentDeleteDialog();
+      _videoCommentDeleteDialog?.showVideoCommentDeleteDialog();
     });
   }
 
   void _checkAbleVideoComment() {
     if (!ObjectUtil.isEmptyString(Constant.accountName)) {
       if (_isAbleSendMsg) {
-        String content = Constant.commentSendHtml(
-            _uid, _commentName, _textController.text.trim());
+        String content = Constant.commentSendHtml(_uid, _commentName, _textController.text.trim());
         if (_isInputFace) {
           _isInputFace = false;
           _selectCategory = null;
@@ -721,27 +600,11 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
         _httpVideoComment(Constant.accountName, _commentId, content);
       }
     } else {
-      if (Platform.isAndroid) {
-        WebViewUtil.instance
-            .openWebViewResult(Constant.logInWebViewUrl)
-            .then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleVideoComment();
-          }
-        });
-      } else {
-        Navigator.of(context).push(SlideAnimationRoute(
-          builder: (_) {
-            return WebViewPage(
-              Constant.logInWebViewUrl,
-            );
-          },
-        )).then((isSuccess) {
-          if (isSuccess != null && isSuccess) {
-            _checkAbleVideoComment();
-          }
-        });
-      }
+      WebViewUtil.instance.openWebViewResult(Constant.logInWebViewUrl, context).then((isSuccess) {
+        if (isSuccess) {
+          _checkAbleVideoComment();
+        }
+      });
     }
   }
 
@@ -749,30 +612,23 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
     _textController.text = '';
     _isAbleSendMsg = false;
     //评论成功上报
-    DataReportUtil.instance.reportData(
-        eventName: "Comments",
-        params: {"Comments": "1", "is_comment_videopage": "0"});
+    DataReportUtil.instance.reportData(eventName: "Comments", params: {"Comments": "1", "is_comment_videopage": "0"});
   }
 
-  CommentChildrenListItemBean _buildCommentChildrenBean(
-      String commentId, String content) {
-    String pid = widget?._bean?.pid ?? '';
-    String vid = widget?._bean?.vid ?? '';
-    String uid = widget?._bean?.creatorUid ?? '';
-    String creatorUid = widget?._bean?.creatorUid ?? '';
-    String timestamp =
-        (Decimal.parse(DateTime.now().millisecondsSinceEpoch.toString()) /
-                Decimal.parse('1000'))
-            .toString();
-    String nickName = Constant?.accountGetInfoDataBean?.nickname ?? '';
-    String avatar = Constant?.accountGetInfoDataBean?.avatar ?? '';
+  CommentChildrenListItemBean _buildCommentChildrenBean(String commentId, String content) {
+    String pid = widget._bean.pid;
+    String vid = widget._bean.vid;
+    String uid = widget._bean.creatorUid;
+    String creatorUid = widget._bean.creatorUid;
+    String timestamp = (Decimal.parse(DateTime.now().millisecondsSinceEpoch.toString()) / Decimal.parse('1000')).toString();
+    String nickName = Constant.accountGetInfoDataBean?.nickname ?? '';
+    String avatar = Constant.accountGetInfoDataBean?.avatar ?? '';
     String isCreator = CommentListItemBean.isCreatorNo;
     if (Constant.uid == creatorUid) {
       isCreator = CommentListItemBean.isCreatorYes;
     }
     String isCertification = '';
-    CommentChildrenListItemBean commentChildrenDataListBean =
-        new CommentChildrenListItemBean(
+    CommentChildrenListItemBean commentChildrenDataListBean = new CommentChildrenListItemBean(
       '',
       vid,
       pid,
@@ -788,8 +644,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
       '',
       '0',
       '0',
-      new CommentChildrenUserBean(nickName, avatar, '', isCertification,
-          Constant?.accountGetInfoDataBean?.imageCompress),
+      new CommentChildrenUserBean(nickName, avatar, '', isCertification, Constant.accountGetInfoDataBean?.imageCompress),
       commentId,
       '',
       '',
@@ -805,8 +660,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   void refreshCommentTop(String replyId, String content) {
-    CommentChildrenListItemBean commentChildrenListItemBean =
-        _buildCommentChildrenBean(replyId, content);
+    CommentChildrenListItemBean commentChildrenListItemBean = _buildCommentChildrenBean(replyId, content);
     _listCommentChildren.insert(1, commentChildrenListItemBean);
     isReturnCommentTotal = true;
     Future.delayed(Duration(milliseconds: 1500), () {
@@ -824,11 +678,8 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
         clearCommentInput();
         return;
       }
-      AccountGetInfoBean bean =
-          AccountGetInfoBean.fromJson(json.decode(response.data));
-      if (bean != null &&
-          bean.status == SimpleResponse.statusStrSuccess &&
-          bean.data != null) {
+      AccountGetInfoBean bean = AccountGetInfoBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         Constant.accountGetInfoDataBean = bean.data;
         refreshCommentTop(replyId, content);
       } else {
@@ -848,31 +699,27 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
       _isFetching = true;
       _isShowLoading = true;
     });
-    RequestManager.instance
-        .videoComment(tag, id, accountName, content)
-        .then((response) {
+    RequestManager.instance.videoComment(tag, id, accountName, content).then((response) {
       if (response == null || !mounted) {
         return;
       }
-      VideoCommentBean bean =
-          VideoCommentBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleProxyResponse.statusStrSuccess &&
-          bean.data != null) {
+      VideoCommentBean bean = VideoCommentBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleProxyResponse.statusStrSuccess) {
         if (bean.data.ret == SimpleProxyResponse.responseSuccess) {
           if (Constant.accountGetInfoDataBean == null) {
-            _httpUserInfo(bean.data?.replyid ?? '', content);
+            _httpUserInfo(bean.data.replyid, content);
           } else {
-            refreshCommentTop(bean.data?.replyid ?? '', content);
+            refreshCommentTop(bean.data.replyid, content);
             setState(() {
               _isFetching = false;
               _isShowLoading = false;
             });
           }
         } else {
-          if (_mapRemoteResError != null && bean.data.ret != null) {
+          if (bean.data.ret != null) {
             ToastUtil.showToast(_mapRemoteResError[bean.data.ret] ?? '');
           } else {
-            ToastUtil.showToast(bean?.data?.error ?? '');
+            ToastUtil.showToast(bean.data.error ?? "'");
           }
           setState(() {
             _isFetching = false;
@@ -884,7 +731,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
           _isFetching = false;
           _isShowLoading = false;
         });
-        ToastUtil.showToast(bean?.data?.error ?? '');
+        ToastUtil.showToast(bean.data.error ?? "");
       }
     });
   }
@@ -913,8 +760,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
               style: TextStyle(
                 color: AppThemeUtil.setDifferentModeColor(
                   lightColor: AppColors.color_333333,
-                  darkColorStr:
-                      DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                  darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                 ),
                 fontSize: AppDimens.text_size_15,
               ))
@@ -930,13 +776,12 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
     double coverWidth = 65.0 * ratio;
     double coverHeight = coverWidth * coverRatio;
     String title;
-    if (widget._bean.showType ==
-        CommentListParameterBean.showTypeVideoComment) {
-      title = widget._bean?.videoTitle ?? '';
+    if (widget._bean.showType == CommentListParameterBean.showTypeVideoComment) {
+      title = widget._bean.videoTitle;
     } else {
-      title = _childrenListByMessageDataBean?.videoInfo?.title ?? '';
+      title = _childrenListByMessageDataBean?.videoInfo.title ?? '';
       if (ObjectUtil.isEmptyString(title)) {
-        title = widget._bean?.videoTitle ?? '';
+        title = widget._bean.videoTitle;
       }
     }
     return Column(
@@ -952,13 +797,11 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
           onTap: () {
             Navigator.of(context).push(SlideAnimationRoute(
               builder: (_) {
-                return VideoDetailsPage(
-                    VideoDetailPageParamsBean.createInstance(
-                  vid: widget._bean?.vid ?? '',
-                  uid: widget._bean?.creatorUid ?? '',
-                  videoSource: widget._bean?.videoSource ?? '',
-                  enterSource: VideoDetailsEnterSource
-                      .VideoDetailsEnterSourceNotification,
+                return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
+                  vid: widget._bean.vid,
+                  uid: widget._bean.creatorUid,
+                  videoSource: widget._bean.videoSource,
+                  enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceNotification,
                 ));
               },
               settings: RouteSettings(name: videoDetailPageRouteName),
@@ -967,11 +810,8 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
           },
           child: Container(
             height: AppDimens.item_size_67,
-            padding: EdgeInsets.only(
-                left: AppDimens.margin_15, right: AppDimens.margin_15),
-            color: AppThemeUtil.setDifferentModeColor(
-                lightColor: AppColors.color_ffffff,
-                darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+            padding: EdgeInsets.only(left: AppDimens.margin_15, right: AppDimens.margin_15),
+            color: AppThemeUtil.setDifferentModeColor(lightColor: AppColors.color_ffffff, darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
             child: Row(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -982,8 +822,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
                   style: TextStyle(
                     color: AppThemeUtil.setDifferentModeColor(
                       lightColor: AppColors.color_333333,
-                      darkColorStr:
-                          DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                     ),
                     fontSize: AppDimens.text_size_12,
                   ),
@@ -1034,8 +873,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
               children: <Widget>[
                 _buildTitle(InternationalLocalizations.back),
                 Expanded(
-                  child: CommentErrorWidget(
-                      commentErrorType: CommentErrorType.VideoDelete),
+                  child: CommentErrorWidget(commentErrorType: CommentErrorType.VideoDelete),
                 )
               ],
             ),
@@ -1047,9 +885,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
               children: <Widget>[
                 _buildTitle(InternationalLocalizations.commentTitle),
                 _buildTopVideo(),
-                Expanded(
-                    child: CommentErrorWidget(
-                        commentErrorType: CommentErrorType.CommentDelete))
+                Expanded(child: CommentErrorWidget(commentErrorType: CommentErrorType.CommentDelete))
               ],
             ),
           );
@@ -1059,7 +895,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
       if (!_isFirstSuccessLoad && _isShowLoading) {
         body = Container();
       } else {
-        double inputHeight;
+        double inputHeight = 0;
         if (!_isShowCommentLength) {
           inputHeight = AppDimens.item_size_32;
         }
@@ -1100,9 +936,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(
-                    vertical: AppDimens.margin_6_5,
-                    horizontal: AppDimens.margin_15),
+                padding: EdgeInsets.symmetric(vertical: AppDimens.margin_6_5, horizontal: AppDimens.margin_15),
                 color: AppThemeUtil.setDifferentModeColor(
                   lightColor: AppColors.color_ffffff,
                   darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
@@ -1128,8 +962,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
                           style: TextStyle(
                             color: AppThemeUtil.setDifferentModeColor(
                               lightColor: AppColors.color_333333,
-                              darkColorStr: DarkModelTextColorUtil
-                                  .firstLevelBrightnessColorStr,
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                             ),
                             fontSize: AppDimens.text_size_12,
                           ),
@@ -1143,30 +976,22 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
                             hintStyle: TextStyle(
                               color: AppThemeUtil.setDifferentModeColor(
                                 lightColor: AppColors.color_a0a0a0,
-                                darkColorStr: DarkModelTextColorUtil
-                                    .firstLevelBrightnessColorStr,
+                                darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                               ),
                               fontSize: AppDimens.text_size_12,
                             ),
-                            hintText:
-                                '${InternationalLocalizations.videoCommentReply} @$_commentName：',
-                            contentPadding: EdgeInsets.only(
-                                left: AppDimens.margin_10,
-                                top: AppDimens.margin_12),
+                            hintText: '${InternationalLocalizations.videoCommentReply} @$_commentName：',
+                            contentPadding: EdgeInsets.only(left: AppDimens.margin_10, top: AppDimens.margin_12),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                  color: AppColors.color_transparent),
-                              borderRadius: BorderRadius.circular(
-                                  AppDimens.radius_size_15),
+                              borderSide: BorderSide(color: AppColors.color_transparent),
+                              borderRadius: BorderRadius.circular(AppDimens.radius_size_15),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: AppColors.color_3674ff),
-                              borderRadius: BorderRadius.circular(
-                                  AppDimens.radius_size_15),
+                              borderSide: BorderSide(color: AppColors.color_3674ff),
+                              borderRadius: BorderRadius.circular(AppDimens.radius_size_15),
                             ),
                           ),
-                          autofocus: widget._bean?.isReply ?? false,
+                          autofocus: widget._bean.isReply,
                         ),
                       ),
                     ),
@@ -1197,8 +1022,7 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
                           Offstage(
                             offstage: !_isShowCommentLength,
                             child: Container(
-                              margin:
-                                  EdgeInsets.only(right: AppDimens.margin_5),
+                              margin: EdgeInsets.only(right: AppDimens.margin_5),
                               child: Text(
                                 '$_superfluousLength',
                                 style: AppStyles.text_style_c20a0a_12,
@@ -1214,11 +1038,8 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
                             child: Container(
                               padding: EdgeInsets.all(AppDimens.margin_5),
                               child: AutoSizeText(
-                                InternationalLocalizations
-                                    .videoCommentSendMessage,
-                                style: _isAbleSendMsg
-                                    ? AppStyles.text_style_3674ff_14
-                                    : AppStyles.text_style_a0a0a0_14,
+                                InternationalLocalizations.videoCommentSendMessage,
+                                style: _isAbleSendMsg ? AppStyles.text_style_3674ff_14 : AppStyles.text_style_a0a0a0_14,
                                 minFontSize: 8,
                               ),
                             ),
@@ -1231,27 +1052,43 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
               ),
               Offstage(
                 offstage: !_isInputFace,
-                child: EmojiPicker(
-                  rows: 5,
-                  columns: 10,
-                  bgColor: AppThemeUtil.setDifferentModeColor(
-                    lightColor: AppColors.color_f3f3f3,
-                    darkColor: AppColors.color_3e3e3e,
+                child: SizedBox(
+                  height: 300,
+                  child: EmojiPicker(
+                    textEditingController: _textController,
+                    config: Config(
+                      columns: 10,
+                      bgColor: AppThemeUtil.setDifferentModeColor(
+                        lightColor: AppColors.color_f3f3f3,
+                        darkColor: AppColors.color_3e3e3e,
+                      ),
+                      emojiSizeMax: 32,
+                      verticalSpacing: 0,
+                      horizontalSpacing: 0,
+                      gridPadding: EdgeInsets.zero,
+                      initCategory: Category.RECENT,
+                      indicatorColor: Colors.blue,
+                      iconColor: Colors.grey,
+                      iconColorSelected: Colors.blue,
+                      backspaceColor: Colors.blue,
+                      skinToneDialogBgColor: Colors.white,
+                      skinToneIndicatorColor: Colors.grey,
+                      enableSkinTones: true,
+                      recentTabBehavior: RecentTabBehavior.RECENT,
+                      recentsLimit: 28,
+                      replaceEmojiOnLimitExceed: false,
+                      noRecents: const Text(
+                        'No Recents',
+                        style: TextStyle(fontSize: 20, color: Colors.black26),
+                        textAlign: TextAlign.center,
+                      ),
+                      loadingIndicator: const SizedBox.shrink(),
+                      tabIndicatorAnimDuration: kTabScrollDuration,
+                      categoryIcons: const CategoryIcons(),
+                      buttonMode: ButtonMode.MATERIAL,
+                      checkPlatformCompatibility: true,
+                    ),
                   ),
-                  buttonMode: ButtonMode.MATERIAL,
-                  categoryIcons: CategoryIcons(
-                      epamoji: Image.asset('assets/images/ic_face_voepa.png')),
-                  level: _exclusiveRelationItemBean?.level ??
-                      ExclusiveRelationItemBean.levelLock,
-                  selectedCategory: _selectCategory,
-                  onEmojiSelected: (emoji, category) {
-                    CosLogUtil.log('$tag $category $emoji');
-                    _textController.text = _textController.text + emoji.emoji;
-                    commentChange(_textController.text);
-                  },
-                  onSelectCategoryChange: (selectedCategory) {
-                    _selectCategory = selectedCategory;
-                  },
                 ),
               )
             ],
@@ -1266,11 +1103,10 @@ class _CommentChildrenListPageState extends State<CommentChildrenListPage> {
   }
 
   void commentChange(String str) {
-    if (str != null && str.trim().isNotEmpty) {
+    if (str.trim().isNotEmpty) {
       if (str.trim().length > commentMaxLength) {
         setState(() {
-          _superfluousLength =
-              commentMaxLength - str.trim().length;
+          _superfluousLength = commentMaxLength - str.trim().length;
           if (_isAbleSendMsg) {
             _isAbleSendMsg = false;
           }

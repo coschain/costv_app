@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:get_ip/get_ip.dart';
 import 'package:package_info/package_info.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
 class PlatformUtil {
   static bool isAndroid() {
@@ -30,8 +30,10 @@ class PlatformUtil {
     }
   }
 
-  static Future<String> getIp() async {
-    return await GetIp.ipAddress;
+  static Future<String?> getIp() async {
+    final info = NetworkInfo();
+    var ip = await info.getWifiGatewayIP();
+    return ip;
   }
 
   static Future<String> getPackageName() async {
@@ -39,8 +41,7 @@ class PlatformUtil {
     return packageInfo.packageName;
   }
 
-  static bool isDark(BuildContext context){
+  static bool isDark(BuildContext context) {
     return MediaQuery.of(context).platformBrightness == Brightness.dark;
   }
-
 }

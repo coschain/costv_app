@@ -13,7 +13,6 @@ import 'package:costv_android/pages/upload/video_upload_sheet_lang.dart';
 import 'package:costv_android/pages/upload/video_upload_sheet_tag.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:costv_android/utils/toast_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/common_util.dart';
@@ -43,22 +42,22 @@ const VideoLanguages = [
 typedef VideoUploadCallback = void Function();
 
 class VideoUploadForm extends StatefulWidget {
-  final bool loading;
-  final String videoPath;
-  final String thumbnailPath;
-  final List categories;
-  final List sysTags;
+  bool loading;
+  String videoPath;
+  String thumbnailPath;
+  List? categories;
+  List? sysTags;
   final String tvcSignature;
-  final VideoUploadCallback onCancel;
-  final VideoUploadCallback onSuccess;
+  final VideoUploadCallback? onCancel;
+  final VideoUploadCallback? onSuccess;
 
   VideoUploadForm({
     this.loading = false,
-    this.videoPath,
-    this.thumbnailPath,
+    this.videoPath = "",
+    this.thumbnailPath = "",
     this.categories,
     this.sysTags,
-    this.tvcSignature,
+    this.tvcSignature = "",
     this.onCancel,
     this.onSuccess,
   });
@@ -67,29 +66,28 @@ class VideoUploadForm extends StatefulWidget {
   _VideoUploadFormState createState() => _VideoUploadFormState();
 }
 
-
 class _VideoUploadFormState extends State<VideoUploadForm> {
   static const tag = "_VideoUploadFormState";
 
   bool _showAllItems = false;
 
-  String _video;
-  String _videoFileId;
-  String _videoUrl;
-  String _cover;
+  String _video = "";
+  String _videoFileId = "";
+  String _videoUrl = "";
+  String _cover = "";
   String _title = "";
-  int _category1st;
-  int _category2nd;
-  bool _adult;
-  List<int> _sysTags = [];
-  List<String> _userTags = [];
+  int _category1st = 0;
+  int _category2nd = 0;
+  bool _adult = false;
+  List<int>? _sysTags = [];
+  List<String>? _userTags = [];
   String _desc = "";
   String _lang = RequestManager.instance.apiLanguageParam();
   bool _privacy = false;
   String _progressTitle = InternationalLocalizations.uploadProgressUploading;
   String _progressDetails = "";
   double _progressValue = 0;
-  StreamSubscription _tvcEventsSubscription;
+  StreamSubscription? _tvcEventsSubscription;
   bool _publishing = false;
   bool _success = false;
 
@@ -109,9 +107,9 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
   static Color _captionColor(dynamic value) {
     bool empty = _emptyValue(value);
     if (AppThemeUtil.checkIsDarkMode()) {
-      return empty? Color(0xFFD6D6D6) : Color(0x9AD6D6D6);
+      return empty ? Color(0xFFD6D6D6) : Color(0x9AD6D6D6);
     } else {
-      return empty? Color(0xFF333333) : Color(0x9A333333);
+      return empty ? Color(0xFF333333) : Color(0x9A333333);
     }
   }
 
@@ -125,8 +123,8 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
   @override
   void dispose() {
     super.dispose();
-    if (_tvcEventsSubscription != null ) {
-      _tvcEventsSubscription.cancel();
+    if (_tvcEventsSubscription != null) {
+      _tvcEventsSubscription?.cancel();
     }
   }
 
@@ -141,7 +139,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
         title: InternationalLocalizations.uploadAppbarBack,
         onBack: _onBackPressed,
         buttonText: InternationalLocalizations.uploadAppbarPublish,
-        buttonTextColor: _readyToPublish? Color(0xFF357CFF) : AppThemeUtil.getButtonDisabledColor(),
+        buttonTextColor: _readyToPublish ? Color(0xFF357CFF) : AppThemeUtil.getButtonDisabledColor(),
         onButtonTapped: () {
           if (_readyToPublish) {
             _publish();
@@ -151,7 +149,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
       body: Stack(
         children: <Widget>[
           _buildBody(context),
-          widget.loading || _publishing? _buildLoading(context) : Container(),
+          widget.loading || _publishing ? _buildLoading(context) : Container(),
         ],
       ),
     );
@@ -166,7 +164,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
       child: ListView.builder(
         itemCount: 9,
         itemBuilder: (BuildContext context, int index) {
-          switch(index) {
+          switch (index) {
             case 0:
               return _itemUploadProgress(context);
             case 1:
@@ -180,11 +178,11 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
             case 5:
               return _itemVideoTags(context);
             case 6:
-              return _showAllItems? _itemVideoDesc(context) : _itemVideoShowMore(context);
+              return _showAllItems ? _itemVideoDesc(context) : _itemVideoShowMore(context);
             case 7:
-              return _showAllItems? _itemVideoLanguage(context) : Container();
+              return _showAllItems ? _itemVideoLanguage(context) : Container();
             case 8:
-              return _showAllItems? _itemVideoPrivacy(context) : Container();
+              return _showAllItems ? _itemVideoPrivacy(context) : Container();
             default:
               return Container();
           }
@@ -201,11 +199,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
         child: new SizedBox(
           height: 70,
           width: 70,
-          child: Container(
-              color: AppColors.color_transparent,
-              child: Padding(
-                  padding: EdgeInsets.all(15),
-                  child: CircularProgressIndicator())),
+          child: Container(color: AppColors.color_transparent, child: Padding(padding: EdgeInsets.all(15), child: CircularProgressIndicator())),
         ),
       ),
     );
@@ -215,7 +209,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
     return Column(
       children: <Widget>[
         Container(
-          padding: EdgeInsets.fromLTRB(15,10,15,10),
+          padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
           child: Row(
             children: <Widget>[
               Text(
@@ -224,7 +218,9 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
                   color: _contentColor(),
                 ),
               ),
-              Container(width: 10,),
+              Container(
+                width: 10,
+              ),
               Text(
                 _progressDetails,
                 style: TextStyle(
@@ -257,31 +253,28 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
       child: Stack(
         fit: StackFit.expand,
         children: <Widget>[
-          ObjectUtil.isEmptyString(_cover)?
-          Image.asset("assets/images/img_default_video_cover.png", fit: BoxFit.fill)
-              :Image.file(File(_cover), fit: BoxFit.contain),
+          ObjectUtil.isEmptyString(_cover)
+              ? Image.asset("assets/images/img_default_video_cover.png", fit: BoxFit.fill)
+              : Image.file(File(_cover), fit: BoxFit.contain),
           Align(
-            alignment: Alignment.bottomLeft,
-            child: Container(
-              width: width,
-              height: 50,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0x00000000), Color(0x80000000)],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+              alignment: Alignment.bottomLeft,
+              child: Container(
+                width: width,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0x00000000), Color(0x80000000)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
-              ),
-              child: Container(),
-            )
-          ),
+                child: Container(),
+              )),
           Align(
             alignment: Alignment.bottomRight,
-            child: FlatButton(
+            child: ElevatedButton(
               child: Text(InternationalLocalizations.uploadCoverChange),
-              textColor: Colors.white,
-              splashColor: Colors.transparent,
-              onPressed: (){
+              onPressed: () {
                 _changeCover();
               },
             ),
@@ -315,9 +308,9 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
   }
 
   void _changeCover() async {
-    File cover = await ImagePicker.pickImage(source: ImageSource.gallery);
+    XFile? cover = await ImagePicker().pickImage(source: ImageSource.gallery);
     if (cover != null) {
-      File cropped = await ImageCropper.cropImage(
+      CroppedFile? cropped = await ImageCropper().cropImage(
         sourcePath: cover.path,
         aspectRatioPresets: [
           CropAspectRatioPreset.square,
@@ -326,7 +319,8 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
           CropAspectRatioPreset.ratio4x3,
           CropAspectRatioPreset.ratio16x9
         ],
-        androidUiSettings: AndroidUiSettings(
+        uiSettings: [
+          AndroidUiSettings(
               toolbarTitle: InternationalLocalizations.uploadCoverCrop,
               toolbarColor: AppThemeUtil.setDifferentModeColor(
                 lightColor: Colors.white,
@@ -338,9 +332,10 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
               ),
               initAspectRatio: CropAspectRatioPreset.ratio16x9,
               lockAspectRatio: false),
-        iosUiSettings: IOSUiSettings(
+          IOSUiSettings(
             minimumAspectRatio: 1.0,
-        ),
+          ),
+        ],
       );
       if (cropped != null) {
         setState(() {
@@ -352,7 +347,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
 
   Widget _itemVideoTitle(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: Column(
         children: <Widget>[
           Row(
@@ -363,14 +358,14 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
               ),
               Text("*", style: TextStyle(color: Colors.red)),
               Expanded(child: Container()),
-              (_emptyValue(_title)? Container():
-                Row(
-                  children: <Widget>[
-                    Text("${_title.length}", style: TextStyle(color: _title.length <= MaxVideoTitleSize? _captionColor(_title):Colors.red)),
-                    Text("/$MaxVideoTitleSize", style: TextStyle(color: _captionColor(_title)))
-                ],
-                )
-              ),
+              (_emptyValue(_title)
+                  ? Container()
+                  : Row(
+                      children: <Widget>[
+                        Text("${_title.length}", style: TextStyle(color: _title.length <= MaxVideoTitleSize ? _captionColor(_title) : Colors.red)),
+                        Text("/$MaxVideoTitleSize", style: TextStyle(color: _captionColor(_title)))
+                      ],
+                    )),
             ],
           ),
           TextField(
@@ -383,15 +378,15 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
               hintText: InternationalLocalizations.uploadTitleHint,
               hintStyle: TextStyle(color: AppThemeUtil.getUploadHintTextColor()),
             ),
-            onChanged: (s){
+            onChanged: (s) {
               setState(() {
                 _title = s;
               });
             },
           ),
           Container(
-            color: _title.length <= MaxVideoTitleSize? AppThemeUtil.getListSeparatorColor() : Colors.red,
-            height: _title.length <= MaxVideoTitleSize? 0.5 : 1,
+            color: _title.length <= MaxVideoTitleSize ? AppThemeUtil.getListSeparatorColor() : Colors.red,
+            height: _title.length <= MaxVideoTitleSize ? 0.5 : 1,
           ),
         ],
       ),
@@ -400,63 +395,71 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
 
   Widget _itemVideoCategory(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            FocusScope.of(context).unfocus();
-            List r = await showDialog(context: context, builder: (ctx) => VideoCategorySheet(
-              categories: widget.categories?? [],
-              firstCategory: _category1st,
-              secondCategory: _category2nd,
-            ));
-            if (r != null) {
-              setState(() {
-                _category1st = r[0];
-                _category2nd = r[3];
-              });
-            }
-          },
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Text(InternationalLocalizations.uploadCategoryCaption, style: TextStyle(color: _captionColor(_category))),
-                  Text("*", style: TextStyle(color: Colors.red),
-                  )
-                ],
-              ),
-              Container(height: 10,),
-              Row(
-                children: <Widget>[
-                  Text(
-                    _category ?? InternationalLocalizations.uploadCategoryHint,
-                    style: TextStyle(
-                      color: _emptyValue(_category)? AppThemeUtil.getUploadHintTextColor() : _contentColor(),
-                    ),
+        behavior: HitTestBehavior.opaque,
+        onTap: () async {
+          FocusScope.of(context).unfocus();
+          List r = await showDialog(
+              context: context,
+              builder: (ctx) => VideoCategorySheet(
+                    categories: widget.categories ?? [],
+                    firstCategory: _category1st,
+                    secondCategory: _category2nd,
+                  ));
+          setState(() {
+            _category1st = r[0];
+            _category2nd = r[3];
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text(InternationalLocalizations.uploadCategoryCaption, style: TextStyle(color: _captionColor(_category))),
+                Text(
+                  "*",
+                  style: TextStyle(color: Colors.red),
+                )
+              ],
+            ),
+            Container(
+              height: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Text(
+                  _category ?? InternationalLocalizations.uploadCategoryHint,
+                  style: TextStyle(
+                    color: _emptyValue(_category) ? AppThemeUtil.getUploadHintTextColor() : _contentColor(),
                   ),
-                  Expanded(child: Container(),),
-                  Image.asset(AppThemeUtil.getIcnDownTitle()),
-                ],
-              ),
-              Container(height: 10,),
-              Container(
-                color: AppThemeUtil.getListSeparatorColor(),
-                height: 0.5,
-              )
-            ],
-          ),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Image.asset(AppThemeUtil.getIcnDownTitle()),
+              ],
+            ),
+            Container(
+              height: 10,
+            ),
+            Container(
+              color: AppThemeUtil.getListSeparatorColor(),
+              height: 0.5,
+            )
+          ],
+        ),
       ),
     );
   }
 
   String get _category {
-    if (_category1st == null || _category1st < 0 || _category1st >= widget.categories.length) {
-      return null;
+    if (_category1st < 0 || _category1st >= (widget.categories?.length ?? 0)) {
+      return "";
     }
-    List c1 = widget.categories[_category1st];
-    if (_category2nd == null || _category2nd < 0 || _category2nd >= c1[2].length) {
-      return null;
+    List c1 = widget.categories?[_category1st];
+    if (_category2nd < 0 || _category2nd >= c1[2].length) {
+      return "";
     }
     List c2 = c1[2][_category2nd];
     String s = c1[1];
@@ -468,79 +471,82 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
 
   Widget _itemVideoAgeLimit(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            FocusScope.of(context).unfocus();
-            List r = await showDialog(context: context, builder: (ctx) => VideoAgeLimitSheet(adultOnly: _adult));
-            if (r != null) {
-              setState(() {
-                _adult = r[0];
-              });
-            }
-          },
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Text(InternationalLocalizations.uploadAdultCaption, style: TextStyle(color: _captionColor(_adult))),
-                  Text("*", style: TextStyle(color: Colors.red),
-                  )
-                ],
-              ),
-              Container(height: 10,),
-              Row(
-                children: <Widget>[
-                  Text(
-                    _ageLimit ?? InternationalLocalizations.uploadAdultHint,
-                    style: TextStyle(
-                      color: _emptyValue(_ageLimit)? AppThemeUtil.getUploadHintTextColor() : _contentColor(),
-                    ),
+        behavior: HitTestBehavior.opaque,
+        onTap: () async {
+          FocusScope.of(context).unfocus();
+          List r = await showDialog(context: context, builder: (ctx) => VideoAgeLimitSheet(adultOnly: _adult));
+          setState(() {
+            _adult = r[0];
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text(InternationalLocalizations.uploadAdultCaption, style: TextStyle(color: _captionColor(_adult))),
+                Text(
+                  "*",
+                  style: TextStyle(color: Colors.red),
+                )
+              ],
+            ),
+            Container(
+              height: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Text(
+                  _ageLimit ?? InternationalLocalizations.uploadAdultHint,
+                  style: TextStyle(
+                    color: _emptyValue(_ageLimit) ? AppThemeUtil.getUploadHintTextColor() : _contentColor(),
                   ),
-                  Expanded(child: Container(),),
-                  Image.asset(AppThemeUtil.getIcnDownTitle()),
-                ],
-              ),
-              Container(height: 10,),
-              Container(
-                color: AppThemeUtil.getListSeparatorColor(),
-                height: 0.5,
-              )
-            ],
-          ),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Image.asset(AppThemeUtil.getIcnDownTitle()),
+              ],
+            ),
+            Container(
+              height: 10,
+            ),
+            Container(
+              color: AppThemeUtil.getListSeparatorColor(),
+              height: 0.5,
+            )
+          ],
+        ),
       ),
     );
   }
 
   String get _ageLimit {
-    if (_adult == null) {
-      return null;
-    }
-    return _adult? InternationalLocalizations.uploadAdultOptionForAdults : InternationalLocalizations.uploadAdultOptionForAll;
+    return _adult ? InternationalLocalizations.uploadAdultOptionForAdults : InternationalLocalizations.uploadAdultOptionForAll;
   }
 
   Widget _itemVideoTags(BuildContext context) {
     List<String> currentTags = _tags;
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () async {
           FocusScope.of(context).unfocus();
-          List r = await showDialog(context: context, builder: (ctx) => VideoTagsSheet(
-            sysTags: widget.sysTags,
-            selectedSysTags: _sysTags,
-            userTags: _userTags,
-          ));
-          if (r != null) {
-            setState(() {
-              _sysTags = [];
-              _userTags = [];
-              _sysTags.addAll(r[0]);
-              _userTags.addAll(r[1]);
-            });
-          }
+          List r = await showDialog(
+              context: context,
+              builder: (ctx) => VideoTagsSheet(
+                    sysTags: widget.sysTags,
+                    selectedSysTags: _sysTags,
+                    userTags: _userTags,
+                  ));
+          setState(() {
+            _sysTags = [];
+            _userTags = [];
+            _sysTags?.addAll(r[0]);
+            _userTags?.addAll(r[1]);
+          });
         },
         child: Column(
           children: <Widget>[
@@ -549,30 +555,34 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
                 Text(InternationalLocalizations.uploadTagCaption, style: TextStyle(color: _captionColor(currentTags))),
                 Text("*", style: TextStyle(color: Colors.red)),
                 Expanded(child: Container()),
-                (_emptyValue(currentTags)? Container():Image.asset(AppThemeUtil.getIcnDownTitle())),
+                (_emptyValue(currentTags) ? Container() : Image.asset(AppThemeUtil.getIcnDownTitle())),
               ],
             ),
-            Container(height: 10,),
-            (_emptyValue(currentTags)?
-            Row(
-              children: <Widget>[
-                Text(
-                  InternationalLocalizations.uploadTagHint,
-                  style: TextStyle(
-                    color: AppThemeUtil.getUploadHintTextColor(),
-                  ),
-                ),
-                Expanded(child: Container(),),
-                Image.asset(AppThemeUtil.getIcnDownTitle()),
-              ],
-            )
-            :
-            Align(
-              alignment: Alignment.topLeft,
-              child: VideoTagsContainer(tags: currentTags),
-            )
+            Container(
+              height: 10,
             ),
-            Container(height: 10,),
+            (_emptyValue(currentTags)
+                ? Row(
+                    children: <Widget>[
+                      Text(
+                        InternationalLocalizations.uploadTagHint,
+                        style: TextStyle(
+                          color: AppThemeUtil.getUploadHintTextColor(),
+                        ),
+                      ),
+                      Expanded(
+                        child: Container(),
+                      ),
+                      Image.asset(AppThemeUtil.getIcnDownTitle()),
+                    ],
+                  )
+                : Align(
+                    alignment: Alignment.topLeft,
+                    child: VideoTagsContainer(tags: currentTags),
+                  )),
+            Container(
+              height: 10,
+            ),
             Container(
               color: AppThemeUtil.getListSeparatorColor(),
               height: 0.5,
@@ -585,19 +595,19 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
 
   List<String> get _tags {
     List<String> r = [];
-    _sysTags.forEach((index) {
-      r.add(widget.sysTags[index][1]);
+    _sysTags?.forEach((index) {
+      r.add(widget.sysTags?[index][1]);
     });
-    r.addAll(_userTags);
+    r.addAll(_userTags ?? []);
     return r;
   }
 
   Widget _itemVideoShowMore(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: (){
+        onTap: () {
           setState(() {
             _showAllItems = true;
           });
@@ -606,7 +616,9 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(InternationalLocalizations.uploadMoreOptions, style: TextStyle(color: Color(0xFF858585))),
-            Container(width: 5,),
+            Container(
+              width: 5,
+            ),
             Image.asset(AppThemeUtil.getMoreIcn()),
           ],
         ),
@@ -616,7 +628,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
 
   Widget _itemVideoDesc(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: Column(
         children: <Widget>[
           Row(
@@ -626,14 +638,14 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
                 style: TextStyle(color: _captionColor(_desc)),
               ),
               Expanded(child: Container()),
-              (_emptyValue(_desc)? Container():
-              Row(
-                children: <Widget>[
-                  Text("${_desc.length}", style: TextStyle(color: _desc.length <= MaxVideoDescSize? _captionColor(_desc):Colors.red)),
-                  Text("/$MaxVideoDescSize", style: TextStyle(color: _captionColor(_desc)))
-                ],
-              )
-              ),
+              (_emptyValue(_desc)
+                  ? Container()
+                  : Row(
+                      children: <Widget>[
+                        Text("${_desc.length}", style: TextStyle(color: _desc.length <= MaxVideoDescSize ? _captionColor(_desc) : Colors.red)),
+                        Text("/$MaxVideoDescSize", style: TextStyle(color: _captionColor(_desc)))
+                      ],
+                    )),
             ],
           ),
           TextField(
@@ -651,15 +663,15 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
                 color: AppThemeUtil.getUploadHintTextColor(),
               ),
             ),
-            onChanged: (s){
+            onChanged: (s) {
               setState(() {
                 _desc = s;
               });
             },
           ),
           Container(
-            color: _desc.length <= MaxVideoDescSize? AppThemeUtil.getListSeparatorColor() : Colors.red,
-            height: _desc.length <= MaxVideoDescSize? 0.5 : 1,
+            color: _desc.length <= MaxVideoDescSize ? AppThemeUtil.getListSeparatorColor() : Colors.red,
+            height: _desc.length <= MaxVideoDescSize ? 0.5 : 1,
           )
         ],
       ),
@@ -668,90 +680,100 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
 
   Widget _itemVideoLanguage(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () async {
-            FocusScope.of(context).unfocus();
-            int r = await showDialog(context: context, builder: (ctx) => VideoLanguageSheet(langCode:_lang, languageList: VideoLanguages));
-            if (r != null) {
-              setState(() {
-                _lang = VideoLanguages[r][0];
-              });
-            }
-          },
-          child: Column(
-            children: <Widget>[
-              Row(
-                children: <Widget>[
-                  Text(InternationalLocalizations.uploadLanguageCaption, style: TextStyle(color: _captionColor(_langName))),
-                ],
-              ),
-              Container(height: 10,),
-              Row(
-                children: <Widget>[
-                  Text(
-                    _langName ?? "",
-                    style: TextStyle(
-                      color: _emptyValue(_langName)? AppThemeUtil.getUploadHintTextColor() : _contentColor(),
-                    ),
+        behavior: HitTestBehavior.opaque,
+        onTap: () async {
+          FocusScope.of(context).unfocus();
+          int r = await showDialog(context: context, builder: (ctx) => VideoLanguageSheet(langCode: _lang, languageList: VideoLanguages));
+          setState(() {
+            _lang = VideoLanguages[r][0];
+          });
+        },
+        child: Column(
+          children: <Widget>[
+            Row(
+              children: <Widget>[
+                Text(InternationalLocalizations.uploadLanguageCaption, style: TextStyle(color: _captionColor(_langName))),
+              ],
+            ),
+            Container(
+              height: 10,
+            ),
+            Row(
+              children: <Widget>[
+                Text(
+                  _langName ?? "",
+                  style: TextStyle(
+                    color: _emptyValue(_langName) ? AppThemeUtil.getUploadHintTextColor() : _contentColor(),
                   ),
-                  Expanded(child: Container(),),
-                  Image.asset(AppThemeUtil.getIcnDownTitle()),
-                ],
-              ),
-              Container(height: 10,),
-              Container(
-                color: AppThemeUtil.getListSeparatorColor(),
-                height: 0.5,
-              )
-            ],
-          ),
+                ),
+                Expanded(
+                  child: Container(),
+                ),
+                Image.asset(AppThemeUtil.getIcnDownTitle()),
+              ],
+            ),
+            Container(
+              height: 10,
+            ),
+            Container(
+              color: AppThemeUtil.getListSeparatorColor(),
+              height: 0.5,
+            )
+          ],
+        ),
       ),
     );
   }
 
   String get _langName {
     if (ObjectUtil.isEmptyString(_lang)) {
-      return null;
+      return "";
     }
-    for (int i=0; i<VideoLanguages.length; i++) {
+    for (int i = 0; i < VideoLanguages.length; i++) {
       if (VideoLanguages[i][0] == _lang) {
         return VideoLanguages[i][1];
       }
     }
-    return null;
+    return "";
   }
 
   Widget _itemVideoPrivacy(BuildContext context) {
     return Container(
-      padding: EdgeInsets.fromLTRB(15,10,15,10),
+      padding: EdgeInsets.fromLTRB(15, 10, 15, 10),
       child: Row(
         children: <Widget>[
-          Text(
-            InternationalLocalizations.uploadPrivacyCaption,
-            style: TextStyle(
-              color: _captionColor(null),
-            )
+          Text(InternationalLocalizations.uploadPrivacyCaption,
+              style: TextStyle(
+                color: _captionColor(null),
+              )),
+          Expanded(
+            child: Container(),
           ),
-          Expanded(child: Container(),),
-          Radio(
+          Radio<bool>(
             value: false,
             groupValue: _privacy,
-            onChanged: (v){ setState(() {
-              _privacy = v;
-            });},
+            onChanged: (v) {
+              setState(() {
+                _privacy = v ?? false;
+              });
+            },
             activeColor: Color(0xFF357CFF),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
           Text(InternationalLocalizations.uploadPrivacyOptionPublic),
-          Container(width: 8,),
-          Radio(
+          Container(
+            width: 8,
+          ),
+          Radio<bool>(
             value: true,
             groupValue: _privacy,
-            onChanged: (v){ setState(() {
-              _privacy = v;
-            });},
+            onChanged: (v) {
+              setState(() {
+                _privacy = v ?? false;
+              });
+            },
             activeColor: Color(0xFF357CFF),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
@@ -762,17 +784,20 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
   }
 
   bool get _readyToPublish {
-    return !ObjectUtil.isEmptyString(_videoUrl) && !ObjectUtil.isEmptyString(_videoFileId)
-      && !ObjectUtil.isEmptyString(_title) && _title.length <= MaxVideoTitleSize
-      && _sysTags.length + _userTags.length > 0
-      && !_emptyValue(_adult)
-      && !_emptyValue(_category1st) && !_emptyValue(_category2nd);
+    return !ObjectUtil.isEmptyString(_videoUrl) &&
+        !ObjectUtil.isEmptyString(_videoFileId) &&
+        !ObjectUtil.isEmptyString(_title) &&
+        _title.length <= MaxVideoTitleSize &&
+        (_sysTags?.length ?? 0) + (_userTags?.length ?? 0) > 0 &&
+        !_emptyValue(_adult) &&
+        !_emptyValue(_category1st) &&
+        !_emptyValue(_category2nd);
   }
 
   void _onBackPressed() {
     FocusScope.of(context).unfocus();
     if (widget.onCancel != null) {
-      widget.onCancel();
+      widget.onCancel?.call();
     } else {
       Navigator.of(context).maybePop();
     }
@@ -793,7 +818,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
       if (result) {
         _success = true;
         if (widget.onSuccess != null) {
-          widget.onSuccess();
+          widget.onSuccess?.call();
         }
       } else {
         _success = false;
@@ -803,7 +828,7 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
   }
 
   Future _publishVideo() {
-    return RequestManager.instance.uploadImage(tag, _cover).then((response){
+    return RequestManager.instance.uploadImage(tag, _cover).then((response) {
       if (response == null || response.statusCode != 200) {
         return false;
       }
@@ -811,51 +836,40 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
       if (coverBean == null) {
         return false;
       }
-      String categoryId1st = widget.categories[_category1st][0];
-      String categoryId2nd = widget.categories[_category1st][2][_category2nd][0];
+      String categoryId1st = widget.categories?[_category1st][0];
+      String categoryId2nd = widget.categories?[_category1st][2][_category2nd][0];
       if (categoryId2nd == categoryId1st) {
         categoryId2nd = "";
       }
       List<String> systags = [];
-      _sysTags.forEach((index){
-        systags.add(widget.sysTags[index][0]);
+      _sysTags?.forEach((index) {
+        systags.add(widget.sysTags?[index][0]);
       });
-      return RequestManager.instance.postVideo(
-          tag,
-          Constant.uid ?? "",
-          _title ?? "",
-          _videoUrl,
-          _videoFileId,
-          coverBean.data.url,
-          _desc ?? "",
-          categoryId1st,
-          categoryId2nd,
-          systags,
-          _userTags,
-          _lang,
-          !_privacy,
-          _adult).then((response){
-            if (response == null || response.statusCode != 200) {
-              return false;
-            }
-            var r = json.decode(response.data);
-            return r != null && r["status"] == "200";
+      return RequestManager.instance
+          .postVideo(tag, Constant.uid ?? "", _title ?? "", _videoUrl, _videoFileId, coverBean.data.url, _desc ?? "", categoryId1st, categoryId2nd,
+              systags, _userTags ?? [], _lang, !_privacy, _adult)
+          .then((response) {
+        if (response == null || response.statusCode != 200) {
+          return false;
+        }
+        var r = json.decode(response.data);
+        return r != null && r["status"] == "200";
       });
     });
   }
 
   void _uploadVideo() async {
-    String taskId = await TvcUpload.uploadVideo(widget.tvcSignature, _video);
+    String? taskId = await TvcUpload.uploadVideo(widget.tvcSignature, _video);
     CosLogUtil.log("uploadVideo: taskId=$taskId. sig=${widget.tvcSignature}, file=$_video");
     if (!ObjectUtil.isEmptyString(taskId)) {
       if (_tvcEventsSubscription != null) {
-        _tvcEventsSubscription.cancel();
+        _tvcEventsSubscription?.cancel();
       }
-      _tvcEventsSubscription = TvcUpload.eventChannel.receiveBroadcastStream(taskId).listen((e){
+      _tvcEventsSubscription = TvcUpload.eventChannel.receiveBroadcastStream(taskId).listen((e) {
         CosLogUtil.log("uploadVideo: event: ${e.toString()}");
         if (e is Map) {
           if (e["type"] == "progress") {
-            _uploadProgress(int.tryParse(e["upload"]), int.tryParse(e["total"]));
+            _uploadProgress(int.parse(e["upload"]), int.parse(e["total"]));
           } else if (e["type"] == "result") {
             _uploadResult(e["success"] == "1", e["video_file_id"], e["video_url"]);
           }
@@ -885,8 +899,8 @@ class _VideoUploadFormState extends State<VideoUploadForm> {
         _progressValue = 1;
       });
     } else {
-      _videoFileId = null;
-      _videoUrl = null;
+      _videoFileId = "";
+      _videoUrl = "";
       setState(() {
         _progressTitle = InternationalLocalizations.uploadProgressUploadFailed;
         _progressDetails = "";

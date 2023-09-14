@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-
+import 'dart:io';
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/web_page_api_data_bean.dart';
 import 'package:costv_android/constant.dart';
@@ -18,7 +18,12 @@ import 'package:costv_android/utils/global_util.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path/path.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart'
+    as webview_flutter_android;
+import 'package:path_provider/path_provider.dart';
 
 const String kNavigationExamplePage = '''
 <!DOCTYPE html><html>
@@ -49,25 +54,195 @@ class _WebViewState extends State<WebViewPage> {
   final Completer<WebViewController> _controller =
       Completer<WebViewController>();
 
-  WebViewController _webViewController;
+  late WebViewController _webViewController;
 
   static const tag = '_WebViewState';
-  GlobalObjectKey<WebViewProgressBarState> _progressKey;
+  late GlobalObjectKey<WebViewProgressBarState> _progressKey;
 
   @override
   void initState() {
     super.initState();
     _progressKey = GlobalObjectKey<WebViewProgressBarState>(
         widget._url ?? "" + DateTime.now().toString());
+    late final PlatformWebViewControllerCreationParams params;
+    _webViewController = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..addJavaScriptChannel('Toaster',
+          onMessageReceived: (JavaScriptMessage message) {
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(content: Text(message.message)),
+        );
+      })
+      ..addJavaScriptChannel('costvClient',
+          onMessageReceived: (JavaScriptMessage message) async {
+        CosLogUtil.log('$tag _clientJavascriptChannel = ${message.message}');
+        WebPageApiDataBean webPageApiBean =
+            WebPageApiDataBean.fromJson(json.decode(message.message));
+        String action = webPageApiBean.action;
+        String data = webPageApiBean.data;
+        switch (action) {
+          case WebPageApiDataBean.actionAccessTokenInfo:
+            WebPageApiAccessTokenInfoBean bean =
+                WebPageApiAccessTokenInfoBean.fromJson(json.decode(data));
+            if (!ObjectUtil.isEmptyString(bean.token) &&
+                !ObjectUtil.isEmptyString(bean.chainAccountName)) {
+              Constant.uid = bean.uid;
+              Constant.token = bean.token;
+              Constant.accountName = bean.chainAccountName;
+              LoginInfoDbBean loginInfoDbBean = LoginInfoDbBean(
+                  bean.uid, bean.token, bean.chainAccountName, bean.expires);
+              CosLogUtil.log(
+                  '$tag _clientJavascriptChannel costvClient\nLoginInfoDbBean{ uid: ${bean.uid}, token: ${bean.token}, chainAccountName: ${bean.chainAccountName}, expires: ${bean.expires}');
+              LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
+              try {
+                await loginInfoDbProvider.open();
+                LoginInfoDbBean? loginInfoDbOld =
+                    await loginInfoDbProvider.getLoginInfoDbBean();
+                if (loginInfoDbOld == null) {
+                  await loginInfoDbProvider.insert(loginInfoDbBean);
+                } else {
+                  await loginInfoDbProvider.update(loginInfoDbBean);
+                }
+              } catch (e) {
+                CosLogUtil.log("$tag: e = $e");
+              } finally {
+                await loginInfoDbProvider.close();
+              }
+              LoginStatusEvent? loginStatusEvent =
+                  LoginStatusEvent(LoginStatusEvent.typeLoginSuccess);
+              loginStatusEvent.uid = bean.uid;
+              EventBusHelp.getInstance().fire(loginStatusEvent);
+              Navigator.pop(this.context, true);
+            }
+            break;
+          case WebPageApiDataBean.actionLogout:
+            Constant.uid = "";
+            Constant.token = "";
+            Constant.accountName = "";
+            LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
+            try {
+              await loginInfoDbProvider.open();
+              await loginInfoDbProvider.deleteAll();
+            } catch (e) {
+              CosLogUtil.log("$tag: e = $e");
+            } finally {
+              await loginInfoDbProvider.close();
+            }
+
+            usrAutoPlaySetting = false;
+
+            EventBusHelp.getInstance()
+                .fire(LoginStatusEvent(LoginStatusEvent.typeLogoutSuccess));
+            Navigator.pop(this.context);
+            break;
+          case WebPageApiDataBean.actionOpenVideoPlayPage:
+            WebPageApiVideoIdBean webPageApiVideoIdBean =
+                WebPageApiVideoIdBean.fromJson(json.decode(data));
+            Navigator.of(this.context).push(SlideAnimationRoute(
+              builder: (_) {
+                return VideoDetailsPage(
+                    VideoDetailPageParamsBean.createInstance(
+                  vid: webPageApiVideoIdBean.vid ?? '',
+                  uid: webPageApiVideoIdBean.fuid ?? '',
+                  enterSource: VideoDetailsEnterSource
+                      .VideoDetailsEnterSourceH5WorksOrDynamic,
+                ));
+              },
+              settings: RouteSettings(name: videoDetailPageRouteName),
+              isCheckAnimation: true,
+            ));
+            break;
+          case WebPageApiDataBean.actionHideTextInput:
+            SystemChannels.textInput.invokeMethod('TextInput.hide');
+            break;
+          default:
+        }
+      })
+      ..setBackgroundColor(const Color(0x00000000))
+      ..setNavigationDelegate(
+        NavigationDelegate(
+          onProgress: (int progress) {
+            CosLogUtil.log('$tag Page onProgressChanged: $progress');
+            if (_progressKey.currentState != null) {
+              _progressKey.currentState?.updateProgress(progress);
+            }
+          },
+          onPageStarted: (String url) {},
+          onPageFinished: (String url) {
+            CosLogUtil.log('$tag Page finished loading: $url');
+          },
+          onWebResourceError: (WebResourceError error) {},
+          onNavigationRequest: (NavigationRequest request) {
+            if (request.url.startsWith(Constant.costvWebOrigin)) {
+              Uri uri;
+              try {
+                uri = Uri.parse(request.url);
+              } catch (error) {
+                CosLogUtil.log('$tag Parse web url error: $error');
+                return NavigationDecision.prevent;
+              }
+
+              if (uri.path.startsWith(Constant.webPageVideoPlayPathLeading) &&
+                  uri.pathSegments.length ==
+                      Constant.webPageVideoPlayPathSegmentsLength) {
+                String vid = uri.pathSegments[2];
+                if (!TextUtil.isEmpty(vid)) {
+                  CosLogUtil.log('$tag blocking navigation to $request');
+                  Navigator.of(this.context).push(SlideAnimationRoute(
+                    builder: (_) {
+                      return VideoDetailsPage(
+                          VideoDetailPageParamsBean.createInstance(
+                        vid: vid,
+                        enterSource: VideoDetailsEnterSource
+                            .VideoDetailsEnterSourceH5LikeRewardVideo,
+                      ));
+                    },
+                    settings: RouteSettings(name: videoDetailPageRouteName),
+                    isCheckAnimation: true,
+                  ));
+                  return NavigationDecision.prevent;
+                }
+              }
+            }
+
+            CosLogUtil.log('$tag allowing navigation to $request');
+            return NavigationDecision.navigate;
+          },
+        ),
+      )
+      ..loadRequest(Uri.parse(widget._url));
+    handleAndroidMediaUpload();
+  }
+
+  void handleAndroidMediaUpload() async {
+    final controller = (_webViewController.platform
+        as webview_flutter_android.AndroidWebViewController);
+    await controller.setOnShowFileSelector(_androidFilePicker);
+  }
+
+  Future<List<String>> _androidFilePicker(
+      webview_flutter_android.FileSelectorParams params) async {
+    final media = await ImagePicker().pickMedia();
+
+    if (media == null) {
+      return [];
+    }
+
+    final filePath = (await getTemporaryDirectory()).uri.resolve(
+          './media_${DateTime.now().microsecondsSinceEpoch}${extension(media.path)}',
+        );
+
+    final file = await File.fromUri(filePath).create(recursive: true);
+
+    await file.writeAsBytes(await media.readAsBytes(), flush: true);
+
+    return [file.uri.toString()];
   }
 
   @override
   void dispose() {
     super.dispose();
     RequestManager.instance.cancelAllNetworkRequest(tag);
-    if (_webViewController != null) {
-      _webViewController = null;
-    }
   }
 
   @override
@@ -88,7 +263,6 @@ class _WebViewState extends State<WebViewPage> {
                     Navigator.of(context).pop();
                   },
                 ),
-//            NavigationControls(_controller.future),
               ],
               leading: Material(
                 child: Ink(
@@ -115,21 +289,6 @@ class _WebViewState extends State<WebViewPage> {
                                 fit: BoxFit.cover,
                               ),
                             )),
-
-//              Container(
-//                margin: EdgeInsets.only(left: 8),
-//                constraints: BoxConstraints(
-//                  maxWidth: 35,
-//                ),
-//                child: Text(
-//                  InternationalLocalizations.back,
-//                  overflow: TextOverflow.ellipsis,
-//                  style: TextStyle(
-//                    color: Colors.black,
-//                    fontSize: 15,
-//                  ),
-//                ),
-//              )
                       ],
                     ),
                   ),
@@ -150,86 +309,13 @@ class _WebViewState extends State<WebViewPage> {
                   ),
                   //webView
                   Expanded(
-                    child: WebView(
-                      initialUrl: widget._url,
-                      javascriptMode: JavascriptMode.unrestricted,
-//          debuggingEnabled: true,
-                      onWebViewCreated: (WebViewController webViewController) {
-                        _webViewController = webViewController;
-                        _controller.complete(webViewController);
-                        CosLogUtil.log('$tag onWebViewCreated');
-                      },
-                      // TODO(iskakaushik): Remove this when collection literals makes it to stable.
-                      // ignore: prefer_collection_literals
-                      javascriptChannels: <JavascriptChannel>[
-                        _toasterJavascriptChannel(context),
-                        _clientJavascriptChannel(context),
-                      ].toSet(),
-                      navigationDelegate: (NavigationRequest request) {
-                        if (request.url.startsWith(Constant.costvWebOrigin)) {
-                          Uri uri;
-                          try {
-                            uri = Uri.parse(request.url);
-                          } catch (error) {
-                            CosLogUtil.log('$tag Parse web url error: $error');
-                            return NavigationDecision.prevent;
-                          }
-
-                          if (uri != null &&
-                              uri.path.startsWith(
-                                  Constant.webPageVideoPlayPathLeading) &&
-                              uri.pathSegments.length ==
-                                  Constant.webPageVideoPlayPathSegmentsLength) {
-                            String vid = uri.pathSegments[2];
-                            if (!TextUtil.isEmpty(vid)) {
-                              CosLogUtil.log(
-                                  '$tag blocking navigation to $request');
-                              Navigator.of(context).push(SlideAnimationRoute(
-                                builder: (_) {
-                                  return VideoDetailsPage(
-                                      VideoDetailPageParamsBean.createInstance(
-                                        vid: vid,
-                                        enterSource: VideoDetailsEnterSource
-                                            .VideoDetailsEnterSourceH5LikeRewardVideo,
-                                      ));
-                                },
-                                settings: RouteSettings(name: videoDetailPageRouteName),
-                                isCheckAnimation: true,
-                              ));
-                              return NavigationDecision.prevent;
-                            }
-                          }
-                        }
-
-                        CosLogUtil.log('$tag allowing navigation to $request');
-                        return NavigationDecision.navigate;
-                      },
-                      onPageFinished: (String url) {
-                        CosLogUtil.log('$tag Page finished loading: $url');
-                      },
-                      onProgress: (int progress) {
-                        CosLogUtil.log(
-                            '$tag Page onProgressChanged: $progress');
-                        if (_progressKey != null &&
-                            _progressKey.currentState != null) {
-                          _progressKey.currentState.updateProgress(progress);
-                        }
-                      },
+                    child: WebViewWidget(
+                      controller: _webViewController,
                     ),
                   ),
                 ],
               );
             }),
-          ),
-          IgnorePointer(
-            ignoring: true,
-            child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                color: AppThemeUtil.setDifferentModeColor(
-                  lightColor: Colors.transparent,
-                  darkColor: Common.getColorFromHexString("000000", 0.4),
-                )),
           ),
         ],
       ),
@@ -237,113 +323,12 @@ class _WebViewState extends State<WebViewPage> {
         bool canGoBack = await _webViewController.canGoBack();
         if (canGoBack) {
           _webViewController.goBack();
+          return false;
         } else {
-          Navigator.of(context).pop();
+          return true;
         }
-        return;
       },
     );
-  }
-
-  JavascriptChannel _toasterJavascriptChannel(BuildContext context) {
-    return JavascriptChannel(
-        name: 'Toaster',
-        onMessageReceived: (JavascriptMessage message) {
-          Scaffold.of(context).showSnackBar(
-            SnackBar(content: Text(message.message)),
-          );
-        });
-  }
-
-  JavascriptChannel _clientJavascriptChannel(BuildContext context) {
-    return JavascriptChannel(
-        name: 'costvClient',
-        onMessageReceived: (JavascriptMessage message) async {
-          CosLogUtil.log('$tag _clientJavascriptChannel = ${message.message}');
-          WebPageApiDataBean webPageApiBean =
-              WebPageApiDataBean.fromJson(json.decode(message.message));
-          String action = webPageApiBean.action;
-          String data = webPageApiBean.data;
-          switch (action) {
-            case WebPageApiDataBean.actionAccessTokenInfo:
-              WebPageApiAccessTokenInfoBean bean =
-                  WebPageApiAccessTokenInfoBean.fromJson(json.decode(data));
-              if (bean != null &&
-                  bean.uid != null &&
-                  !ObjectUtil.isEmptyString(bean.token) &&
-                  !ObjectUtil.isEmptyString(bean.chainAccountName) &&
-                  bean.expires != null) {
-                Constant.uid = bean.uid;
-                Constant.token = bean.token;
-                Constant.accountName = bean.chainAccountName;
-                LoginInfoDbBean loginInfoDbBean = LoginInfoDbBean(
-                    bean.uid, bean.token, bean.chainAccountName, bean.expires);
-                CosLogUtil.log(
-                    '$tag _clientJavascriptChannel costvClient\nLoginInfoDbBean{ uid: ${bean.uid}, token: ${bean.token}, chainAccountName: ${bean.chainAccountName}, expires: ${bean.expires}');
-                LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
-                try {
-                  await loginInfoDbProvider.open();
-                  LoginInfoDbBean loginInfoDbOld =
-                      await loginInfoDbProvider.getLoginInfoDbBean();
-                  if (loginInfoDbOld == null) {
-                    await loginInfoDbProvider.insert(loginInfoDbBean);
-                  } else {
-                    await loginInfoDbProvider.update(loginInfoDbBean);
-                  }
-                } catch (e) {
-                  CosLogUtil.log("$tag: e = $e");
-                } finally {
-                  await loginInfoDbProvider.close();
-                }
-                LoginStatusEvent loginStatusEvent =
-                    LoginStatusEvent(LoginStatusEvent.typeLoginSuccess);
-                loginStatusEvent.uid = bean.uid;
-                EventBusHelp.getInstance().fire(loginStatusEvent);
-                Navigator.pop(context, true);
-              }
-              break;
-            case WebPageApiDataBean.actionLogout:
-              Constant.uid = null;
-              Constant.token = null;
-              Constant.accountName = null;
-              LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
-              try {
-                await loginInfoDbProvider.open();
-                await loginInfoDbProvider.deleteAll();
-              } catch (e) {
-                CosLogUtil.log("$tag: e = $e");
-              } finally {
-                await loginInfoDbProvider.close();
-              }
-
-              usrAutoPlaySetting = false;
-
-              EventBusHelp.getInstance()
-                  .fire(LoginStatusEvent(LoginStatusEvent.typeLogoutSuccess));
-              Navigator.pop(context);
-              break;
-            case WebPageApiDataBean.actionOpenVideoPlayPage:
-              WebPageApiVideoIdBean webPageApiVideoIdBean =
-                  WebPageApiVideoIdBean.fromJson(json.decode(data));
-              Navigator.of(context).push(SlideAnimationRoute(
-                builder: (_) {
-                  return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-                    vid: webPageApiVideoIdBean?.vid ?? '',
-                    uid: webPageApiVideoIdBean?.fuid ?? '',
-                    enterSource: VideoDetailsEnterSource
-                        .VideoDetailsEnterSourceH5WorksOrDynamic,
-                  ));
-                },
-                settings: RouteSettings(name: videoDetailPageRouteName),
-                isCheckAnimation: true,
-              ));
-              break;
-            case WebPageApiDataBean.actionHideTextInput:
-              SystemChannels.textInput.invokeMethod('TextInput.hide');
-              break;
-            default:
-          }
-        });
   }
 }
 
@@ -361,7 +346,7 @@ class SampleMenu extends StatelessWidget {
   SampleMenu(this.controller);
 
   final Future<WebViewController> controller;
-  final CookieManager cookieManager = CookieManager();
+  final WebViewCookieManager cookieManager = WebViewCookieManager();
 
   @override
   Widget build(BuildContext context) {
@@ -391,7 +376,7 @@ class SampleMenu extends StatelessWidget {
                 _onClearCache(controller.data, context);
                 break;
               case MenuOptions.navigationDelegate:
-                _onNavigationDelegateExample(controller.data, context);
+                // _onNavigationDelegateExample(controller.data, context);
                 break;
             }
           },
@@ -432,46 +417,50 @@ class SampleMenu extends StatelessWidget {
   }
 
   void _onShowUserAgent(
-      WebViewController controller, BuildContext context) async {
+      WebViewController? controller, BuildContext context) async {
     // Send a message with the user agent string to the Toaster JavaScript channel we registered
     // with the WebView.
-    controller.evaluateJavascript(
+    controller?.runJavaScript(
         'Toaster.postMessage("User Agent: " + navigator.userAgent);');
   }
 
   void _onListCookies(
-      WebViewController controller, BuildContext context) async {
-    final String cookies =
-        await controller.evaluateJavascript('document.cookie');
-    Scaffold.of(context).showSnackBar(SnackBar(
-      content: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          const Text('Cookies:'),
-          _getCookieList(cookies),
-        ],
-      ),
-    ));
+      WebViewController? controller, BuildContext context) async {
+    final String cookies = await controller
+        ?.runJavaScriptReturningResult('document.cookie') as String;
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Column(
+          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            const Text('Cookies:'),
+            _getCookieList(cookies),
+          ],
+        ),
+      ));
+    }
   }
 
-  void _onAddToCache(WebViewController controller, BuildContext context) async {
-    await controller.evaluateJavascript(
+  void _onAddToCache(
+      WebViewController? controller, BuildContext context) async {
+    await controller?.runJavaScript(
         'caches.open("test_caches_entry"); localStorage["test_localStorage"] = "dummy_entry";');
-    Scaffold.of(context).showSnackBar(const SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text('Added a test entry to cache.'),
     ));
   }
 
-  void _onListCache(WebViewController controller, BuildContext context) async {
-    await controller.evaluateJavascript('caches.keys()'
+  void _onListCache(WebViewController? controller, BuildContext context) async {
+    await controller?.runJavaScript('caches.keys()'
         '.then((cacheKeys) => JSON.stringify({"cacheKeys" : cacheKeys, "localStorage" : localStorage}))'
         '.then((caches) => Toaster.postMessage(caches))');
   }
 
-  void _onClearCache(WebViewController controller, BuildContext context) async {
-    await controller.clearCache();
-    Scaffold.of(context).showSnackBar(const SnackBar(
+  void _onClearCache(
+      WebViewController? controller, BuildContext context) async {
+    await controller?.clearCache();
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
       content: Text("Cache cleared."),
     ));
   }
@@ -482,36 +471,38 @@ class SampleMenu extends StatelessWidget {
     if (!hadCookies) {
       message = 'There are no cookies.';
     }
-    Scaffold.of(context).showSnackBar(SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(message),
     ));
   }
 
-  void _onNavigationDelegateExample(
-      WebViewController controller, BuildContext context) async {
-    final String contentBase64 =
-        base64Encode(const Utf8Encoder().convert(kNavigationExamplePage));
-    controller.loadUrl('data:text/html;base64,$contentBase64');
-  }
+// Future<void> _onNavigationDelegateExample( WebViewController controller, BuildContext context) async {
+//   final String contentBase64 = base64Encode(
+//     const Utf8Encoder().convert(kNavigationExamplePage),
+//   );
+//   return controller.loadRequest(
+//     LoadRequestParams(
+//       uri: Uri.parse('data:text/html;base64,$contentBase64'),
+//     ),
+//   );
+}
 
-  Widget _getCookieList(String cookies) {
-    if (cookies == null || cookies == '""') {
-      return Container();
-    }
-    final List<String> cookieList = cookies.split(';');
-    final Iterable<Text> cookieWidgets =
-        cookieList.map((String cookie) => Text(cookie));
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.end,
-      mainAxisSize: MainAxisSize.min,
-      children: cookieWidgets.toList(),
-    );
+Widget _getCookieList(String cookies) {
+  if (cookies == '""') {
+    return Container();
   }
+  final List<String> cookieList = cookies.split(';');
+  final Iterable<Text> cookieWidgets =
+      cookieList.map((String cookie) => Text(cookie));
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.end,
+    mainAxisSize: MainAxisSize.min,
+    children: cookieWidgets.toList(),
+  );
 }
 
 class NavigationControls extends StatelessWidget {
-  const NavigationControls(this._webViewControllerFuture)
-      : assert(_webViewControllerFuture != null);
+  const NavigationControls(this._webViewControllerFuture);
 
   final Future<WebViewController> _webViewControllerFuture;
 
@@ -523,7 +514,7 @@ class NavigationControls extends StatelessWidget {
           (BuildContext context, AsyncSnapshot<WebViewController> snapshot) {
         final bool webViewReady =
             snapshot.connectionState == ConnectionState.done;
-        final WebViewController controller = snapshot.data;
+        final WebViewController? controller = snapshot.data;
         return Row(
           children: <Widget>[
             IconButton(
@@ -531,10 +522,10 @@ class NavigationControls extends StatelessWidget {
               onPressed: !webViewReady
                   ? null
                   : () async {
-                      if (await controller.canGoBack()) {
-                        controller.goBack();
+                      if (await controller?.canGoBack() ?? false) {
+                        controller?.goBack();
                       } else {
-                        Scaffold.of(context).showSnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("No back history item")),
                         );
                         return;
@@ -546,10 +537,10 @@ class NavigationControls extends StatelessWidget {
               onPressed: !webViewReady
                   ? null
                   : () async {
-                      if (await controller.canGoForward()) {
-                        controller.goForward();
+                      if (await controller?.canGoForward() ?? false) {
+                        controller?.goForward();
                       } else {
-                        Scaffold.of(context).showSnackBar(
+                        ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                               content: Text("No forward history item")),
                         );
@@ -562,7 +553,7 @@ class NavigationControls extends StatelessWidget {
               onPressed: !webViewReady
                   ? null
                   : () {
-                      controller.reload();
+                      controller?.reload();
                     },
             ),
           ],
@@ -573,7 +564,7 @@ class NavigationControls extends StatelessWidget {
 }
 
 class WebViewProgressBar extends StatefulWidget {
-  WebViewProgressBar({Key key}) : super(key: key);
+  WebViewProgressBar({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -585,8 +576,8 @@ class WebViewProgressBarState extends State<WebViewProgressBar>
     with SingleTickerProviderStateMixin {
   bool isAnimating = false;
   int curProgress = 0;
-  AnimationController _controller;
-  Animation<double> _widthAni;
+  late AnimationController _controller;
+  late Animation<double> _widthAni;
   double barOpacity = 1.0, progressWidth = 0;
 
   @override
@@ -601,14 +592,10 @@ class WebViewProgressBarState extends State<WebViewProgressBar>
 
   @override
   void dispose() {
-    if (_controller != null) {
-      _controller.stop(canceled: true);
-      _controller.dispose();
-    }
-    if (_widthAni != null) {
-      _widthAni.removeListener(updateState);
-      _widthAni.removeStatusListener(listenAnimationStatus);
-    }
+    _controller.stop(canceled: true);
+    _controller.dispose();
+    _widthAni.removeListener(updateState);
+    _widthAni.removeStatusListener(listenAnimationStatus);
     super.dispose();
   }
 
@@ -652,7 +639,7 @@ class WebViewProgressBarState extends State<WebViewProgressBar>
           _controller = AnimationController(
               duration: const Duration(milliseconds: 100), vsync: this);
         }
-        double screenWidth = MediaQuery.of(context).size.width;
+        double screenWidth = MediaQuery.of(this.context).size.width;
         double oldWidth = screenWidth * (curProgress / 100);
         double newWidth = screenWidth * (progress / 100);
         _controller.reset();

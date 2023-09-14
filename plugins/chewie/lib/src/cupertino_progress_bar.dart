@@ -1,15 +1,14 @@
 import 'package:chewie/src/chewie_progress_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 
 class CupertinoVideoProgressBar extends StatefulWidget {
   CupertinoVideoProgressBar(
     this.controller, {
-    ChewieProgressColors colors,
-    this.onDragEnd,
-    this.onDragStart,
-    this.onDragUpdate,
+    required ChewieProgressColors colors,
+    required this.onDragEnd,
+    required this.onDragStart,
+    required this.onDragUpdate,
   }) : colors = colors ?? ChewieProgressColors();
 
   final VideoPlayerController controller;
@@ -25,13 +24,7 @@ class CupertinoVideoProgressBar extends StatefulWidget {
 }
 
 class _VideoProgressBarState extends State<CupertinoVideoProgressBar> {
-  _VideoProgressBarState() {
-    listener = () {
-      setState(() {});
-    };
-  }
-
-  VoidCallback listener;
+  late VoidCallback listener;
   bool _controllerWasPlaying = false;
 
   VideoPlayerController get controller => widget.controller;
@@ -39,6 +32,9 @@ class _VideoProgressBarState extends State<CupertinoVideoProgressBar> {
   @override
   void initState() {
     super.initState();
+    listener = () {
+      setState(() {});
+    };
     controller.addListener(listener);
   }
 
@@ -73,7 +69,7 @@ class _VideoProgressBarState extends State<CupertinoVideoProgressBar> {
         ),
       ),
       onHorizontalDragStart: (DragStartDetails details) {
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           return;
         }
         _controllerWasPlaying = controller.value.isPlaying;
@@ -81,31 +77,25 @@ class _VideoProgressBarState extends State<CupertinoVideoProgressBar> {
           controller.pause();
         }
 
-        if (widget.onDragStart != null) {
-          widget.onDragStart();
-        }
+        widget.onDragStart();
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           return;
         }
         seekToRelativePosition(details.globalPosition);
 
-        if (widget.onDragUpdate != null) {
-          widget.onDragUpdate();
-        }
+        widget.onDragUpdate();
       },
       onHorizontalDragEnd: (DragEndDetails details) {
         if (_controllerWasPlaying) {
           controller.play();
         }
 
-        if (widget.onDragEnd != null) {
-          widget.onDragEnd();
-        }
+        widget.onDragEnd();
       },
       onTapDown: (TapDownDetails details) {
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           return;
         }
         seekToRelativePosition(details.globalPosition);
@@ -141,7 +131,7 @@ class _ProgressBarPainter extends CustomPainter {
       ),
       colors.backgroundPaint,
     );
-    if (!value.initialized) {
+    if (!value.isInitialized) {
       return;
     }
     final double playedPartPercent =

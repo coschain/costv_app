@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/get_message_list_bean.dart';
@@ -14,9 +13,11 @@ import 'package:url_launcher/url_launcher.dart';
 typedef ClickMessageCallBack = Function();
 
 class MessageCenterItemWidget extends StatefulWidget {
-  final ClickMessageCallBack clickMessageCallBack;
-  final GetMessageListItemBean messageData;
-  MessageCenterItemWidget({Key key, this.clickMessageCallBack, this.messageData}):super(key: key);
+  final ClickMessageCallBack? clickMessageCallBack;
+  final GetMessageListItemBean? messageData;
+
+  MessageCenterItemWidget({Key? key, this.clickMessageCallBack, this.messageData}) : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return MessageCenterItemState();
@@ -32,13 +33,13 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
   Widget _buildItem() {
     double screenWidth = MediaQuery.of(context).size.width;
     double ratio = screenWidth / 375;
-    double coverRatio = 9.0/16.0;
+    double coverRatio = 9.0 / 16.0;
     double coverWidth = 65.0 * ratio;
     double coverHeight = coverWidth * coverRatio;
     double redPointSize = 6.0, avatarLeftMargin = 4.0;
     double avatarSize = 30.0;
     double avatarPartsWidth = redPointSize + avatarLeftMargin + avatarSize;
-    double leftPadding = 6,rightPadding = 15;
+    double leftPadding = 6, rightPadding = 15;
     double messageDescPartsWidth = screenWidth - leftPadding - avatarPartsWidth - rightPadding - coverWidth;
     return Material(
       color: AppColors.color_transparent,
@@ -48,26 +49,25 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
 //            darkColorStr: DarkModelBgColorUtil.pageBgColorStr
 //          ),
           child: InkWell(
-          child: Container(
-            padding: EdgeInsets.only(left: leftPadding, right: rightPadding),
-            margin: EdgeInsets.only(top: 20),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: <Widget>[
-                _buildAvatarParts(avatarSize, redPointSize, avatarLeftMargin),
-                _buildMessageDetailParts(messageDescPartsWidth),
-                _buildVideoCover(coverWidth, coverHeight),
-              ],
-            ),
+        child: Container(
+          padding: EdgeInsets.only(left: leftPadding, right: rightPadding),
+          margin: EdgeInsets.only(top: 20),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              _buildAvatarParts(avatarSize, redPointSize, avatarLeftMargin),
+              _buildMessageDetailParts(messageDescPartsWidth),
+              _buildVideoCover(coverWidth, coverHeight),
+            ],
           ),
-          onTap: () {
-            if (widget.clickMessageCallBack != null) {
-              widget.clickMessageCallBack();
-            }
-          },
-        )
-      ),
+        ),
+        onTap: () {
+          if (widget.clickMessageCallBack != null) {
+            widget.clickMessageCallBack!();
+          }
+        },
+      )),
     );
   }
 
@@ -86,9 +86,8 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
         ],
       ),
     );
-
   }
-  
+
   Widget _buildRedPoint(double redPointSize) {
     return Offstage(
       offstage: !_checkIsShowRedPoint(),
@@ -104,9 +103,9 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
   }
 
   Widget _buildAvatar(double avatarLeftMargin, double avatarSize) {
-    String avatar = widget.messageData?.fromUidInfo?.imageCompress?.avatarCompressUrl ?? "";
+    String avatar = widget.messageData?.fromUidInfo.imageCompress?.avatarCompressUrl ?? "";
     if (!Common.checkIsNotEmptyStr(avatar)) {
-      avatar = widget.messageData?.fromUidInfo?.avatar ?? "";
+      avatar = widget.messageData?.fromUidInfo.avatar ?? "";
     }
     return Material(
       color: AppColors.color_transparent,
@@ -118,13 +117,12 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(avatarSize / 2),
             ),
-            child:  Stack(
+            child: Stack(
               children: <Widget>[
                 CircleAvatar(
                   backgroundColor: AppColors.color_ffffff,
                   radius: avatarSize / 2,
-                  backgroundImage: AssetImage(
-                      'assets/images/ic_default_avatar.png'),
+                  backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                 ),
                 CircleAvatar(
                   backgroundColor: AppColors.color_transparent,
@@ -142,26 +140,19 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
         ),
       ),
     );
-
-
   }
 
   Widget _buildMessageDetailParts(double partsWidth) {
     bool isRead = !_checkIsShowRedPoint();
-    Color descColor = isRead? AppThemeUtil.setDifferentModeColor(
-      lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
-      darkColorStr: "858585",
-    ) :AppThemeUtil.setDifferentModeColor(
-      lightColor: Common.getColorFromHexString("333333", 1.0),
-      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr
-    );
-    Color timeColor  = isRead? AppThemeUtil.setDifferentModeColor(
-      lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
-      darkColorStr: "858585",
-    ) : AppThemeUtil.setDifferentModeColor(
-      lightColor: Common.getColorFromHexString("858585", 1.0),
-      darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
-    );
+    Color timeColor = isRead
+        ? AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
+            darkColorStr: "858585",
+          )
+        : AppThemeUtil.setDifferentModeColor(
+            lightColor: Common.getColorFromHexString("858585", 1.0),
+            darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+          );
     return Container(
       padding: EdgeInsets.only(left: 15, right: 10),
       width: partsWidth,
@@ -192,7 +183,7 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
                       OtherHomeParamsBean(
                         uid: uid,
                         avatar: '',
-                        nickName: name ?? '',
+                        nickName: name,
                       ),
                     );
                   },
@@ -200,9 +191,8 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
               }
             },
             clickHttpListener: (String url) async {
-              if (ObjectUtil.isNotEmpty(url) &&
-                  await canLaunch(url)) {
-                await launch(url);
+              if (ObjectUtil.isNotEmpty(url) && await canLaunchUrl(Uri.parse(url))) {
+                await launchUrl(Uri.parse(url));
               }
             },
           ),
@@ -226,9 +216,9 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
   }
 
   Widget _buildVideoCover(double coverWidth, double coverHeight) {
-    String imageUrl = widget.messageData?.videoInfo?.videoImageCompress?.videoCompressUrl ?? "";
+    String imageUrl = widget.messageData?.videoInfo.videoImageCompress?.videoCompressUrl ?? "";
     if (!Common.checkIsNotEmptyStr(imageUrl)) {
-      imageUrl = widget.messageData?.videoInfo?.videoCoverBig ?? "";
+      imageUrl = widget.messageData?.videoInfo.videoCoverBig ?? "";
     }
     return Container(
       width: coverWidth,
@@ -253,31 +243,30 @@ class MessageCenterItemState extends State<MessageCenterItemWidget> {
       ),
     );
   }
-  
+
   String _getMessageContent() {
     return widget.messageData?.content ?? "";
   }
 
   String _getMessageTime() {
-    return Common.calcDiffTimeByStartTime(widget.messageData?.createdAt);
+    return Common.calcDiffTimeByStartTime(widget.messageData?.createdAt ?? "");
   }
 
   bool _checkIsShowRedPoint() {
-    String readStatus = widget.messageData?.isRead ?? "1";//消息是否已读，1 未读， 2 已读
+    String readStatus = widget.messageData?.isRead ?? "1"; //消息是否已读，1 未读， 2 已读
     return readStatus == "1";
   }
 
   void _jumpToUserCenter() {
-    String avatar =
-        widget.messageData?.fromUidInfo?.imageCompress?.avatarCompressUrl ?? '';
+    String avatar = widget.messageData?.fromUidInfo.imageCompress?.avatarCompressUrl ?? '';
     if (!Common.checkIsNotEmptyStr(avatar)) {
-      avatar = widget.messageData?.fromUidInfo?.avatar ?? '';
+      avatar = widget.messageData?.fromUidInfo.avatar ?? '';
     }
     Navigator.of(context).push(SlideAnimationRoute(
       builder: (_) {
         return OthersHomePage(OtherHomeParamsBean(
           uid: widget.messageData?.fromUid ?? "",
-          nickName: widget.messageData?.fromUidInfo?.nickname ?? '',
+          nickName: widget.messageData?.fromUidInfo.nickname ?? '',
           avatar: avatar,
         ));
       },

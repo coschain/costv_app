@@ -8,9 +8,10 @@ class VideoAddMoneyWidget extends StatefulWidget {
   final TextStyle textStyle;
   final AlignmentGeometry stackAlignment;
   final double translateY;
-  VideoAddMoneyWidget({Key key,this.baseWidget, this.textStyle,
-    this.stackAlignment = AlignmentDirectional.center, this.translateY = -35})
-      :assert(textStyle != null),super(key: key);
+  VideoAddMoneyWidget(
+      {Key? key, required this.baseWidget, required this.textStyle, this.stackAlignment = AlignmentDirectional.center, this.translateY = -35})
+      : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return VideoAddMoneyWidgetState();
@@ -19,22 +20,21 @@ class VideoAddMoneyWidget extends StatefulWidget {
 
 class VideoAddMoneyWidgetState extends State<VideoAddMoneyWidget>
     with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<double> _fadeIn;
-  Animation<double> _fadeOut;
-  Animation<double> _translate;
-  Animation<double> _scale;
+  late AnimationController _controller;
+  late Animation<double> _fadeIn;
+  late Animation<double> _fadeOut;
+  late Animation<double> _translate;
+  late Animation<double> _scale;
   bool _isAnimating = false;
   String moneyStr = "";
+
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(duration: const Duration(milliseconds: 750), vsync: this)
       ..addListener(updateState)
       ..addStatusListener(listenAnimationStatus);
-    _fadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Interval(0.0, 0.05, curve: Curves.easeIn)
+    _fadeIn = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Interval(0.0, 0.05, curve: Curves.easeIn)
     ));
     _translate = Tween<double>(begin:0, end: widget.translateY).animate(CurvedAnimation(
         parent: _controller,
@@ -52,30 +52,28 @@ class VideoAddMoneyWidgetState extends State<VideoAddMoneyWidget>
 
   @override
   void dispose() {
-    if (_controller != null) {
-      _controller.removeListener(updateState);
-      _fadeIn.removeStatusListener(listenAnimationStatus);
-      _controller.dispose();
-    }
+    _controller.removeListener(updateState);
+    _fadeIn.removeStatusListener(listenAnimationStatus);
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Stack(
+      clipBehavior: Clip.none,
       alignment: widget.stackAlignment,
-      overflow: Overflow.visible,
       children: <Widget>[
         widget.baseWidget,
         Positioned(
           left: 0,
           top: 0,
           child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width-30,
-              ),
-              child: IgnorePointer(
-                ignoring: true,
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width - 30,
+            ),
+            child: IgnorePointer(
+              ignoring: true,
                 child: Transform.translate(
                   child: Transform.scale(
                     scale: _scale.value,

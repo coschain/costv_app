@@ -31,7 +31,5 @@ var commonPtBr = {
     "emojiUnlockTitle": "Como desbloquear \"Epamoji\"",
     "emojiUnlockHint": "Envie 100 Gifting Votes ou maisno total para Voepa paradesbloquear todos os stickersem \"Epamoji\"",
     "emojiUnlockGo": "(Observação: Vá para a COS.TV Webno seu telefone ou computador paratestar a função Gifting Votes)"
-  },
-  "blockVideo":"Ocultar este vídeo",
-  "blockCreator":"Bloquear o criador",
+  }
 };

@@ -1,7 +1,6 @@
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 enum RemindType {
@@ -21,8 +20,8 @@ enum RemindType {
 typedef ClickCallBack = void Function();
 
 class PageRemindWidget extends StatelessWidget {
-  final RemindType remindType;
-  final ClickCallBack clickCallBack;
+  final RemindType? remindType;
+  final ClickCallBack? clickCallBack;
 
   PageRemindWidget({this.clickCallBack, this.remindType});
 
@@ -111,11 +110,10 @@ class PageRemindWidget extends StatelessWidget {
     //按钮
     return Container(
       margin: EdgeInsets.only(top: 20),
-      child: RaisedButton(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(20)),
-        ),
-        color: Common.getColorFromHexString("3674FF", 1.0),
+      child: ElevatedButton(
+        style: ButtonStyle(
+            shape: MaterialStatePropertyAll(RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20)))),
+            backgroundColor: MaterialStatePropertyAll(Common.getColorFromHexString("3674FF", 1.0))),
         onPressed: _onClickLogIn,
         child: Text(
           _getBtnTitle(),
@@ -130,7 +128,7 @@ class PageRemindWidget extends StatelessWidget {
 
   void _onClickLogIn() {
     if (clickCallBack != null) {
-      clickCallBack();
+      clickCallBack!();
     }
   }
 
@@ -179,7 +177,7 @@ class PageRemindWidget extends StatelessWidget {
         remindType == RemindType.WatchHistoryPageLogIn ||
         remindType == RemindType.CommentListPageLogIn ||
         remindType == RemindType.CommentChildrenListPageLogIn ||
-        remindType == RemindType.VideoUploadPageLogIn ) {
+        remindType == RemindType.VideoUploadPageLogIn) {
       return InternationalLocalizations.notLogInTips;
     } else if (remindType == RemindType.MessageNoData) {
       return InternationalLocalizations.messageNoData;
@@ -216,7 +214,7 @@ class PageRemindWidget extends StatelessWidget {
         remindType == RemindType.WatchHistoryPageLogIn ||
         remindType == RemindType.CommentListPageLogIn ||
         remindType == RemindType.CommentChildrenListPageLogIn ||
-        remindType == RemindType.VideoUploadPageLogIn ) {
+        remindType == RemindType.VideoUploadPageLogIn) {
       return InternationalLocalizations.logIn;
     } else if (remindType == RemindType.VideoUploadPageSuccess) {
       return InternationalLocalizations.videoUploadSuccessBtn;

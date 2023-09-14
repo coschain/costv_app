@@ -16,9 +16,7 @@ import 'package:costv_android/widget/loading_view.dart';
 import 'package:costv_android/widget/net_request_fail_view.dart';
 import "package:costv_android/widget/page_remind_widget.dart";
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:cosdart/types.dart';
 import 'package:costv_android/utils/video_report_util.dart';
 
@@ -27,7 +25,9 @@ final pageLogPrefix = "UserLikeVideoPage";
 
 class UserLikedVideoPage extends StatefulWidget {
   final String uid;
-  UserLikedVideoPage({@required this.uid});
+
+  UserLikedVideoPage({required this.uid});
+
   @override
   State<StatefulWidget> createState() {
     return _UserLikedVideoPageState();
@@ -39,18 +39,18 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
   static const String tag = '_UserLikedVideoPageState';
   GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   int _pageSize = 20, _page = 1;
-  bool _hasNextPage = false, _isFetching = false, _isShowLoading = true, _isScrolling = false,
-      _isDeleting = false, _isSuccessLoad = true;
+  bool _hasNextPage = false, _isFetching = false, _isShowLoading = true, _isScrolling = false, _isDeleting = false, _isSuccessLoad = true;
   List<GetVideoListNewDataListBean> _videoList = [];
-  ExchangeRateInfoData _rateInfo;
-  dynamic_properties _chainDgpo;
-  Map<int,double> _visibleFractionMap = {};
+  ExchangeRateInfoData? _rateInfo;
+  dynamic_properties? _chainDgpo;
+  Map<int, double> _visibleFractionMap = {};
 
   @override
   void initState() {
     _reloadData();
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -88,7 +88,7 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
           ),
           padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
           child: RefreshAndLoadMoreListView(
-            itemCount: _videoList?.length ?? 0,
+            itemCount: _videoList.length ?? 0,
             itemBuilder: (BuildContext context, int position) {
               if (!_isScrolling) {
                 _visibleFractionMap[position] = 1;
@@ -140,20 +140,18 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
     await Future.wait(
       reqList,
     ).then((valList) {
-      if (valList != null && mounted) {
-        int resLen = valList?.length ?? 0;
-        List<GetVideoListNewDataListBean> videoList;
-        ExchangeRateInfoData rateData = _rateInfo;
-        dynamic_properties dgpo = _chainDgpo;
+      if (mounted) {
+        int resLen = valList.length ?? 0;
+        List<GetVideoListNewDataListBean>? videoList;
+        ExchangeRateInfoData? rateData = _rateInfo;
+        dynamic_properties? dgpo = _chainDgpo;
         if (resLen >= 1) {
           videoList = valList[0];
         }
         if (resLen >= 2) {
           GetChainStateResponse bean = valList[1];
-          if (bean != null && bean.state != null && bean.state.dgpo != null) {
-            dgpo= bean.state.dgpo;
-            _chainDgpo = dgpo;
-          }
+          dgpo = bean.state.dgpo;
+          _chainDgpo = dgpo;
         }
 
         if (isNeedLoadRate && resLen >= 3) {
@@ -213,14 +211,13 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
   }
 
   ///获取点赞历史数据
-  Future<List<GetVideoListNewDataListBean>> _loadLikedVideoList(bool isNextPage) async {
-    List<GetVideoListNewDataListBean> list;
+  Future<List<GetVideoListNewDataListBean>?> _loadLikedVideoList(bool isNextPage) async {
+    List<GetVideoListNewDataListBean>? list;
     if (isNextPage && !_hasNextPage) {
       return list;
     }
-    int page = isNextPage ? _page+1 : 0;
-    await RequestManager.instance.getUserLikedVideoList(tag, widget.uid,
-        _page.toString(), _pageSize.toString()).then((response) {
+    int page = isNextPage ? _page + 1 : 0;
+    await RequestManager.instance.getUserLikedVideoList(tag, widget.uid, _page.toString(), _pageSize.toString()).then((response) {
       if (response == null || !mounted) {
         CosLogUtil.log("$pageLogPrefix: fail to request uid:${widget.uid}'s "
             "liked video list");
@@ -231,20 +228,17 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
       List<GetVideoListNewDataListBean> dataList = isSuccess ? (bean.data?.list ?? []) : [];
       list = dataList;
       if (isSuccess) {
-        _hasNextPage = bean.data.hasNext == "1";
+        _hasNextPage = bean.data?.hasNext == "1";
         if (isNextPage) {
           if (dataList.isNotEmpty) {
             _videoList.addAll(dataList);
             _page = page;
           }
-          setState(() {
-
-          });
+          setState(() {});
         }
-
       } else {
         CosLogUtil.log("$pageLogPrefix: fail to request uid:${widget.uid}'s "
-            "liked video list of page:$page, the error msg is ${bean.message}, "
+            "liked video list of page:$page, the error msg is ${bean.msg}, "
             "error code is ${bean.status}");
       }
     }).catchError((err) {
@@ -257,7 +251,7 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
 
 
   HistoryVideoItem _getHistoryVideoItem(int idx) {
-    int listCnt = _videoList?.length ?? 0;
+    int listCnt = _videoList.length ?? 0;
     if (idx >= 0 && idx < listCnt) {
       return HistoryVideoItem(
         isEnableDelete: false,
@@ -280,7 +274,7 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
 
   void _showDataLoadFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
@@ -296,7 +290,7 @@ class _UserLikedVideoPageState extends State<UserLikedVideoPage> {
 
   //视频曝光上报
   void _reportVideoExposure() {
-    if (_videoList == null || _videoList.isEmpty) {
+    if (_videoList.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleItemIndex();

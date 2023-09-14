@@ -27,13 +27,13 @@ enum VideoDetailsEnterSource {
 class VideoDetailPageParamsBean {
   static const fromTypeVideoSmallWindows = 1;
   static const fromTypeOther = 2;
-  int _fromType;
+  int _fromType = 0;
   bool _isVideoSmallInit = false;
-  String _vid;
-  String _uid;
-  String _videoSource;
-  VideoDetailsEnterSource _enterSource;
-  VideoSmallWindowsBean _videoSmallWindowsBean;
+  String _vid = "'";
+  String _uid = "";
+  String _videoSource = "";
+  VideoDetailsEnterSource? _enterSource;
+  VideoSmallWindowsBean? _videoSmallWindowsBean;
 
   int get getFromType => _fromType;
 
@@ -65,29 +65,28 @@ class VideoDetailPageParamsBean {
     _videoSource = source;
   }
 
-  set setEnterSource(VideoDetailsEnterSource enterSource) {
+  set setEnterSource(VideoDetailsEnterSource? enterSource) {
     _enterSource = enterSource;
   }
 
-  VideoDetailsEnterSource get getEnterSource => _enterSource;
+  VideoDetailsEnterSource? get getEnterSource => _enterSource;
 
-  VideoSmallWindowsBean get getVideoSmallWindowsBean => _videoSmallWindowsBean;
+  VideoSmallWindowsBean? get getVideoSmallWindowsBean => _videoSmallWindowsBean;
 
-  set setVideoSmallWindowsBean(VideoSmallWindowsBean value) {
+  set setVideoSmallWindowsBean(VideoSmallWindowsBean? value) {
     _videoSmallWindowsBean = value;
   }
 
   static VideoDetailPageParamsBean createInstance({
     int fromType = fromTypeOther,
     bool isVideoSmallInit = false,
-    String vid,
-    String uid,
-    String videoSource,
-    VideoDetailsEnterSource enterSource,
-    VideoSmallWindowsBean videoSmallWindowsBean,
+    String vid = "",
+    String uid = "",
+    String videoSource = "",
+    VideoDetailsEnterSource? enterSource,
+    VideoSmallWindowsBean? videoSmallWindowsBean,
   }) {
-    VideoDetailPageParamsBean videoDetailPageParamsBean =
-        VideoDetailPageParamsBean();
+    VideoDetailPageParamsBean videoDetailPageParamsBean = VideoDetailPageParamsBean();
     videoDetailPageParamsBean.setFromType = fromType;
     videoDetailPageParamsBean.setIsVideoSmallInit = isVideoSmallInit;
     videoDetailPageParamsBean.setVid = vid;

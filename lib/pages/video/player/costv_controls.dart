@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/event/base/event_bus_help.dart';
@@ -32,8 +31,7 @@ typedef PlayNextVideoCallBack = Function();
 typedef VideoPlayEndCallBack = Function();
 typedef RefreshRecommendVideoCallBack = Function();
 typedef HandelFollowCallBack = Function();
-typedef PlayCreatorRecommendVideoCallBack = Function(
-    GetVideoListNewDataListBean videoInfo);
+typedef PlayCreatorRecommendVideoCallBack = Function(GetVideoListNewDataListBean? videoInfo);
 typedef FetchFollowingRecommendVideoCallBack = Function();
 typedef PlayPreVideoCallBack = Function();
 typedef ClickZoomOutCallBack = Function();
@@ -41,22 +39,22 @@ typedef ClickZoomOutCallBack = Function();
 class CosTVControls extends StatefulWidget {
   static const int showTypeNormal = 1;
   static const int showTypeSmallWindows = 2;
-  CosTVControlsState cosTVControlsState;
+  late CosTVControlsState cosTVControlsState;
   final String controlsKey;
-  final PlayNextVideoCallBack playNextVideoCallBack;
-  final VideoPlayEndCallBack videoPlayEndCallBack;
-  final RefreshRecommendVideoCallBack refreshRecommendVideoCallBack;
-  final ClickRecommendVideoCallBack clickRecommendVideoCallBack;
-  final HandelFollowCallBack handelFollowCallBack;
-  final FetchFollowingRecommendVideoCallBack
-  fetchFollowingRecommendVideoCallBack;
-  final PlayCreatorRecommendVideoCallBack playCreatorRecommendVideoCallBack;
-  final PlayPreVideoCallBack playPreVideoCallBack;
-  final ClickZoomOutCallBack clickZoomOutCallBack;
+  final PlayNextVideoCallBack? playNextVideoCallBack;
+  final VideoPlayEndCallBack? videoPlayEndCallBack;
+  final RefreshRecommendVideoCallBack? refreshRecommendVideoCallBack;
+  final ClickRecommendVideoCallBack? clickRecommendVideoCallBack;
+  final HandelFollowCallBack? handelFollowCallBack;
+  final FetchFollowingRecommendVideoCallBack? fetchFollowingRecommendVideoCallBack;
+  final PlayCreatorRecommendVideoCallBack? playCreatorRecommendVideoCallBack;
+  final PlayPreVideoCallBack? playPreVideoCallBack;
+  final ClickZoomOutCallBack? clickZoomOutCallBack;
   final int showType;
 
-  CosTVControls(this.controlsKey, {
-    Key key,
+  CosTVControls(
+    this.controlsKey, {
+    Key? key,
     this.playNextVideoCallBack,
     this.videoPlayEndCallBack,
     this.refreshRecommendVideoCallBack,
@@ -77,46 +75,43 @@ class CosTVControls extends StatefulWidget {
 }
 
 class CosTVControlsState extends State<CosTVControls> {
-  VideoPlayerValue _latestValue;
+  VideoPlayerValue? _latestValue;
   bool _hideStuff = true;
-  Timer _hideTimer;
-  Timer _initTimer;
-  Timer _showAfterExpandCollapseTimer;
-  bool _dragging = false;
-  bool _displayTapped = false;
+  Timer? _hideTimer;
+  Timer? _initTimer;
+  Timer? _showAfterExpandCollapseTimer;
   bool _isPlayEnd = false;
   bool _isReplayStatus = false;
-  StreamSubscription _eventControls;
-  Timer _countDownTimer;
+  StreamSubscription? _eventControls;
+  Timer? _countDownTimer;
 
-  VideoPlayerController controller;
-  ChewieController chewieController;
+  VideoPlayerController? controller;
+  ChewieController? chewieController;
   bool _showDefaultProgress = true;
   bool _isAnimateDefaultProgress = false;
 
   @override
   void initState() {
     _listenEvent();
-    _isReplayStatus =
-        VideoDetailDataMgr.instance.getIsReplayStatusByKey(widget.controlsKey);
+    _isReplayStatus = VideoDetailDataMgr.instance.getIsReplayStatusByKey(widget.controlsKey);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_latestValue != null && _latestValue.hasError) {
-      return chewieController.errorBuilder != null
-          ? chewieController.errorBuilder(
-        context,
-        chewieController.videoPlayerController.value.errorDescription,
-      )
+    if (_latestValue != null && (_latestValue?.hasError ?? false)) {
+      return chewieController?.errorBuilder != null
+          ? chewieController!.errorBuilder!(
+              context,
+              chewieController!.videoPlayerController.value.errorDescription ?? "",
+            )
           : Center(
-        child: Icon(
-          Icons.error,
-          color: Colors.white,
-          size: 42,
-        ),
-      );
+              child: Icon(
+                Icons.error,
+                color: Colors.white,
+                size: 42,
+              ),
+            );
     }
     if (widget.showType == CosTVControls.showTypeSmallWindows) {
       return _buildControlsWidget();
@@ -135,8 +130,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildControlsWidget() {
-    bool isLoad =
-    VideoDetailDataMgr.instance.getLoadStatuesByKey(widget.controlsKey);
+    bool isLoad = VideoDetailDataMgr.instance.getLoadStatuesByKey(widget.controlsKey);
     if (_isPlayEnd && !isLoad) {
       if (widget.showType == CosTVControls.showTypeSmallWindows) {
         return Container(
@@ -202,9 +196,7 @@ class CosTVControlsState extends State<CosTVControls> {
                 //上一个视频按钮
                 _buildPlayPrevIcn(),
                 //暂停播放按钮
-                !_checkIsShowPlayStatusLoading()
-                    ? _buildPlayPause(controller)
-                    : _buildPlayStatusLoading(),
+                !_checkIsShowPlayStatusLoading() ? _buildPlayPause(controller) : _buildPlayStatusLoading(),
                 //下一个视频按钮
                 _buildPlayNextIcn()
               ],
@@ -214,21 +206,16 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildFullScreenCurrentVideoTitle() {
-    String title = VideoDetailDataMgr.instance
-        .getCurrentVideoInfoByKey(widget.controlsKey)
-        ?.title;
+    String title = VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(widget.controlsKey)?.title ?? "";
     if (_judgeIsFullScreen()) {
       return AnimatedOpacity(
         opacity: _hideStuff ? 0.0 : 1.0,
         duration: Duration(milliseconds: 300),
         child: Container(
-          width: MediaQuery
-              .of(context)
-              .size
-              .width - 40,
+          width: MediaQuery.of(context).size.width - 40,
           margin: EdgeInsets.fromLTRB(0, 20, 0, 0),
           child: Text(
-            title ?? "",
+            title,
             style: TextStyle(
               fontSize: 15,
               color: Common.getColorFromHexString("FFFFFFFF", 1.0),
@@ -278,9 +265,7 @@ class CosTVControlsState extends State<CosTVControls> {
               _buildPlayPrevIcn(),
               Container(
                 margin: EdgeInsets.only(left: 110),
-                child: !_checkIsShowPlayStatusLoading()
-                    ? _buildPlayPause(controller)
-                    : _buildPlayStatusLoading(),
+                child: !_checkIsShowPlayStatusLoading() ? _buildPlayPause(controller) : _buildPlayStatusLoading(),
               ),
               Container(
                 margin: EdgeInsets.only(left: 110),
@@ -294,8 +279,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildPlayPrevIcn() {
-    bool hasPreVideo =
-    VideoDetailDataMgr.instance.getHasPreVideo(widget.controlsKey);
+    bool hasPreVideo = VideoDetailDataMgr.instance.getHasPreVideo(widget.controlsKey);
     String icnPath = "assets/images/icn_video_prev.png";
     if (!hasPreVideo) {
       icnPath = "assets/images/icn_video_prev_unable.png";
@@ -317,8 +301,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildPlayNextIcn() {
-    bool hasNextVideo = VideoDetailDataMgr.instance
-        .checkHasRecommendVideoByKey(widget.controlsKey);
+    bool hasNextVideo = VideoDetailDataMgr.instance.checkHasRecommendVideoByKey(widget.controlsKey);
     String icnPath = "assets/images/icn_video_next.png";
     if (!hasNextVideo) {
       icnPath = "assets/images/icn_video_next_unable.png";
@@ -340,8 +323,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildBottomParts(BuildContext context) {
-    if (!_judgeIsFullScreen() &&
-        (_showDefaultProgress || _isAnimateDefaultProgress)) {
+    if (!_judgeIsFullScreen() && (_showDefaultProgress || _isAnimateDefaultProgress)) {
       return _buildDefaultProgress();
     }
     return _buildBottomBar(context);
@@ -359,7 +341,7 @@ class CosTVControlsState extends State<CosTVControls> {
         ),
       ),
       child: Theme(
-        data: Theme.of(context).copyWith(accentColor: Colors.white),
+        data: Theme.of(context).copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
         child: CircularProgressIndicator(),
       ),
     );
@@ -401,10 +383,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildPlayEndDetailWidget() {
-    if (!usrAutoPlaySetting ||
-        _isReplayStatus ||
-        !VideoDetailDataMgr.instance
-            .checkHasRecommendVideoByKey(widget.controlsKey)) {
+    if (!usrAutoPlaySetting || _isReplayStatus || !VideoDetailDataMgr.instance.checkHasRecommendVideoByKey(widget.controlsKey)) {
       if (!_judgeIsFullScreen()) {
         //竖屏推荐
         return _buildPortraitRecommendWidget();
@@ -464,8 +443,7 @@ class CosTVControlsState extends State<CosTVControls> {
 
   ///竖屏推荐列表部分
   Widget _buildPortraitRecommendParts() {
-    bool hasRecommendVideo = VideoDetailDataMgr.instance
-        .checkHasRecommendVideoByKey(widget.controlsKey);
+    bool hasRecommendVideo = VideoDetailDataMgr.instance.checkHasRecommendVideoByKey(widget.controlsKey);
     //推荐数据
     if (hasRecommendVideo) {
       return Expanded(
@@ -507,17 +485,10 @@ class CosTVControlsState extends State<CosTVControls> {
             Positioned(
               top: 31,
               child: RefreshRecommendVideoWidget(
-                maxWidth: min(MediaQuery
-                    .of(context)
-                    .size
-                    .width,
-                    MediaQuery
-                        .of(context)
-                        .size
-                        .height),
+                maxWidth: min(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height),
                 refreshRecommendVideoCallBack: () {
                   if (widget.refreshRecommendVideoCallBack != null) {
-                    widget.refreshRecommendVideoCallBack();
+                    widget.refreshRecommendVideoCallBack?.call();
                   }
                 },
               ),
@@ -528,10 +499,7 @@ class CosTVControlsState extends State<CosTVControls> {
 
   ///横屏推荐部分(重播+推荐列表+进度条)
   Widget _buildFullScreenRecommendWidget() {
-    double screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    double screenHeight = MediaQuery.of(context).size.height;
     return Stack(
       children: <Widget>[
         Container(
@@ -556,12 +524,11 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildFollowLoading() {
-    if (VideoDetailDataMgr.instance
-        .getIsHandelRequestStatusByKey(widget.controlsKey)) {
+    if (VideoDetailDataMgr.instance.getIsHandelRequestStatusByKey(widget.controlsKey)) {
       return Align(
         alignment: FractionalOffset.center,
         child: Theme(
-          data: Theme.of(context).copyWith(accentColor: Colors.white),
+          data: Theme.of(context).copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
           child: CircularProgressIndicator(),
         ),
       );
@@ -590,8 +557,7 @@ class CosTVControlsState extends State<CosTVControls> {
 
   ///横屏推荐列表
   Widget _buildFullScreenRecommendParts() {
-    bool hasRecommendVideo = VideoDetailDataMgr.instance
-        .checkHasRecommendVideoByKey(widget.controlsKey);
+    bool hasRecommendVideo = VideoDetailDataMgr.instance.checkHasRecommendVideoByKey(widget.controlsKey);
     //推荐数据
     if (hasRecommendVideo) {
       return Container(
@@ -646,12 +612,10 @@ class CosTVControlsState extends State<CosTVControls> {
                   maxWidth: screenWith / 2,
                   isPortrait: false,
                   refreshRecommendVideoCallBack: () {
-                    VideoDetailDataMgr.instance
-                        .updateIsHandelRequestStatusByKey(
-                        widget.controlsKey, true);
+                    VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(widget.controlsKey, true);
                     setState(() {});
                     if (widget.refreshRecommendVideoCallBack != null) {
-                      widget.refreshRecommendVideoCallBack();
+                      widget.refreshRecommendVideoCallBack?.call();
                     }
                   },
                 ),
@@ -718,24 +682,21 @@ class CosTVControlsState extends State<CosTVControls> {
   ///创作者具体信息
   Widget _buildUserInfoWidget() {
     String pageKey = widget.controlsKey;
-    GetVideoInfoDataBean videoInfo =
-    VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(pageKey);
-    String nickName = videoInfo?.anchorNickname ?? "";
-    String followCnt = videoInfo?.followerCount ?? "0";
+    GetVideoInfoDataBean? videoInfo = VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(pageKey);
+    var nickName = videoInfo?.anchorNickname;
+    var followCnt = videoInfo?.followerCount;
     bool isFollow = VideoDetailDataMgr.instance.getFollowStatusByKey(pageKey);
     String avatar = '';
     if (videoInfo != null) {
-      avatar = videoInfo.anchorImageCompress?.avatarCompressUrl ?? '';
+      avatar = videoInfo.anchorImageCompress?.avatarCompressUrl ?? "";
       if (ObjectUtil.isEmptyString(avatar)) {
-        avatar = videoInfo.anchorAvatar ?? '';
+        avatar = videoInfo.anchorAvatar;
       }
     }
     double avatarSize = 40;
     bool isShowUserRecommend = !_judgeIsShowFullScreenReplay();
     double screenHeight = _getFullScreenWidth();
-    double maxNameWidth = isShowUserRecommend
-        ? (screenHeight * 0.3 - AppDimens.item_size_80 - 20)
-        : screenHeight * 0.8;
+    double maxNameWidth = isShowUserRecommend ? (screenHeight * 0.3 - AppDimens.item_size_80 - 20) : screenHeight * 0.8;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -751,17 +712,16 @@ class CosTVControlsState extends State<CosTVControls> {
           },
           child: ClipOval(
               child: SizedBox(
-                width: avatarSize,
-                height: avatarSize,
-                child: CachedNetworkImage(
-                  placeholder: (context, url) {
-                    return Image.asset('assets/images/ic_default_avatar.png');
-                  },
-                  imageUrl: avatar,
-                  fit: BoxFit.cover,
-                  errorWidget: (context, url, error) => Container(),
-                ),
-              )),
+            width: avatarSize,
+            height: avatarSize,
+            child: CachedNetworkImage(
+              placeholder: (context, url) {
+                return Image.asset('assets/images/ic_default_avatar.png');
+              },
+              imageUrl: avatar,
+              fit: BoxFit.cover,
+            ),
+          )),
         ),
 
         //昵称和粉丝数
@@ -778,14 +738,11 @@ class CosTVControlsState extends State<CosTVControls> {
                   maxWidth: maxNameWidth,
                 ),
                 child: Text(
-                  nickName,
+                  nickName ?? "",
                   textAlign: TextAlign.start,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                      fontSize: 14,
-                      color: Common.getColorFromHexString("FFFFFF", 1.0),
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 14, color: Common.getColorFromHexString("FFFFFF", 1.0), fontWeight: FontWeight.bold),
                 ),
               ),
               //粉丝数
@@ -795,8 +752,7 @@ class CosTVControlsState extends State<CosTVControls> {
                   maxWidth: maxNameWidth,
                 ),
                 child: Text(
-                  '$followCnt ${InternationalLocalizations
-                      .videoSubscriptionCount}',
+                  '$followCnt ${InternationalLocalizations.videoSubscriptionCount}',
                   textAlign: TextAlign.start,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -817,28 +773,21 @@ class CosTVControlsState extends State<CosTVControls> {
             margin: EdgeInsets.only(left: 13),
             height: AppDimens.item_size_25,
             child: Material(
-              borderRadius: BorderRadius.circular(
-                  AppDimens.radius_size_21),
-              color: isFollow
-                  ? Common.getColorFromHexString("858585", 1.0)
-                  : AppColors.color_3674ff,
+              borderRadius: BorderRadius.circular(AppDimens.radius_size_21),
+              color: isFollow ? Common.getColorFromHexString("858585", 1.0) : AppColors.color_3674ff,
               child: MaterialButton(
                 minWidth: AppDimens.item_size_70,
-                padding: EdgeInsets.symmetric(
-                    horizontal: AppDimens.margin_12),
+                padding: EdgeInsets.symmetric(horizontal: AppDimens.margin_12),
                 child: Text(
-                  isFollow
-                      ? InternationalLocalizations.videoSubscriptionFinish
-                      : InternationalLocalizations.videoSubscription,
+                  isFollow ? InternationalLocalizations.videoSubscriptionFinish : InternationalLocalizations.videoSubscription,
                   style: AppStyles.text_style_ffffff_12,
                   maxLines: 1,
                 ),
                 onPressed: () {
-                  VideoDetailDataMgr.instance
-                      .updateIsHandelRequestStatusByKey(pageKey, true);
+                  VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(pageKey, true);
                   setState(() {});
                   if (widget.handelFollowCallBack != null) {
-                    widget.handelFollowCallBack();
+                    widget.handelFollowCallBack?.call();
                   }
                 },
               ),
@@ -855,16 +804,14 @@ class CosTVControlsState extends State<CosTVControls> {
     bool isShowUserRecommend = !_judgeIsShowFullScreenReplay();
     double coverWidth = 105;
     double coverHeight = 105 * (9 / 16);
-    GetVideoListNewDataListBean videoInfo = VideoDetailDataMgr.instance
-        .getFirstFollowingRecommendVideoByKey(pageKey);
-    String cover = videoInfo?.videoImageCompress?.videoCompressUrl ?? '';
+    GetVideoListNewDataListBean? videoInfo = VideoDetailDataMgr.instance.getFirstFollowingRecommendVideoByKey(pageKey);
+    String cover = videoInfo?.videoImageCompress?.videoCompressUrl ?? "";
     if (ObjectUtil.isEmptyString(cover)) {
-      cover = videoInfo?.videoCoverBig ?? '';
+      cover = videoInfo?.videoCoverBig ?? "";
     }
-    String title = videoInfo?.title ?? '';
+    String title = videoInfo?.title ?? "";
     double maxWidth = _getFullScreenWidth() * 0.7 - 130;
-    double descMargin = 10,
-        closeBtnMargin = 20;
+    double descMargin = 10, closeBtnMargin = 20;
     double lrSpace = _getFullScreenLRSpace();
     if (isShowUserRecommend) {
       return Container(
@@ -882,9 +829,7 @@ class CosTVControlsState extends State<CosTVControls> {
               onTap: () {
                 _cancelTimer();
                 if (widget.playNextVideoCallBack != null) {
-                  widget.playCreatorRecommendVideoCallBack(VideoDetailDataMgr
-                      .instance
-                      .getFirstFollowingRecommendVideoByKey(pageKey));
+                  widget.playCreatorRecommendVideoCallBack?.call(VideoDetailDataMgr.instance.getFirstFollowingRecommendVideoByKey(pageKey));
                 }
                 setState(() {});
               },
@@ -917,12 +862,7 @@ class CosTVControlsState extends State<CosTVControls> {
             ),
             Container(
               constraints: BoxConstraints(
-                maxWidth: maxWidth -
-                    descMargin -
-                    closeBtnMargin -
-                    coverWidth -
-                    lrSpace -
-                    15,
+                maxWidth: maxWidth - descMargin - closeBtnMargin - coverWidth - lrSpace - 15,
               ),
               margin: EdgeInsets.only(left: descMargin),
               child: Column(
@@ -945,12 +885,8 @@ class CosTVControlsState extends State<CosTVControls> {
                   Container(
                     margin: EdgeInsets.only(top: 2),
                     child: Text(
-                      '${InternationalLocalizations.recommendCountDownTips ??
-                          ''}'
-                          '${InternationalLocalizations.countDownSeconds(
-                          VideoDetailDataMgr.instance
-                              .getRecommendCountDownValueByKey(pageKey)
-                              .toString())}',
+                      '${InternationalLocalizations.recommendCountDownTips ?? ''}'
+                      '${InternationalLocalizations.countDownSeconds(VideoDetailDataMgr.instance.getRecommendCountDownValueByKey(pageKey).toString())}',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -1033,14 +969,8 @@ class CosTVControlsState extends State<CosTVControls> {
 
   Widget _buildCountDownProgress() {
     bool isFullScreen = _judgeIsFullScreen();
-    double screenWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
-    double screenHeight = MediaQuery
-        .of(context)
-        .size
-        .height;
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
     double rate = screenWidth / 375;
     double baseWidth = isFullScreen ? 180 : 160;
     if (isFullScreen) {
@@ -1056,10 +986,9 @@ class CosTVControlsState extends State<CosTVControls> {
         countDownFinishCallBack: () {
           //倒计时结束,播放下一个视频
           _isReplayStatus = false;
-          VideoDetailDataMgr.instance
-              .updateReplayStatusByKey(widget.controlsKey, false);
+          VideoDetailDataMgr.instance.updateReplayStatusByKey(widget.controlsKey, false);
           if (widget.playNextVideoCallBack != null) {
-            widget.playNextVideoCallBack();
+            widget.playNextVideoCallBack?.call();
           }
         },
         bgWidth: width,
@@ -1068,43 +997,31 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildVideoCover() {
-    double coverWidth = MediaQuery
-        .of(context)
-        .size
-        .width;
+    double coverWidth = MediaQuery.of(context).size.width;
     double coverHeight = coverWidth * 9.0 / 16;
     String coverPath = "";
-    RelateListItemBean recVideo;
+    RelateListItemBean? recVideo;
     if (_checkHasRecommendVideo()) {
-      recVideo = VideoDetailDataMgr.instance
-          .getRecommendVideoListByKey(widget.controlsKey)[0];
-      coverPath = recVideo?.videoImageCompress?.videoCompressUrl ?? '';
+      recVideo = VideoDetailDataMgr.instance.getRecommendVideoListByKey(widget.controlsKey)?[0];
+      coverPath = recVideo?.videoImageCompress?.videoCompressUrl ?? "";
       if (ObjectUtil.isEmptyString(coverPath)) {
-        coverPath = recVideo?.videoCoverBig ?? '';
+        coverPath = recVideo?.videoCoverBig ?? "";
       }
     } else {
-      coverPath = VideoDetailDataMgr.instance
-          ?.getCurrentVideoInfoByKey(widget.controlsKey)
-          ?.videoImageCompress
-          ?.videoCompressUrl ??
-          "";
+      coverPath = VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(widget.controlsKey)?.videoImageCompress?.videoCompressUrl ?? "";
       if (ObjectUtil.isEmptyString(coverPath)) {
-        coverPath = VideoDetailDataMgr.instance
-            ?.getCurrentVideoInfoByKey(widget.controlsKey)
-            ?.videoCoverBig ??
-            "";
+        coverPath = VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(widget.controlsKey)?.videoCoverBig ?? "";
       }
     }
     return Container(
       width: coverWidth,
       height: coverHeight,
       child: CachedNetworkImage(
-        imageUrl: coverPath ?? '',
+        imageUrl: coverPath,
         fit: BoxFit.contain,
         placeholder: (BuildContext context, String url) {
           return Container();
         },
-        errorWidget: (context, url, error) => Container(),
       ),
     );
   }
@@ -1112,18 +1029,13 @@ class CosTVControlsState extends State<CosTVControls> {
   ///横屏时当前播放视频的标题
   Widget _buildCurrentVideoTitle() {
     double lrSpace = _getFullScreenLRSpace();
-    String title = VideoDetailDataMgr.instance
-        .getCurrentVideoInfoByKey(widget.controlsKey)
-        ?.title;
+    String title = VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(widget.controlsKey)?.title ?? "";
     if (_judgeIsFullScreen()) {
       return Container(
-        width: MediaQuery
-            .of(context)
-            .size
-            .width - lrSpace * 2,
+        width: MediaQuery.of(context).size.width - lrSpace * 2,
         margin: EdgeInsets.fromLTRB(lrSpace, 20, lrSpace, 0),
         child: Text(
-          title ?? "",
+          title,
           style: TextStyle(
             fontSize: 15,
             color: Common.getColorFromHexString("FFFFFFFF", 1.0),
@@ -1139,20 +1051,18 @@ class CosTVControlsState extends State<CosTVControls> {
 
   ///自动播放: 下一个视频的标题等信息
   Widget _buildAutoPlayDetail() {
-    bool isLoad =
-    VideoDetailDataMgr.instance.getLoadStatuesByKey(widget.controlsKey);
+    bool isLoad = VideoDetailDataMgr.instance.getLoadStatuesByKey(widget.controlsKey);
     if (isLoad) {
       return Center(
           child: Theme(
-            data: Theme.of(context).copyWith(accentColor: Colors.white),
-            child: CircularProgressIndicator(),
-          ));
+        data: Theme.of(context).copyWith(colorScheme: ColorScheme.fromSwatch().copyWith(secondary: Colors.white)),
+        child: CircularProgressIndicator(),
+      ));
     }
     double lrSpace = _getFullScreenLRSpace();
-    RelateListItemBean recVideo;
+    RelateListItemBean? recVideo;
     if (_checkHasRecommendVideo()) {
-      recVideo = VideoDetailDataMgr.instance
-          .getRecommendVideoListByKey(widget.controlsKey)[0];
+      recVideo = VideoDetailDataMgr.instance.getRecommendVideoListByKey(widget.controlsKey)?[0];
     } else {
       return _buildReplay();
     }
@@ -1169,23 +1079,19 @@ class CosTVControlsState extends State<CosTVControls> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 14,
-                color: Common.getColorFromHexString("FFFFFF", 1.0)),
+            style: TextStyle(fontSize: 14, color: Common.getColorFromHexString("FFFFFF", 1.0)),
           ),
 
           //下一个视频标题
           Container(
             margin: EdgeInsets.only(top: (_judgeIsFullScreen() ? 8 : 7.5)),
             child: Text(
-              recVideo?.title ?? '',
+              recVideo?.title ?? "",
               textAlign: TextAlign.center,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: Common.getColorFromHexString("FFFFFF", 1.0),
-                  fontSize: _judgeIsFullScreen() ? 17 : 14,
-                  fontWeight: FontWeight.bold),
+                  color: Common.getColorFromHexString("FFFFFF", 1.0), fontSize: _judgeIsFullScreen() ? 17 : 14, fontWeight: FontWeight.bold),
             ),
           ),
 
@@ -1193,7 +1099,7 @@ class CosTVControlsState extends State<CosTVControls> {
           Container(
             margin: EdgeInsets.only(top: 4),
             child: Text(
-              recVideo?.anchorNickname ?? '',
+              recVideo?.anchorNickname ?? "",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
@@ -1219,13 +1125,10 @@ class CosTVControlsState extends State<CosTVControls> {
                   child: Ink(
                     child: InkWell(
                       onTap: () {
-                        VideoDetailDataMgr.instance
-                            .updateCurCountDownValueByKey(
-                            widget.controlsKey, 0);
+                        VideoDetailDataMgr.instance.updateCurCountDownValueByKey(widget.controlsKey, 0);
                         _notifyStopCountDown();
                         if (!_isReplayStatus) {
-                          VideoDetailDataMgr.instance.updateReplayStatusByKey(
-                              widget.controlsKey, true);
+                          VideoDetailDataMgr.instance.updateReplayStatusByKey(widget.controlsKey, true);
                           _isReplayStatus = true;
                           setState(() {});
                         }
@@ -1251,18 +1154,16 @@ class CosTVControlsState extends State<CosTVControls> {
                         onTap: () {
                           _notifyStopCountDown();
                           _isReplayStatus = false;
-                          VideoDetailDataMgr.instance.updateReplayStatusByKey(
-                              widget.controlsKey, false);
+                          VideoDetailDataMgr.instance.updateReplayStatusByKey(widget.controlsKey, false);
                           if (widget.playNextVideoCallBack != null) {
-                            widget.playNextVideoCallBack();
+                            widget.playNextVideoCallBack?.call();
                           }
                         },
                         child: Text(
                           InternationalLocalizations.playNow,
                           style: TextStyle(
                             fontSize: 13,
-                            color:
-                            Common.getColorFromHexString("FFFFFFFF ", 1.0),
+                            color: Common.getColorFromHexString("FFFFFFFF ", 1.0),
                           ),
                         ),
                       ),
@@ -1278,9 +1179,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildReplay() {
-    String imageName = _judgeIsFullScreen()
-        ? "assets/images/full_screenreplay.png"
-        : "assets/images/portraitreplay.png";
+    String imageName = _judgeIsFullScreen() ? "assets/images/full_screenreplay.png" : "assets/images/portraitreplay.png";
     return Container(
       margin: EdgeInsets.only(top: (_judgeIsFullScreen() ? 0 : 10)),
       child: Row(
@@ -1324,7 +1223,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   void _dispose() {
-    controller.removeListener(_updateState);
+    controller?.removeListener(_updateState);
     _hideTimer?.cancel();
     _initTimer?.cancel();
     _showAfterExpandCollapseTimer?.cancel();
@@ -1332,19 +1231,17 @@ class CosTVControlsState extends State<CosTVControls> {
 
   @override
   void didChangeDependencies() {
-    _isReplayStatus =
-        VideoDetailDataMgr.instance.getIsReplayStatusByKey(widget.controlsKey);
-    _isPlayEnd =
-        VideoDetailDataMgr.instance.getIsPlayEndStatusByKey(widget.controlsKey);
+    _isReplayStatus = VideoDetailDataMgr.instance.getIsReplayStatusByKey(widget.controlsKey);
+    _isPlayEnd = VideoDetailDataMgr.instance.getIsPlayEndStatusByKey(widget.controlsKey);
     final _oldController = chewieController;
     chewieController = ChewieController.of(context);
-    controller = chewieController.videoPlayerController;
+    controller = chewieController?.videoPlayerController;
     if (_oldController != chewieController) {
       _dispose();
-      if (chewieController.isInitFullScreen && !chewieController.isFullScreen) {
+      if ((chewieController?.isInitFullScreen ?? false) && !(chewieController?.isFullScreen ?? false)) {
         Future.delayed(Duration(milliseconds: 500), () {
           setState(() {
-            chewieController.toggleFullScreen();
+            chewieController?.toggleFullScreen();
           });
         });
       }
@@ -1381,21 +1278,17 @@ class CosTVControlsState extends State<CosTVControls> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            chewieController.isLive
-                ? const SizedBox()
-                : _buildProgressBar(false),
+            chewieController?.isLive ?? false ? const SizedBox() : _buildProgressBar(false),
           ],
         ),
       ),
     );
   }
 
-  AnimatedOpacity _buildBottomBar(BuildContext context,) {
-    final iconColor = Theme
-        .of(context)
-        .textTheme
-        .button
-        .color;
+  AnimatedOpacity _buildBottomBar(
+    BuildContext context,
+  ) {
+    Color iconColor = Theme.of(context).textTheme.labelLarge?.color ?? Colors.white;
     return AnimatedOpacity(
       opacity: _hideStuff ? 0.0 : 1.0,
       duration: Duration(milliseconds: 300),
@@ -1429,16 +1322,10 @@ class CosTVControlsState extends State<CosTVControls> {
             Container(
               padding: EdgeInsets.only(left: _getFullScreenLRSpace()),
             ),
-            chewieController.isLive
-                ? Expanded(child: const Text('LIVE'))
-                : _buildPosition(iconColor),
-            chewieController.isLive
-                ? const SizedBox()
-                : _buildProgressBar(true),
-            chewieController.isLive ? Container() : _buildDuration(iconColor),
-            chewieController.allowFullScreen
-                ? _buildFullscreenToggle()
-                : Container(),
+            chewieController?.isLive ?? false ? Expanded(child: const Text('LIVE')) : _buildPosition(iconColor),
+            chewieController?.isLive ?? false ? const SizedBox() : _buildProgressBar(true),
+            chewieController?.isLive ?? false ? Container() : _buildDuration(iconColor),
+            chewieController?.allowFullScreen ?? false ? _buildFullscreenToggle() : Container(),
           ],
         ),
       ),
@@ -1451,20 +1338,16 @@ class CosTVControlsState extends State<CosTVControls> {
         alignment: Alignment.center,
         children: <Widget>[
           Container(
-            child: _judgeIsFullScreen()
-                ? _buildFullScreenPrevAndNextParts()
-                : _buildPortraitPrevAndNextParts(),
+            child: _judgeIsFullScreen() ? _buildFullScreenPrevAndNextParts() : _buildPortraitPrevAndNextParts(),
           ),
-          (_checkIsShowPlayStatusLoading() && _hideStuff)
-              ? _buildPlayStatusLoading()
-              : Container(),
+          (_checkIsShowPlayStatusLoading() && _hideStuff) ? _buildPlayStatusLoading() : Container(),
         ],
       ),
     );
   }
 
-  GestureDetector _buildPlayPause(VideoPlayerController controller) {
-    String imageName = controller.value.isPlaying ? "pause" : "play";
+  GestureDetector _buildPlayPause(VideoPlayerController? controller) {
+    String imageName = controller?.value.isPlaying ?? false ? "pause" : "play";
     if (_isPlayEnd) {
       imageName = "replay";
     }
@@ -1490,9 +1373,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildPosition(Color iconColor) {
-    final position = _latestValue != null && _latestValue.position != null
-        ? _latestValue.position
-        : Duration.zero;
+    Duration position = _latestValue != null && _latestValue?.position != null ? _latestValue?.position ?? Duration.zero : Duration.zero;
 
     return Text(
       '${VideoUtil.formatDuration(position)}',
@@ -1504,9 +1385,7 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _buildDuration(Color iconColor) {
-    final duration = _latestValue != null && _latestValue.duration != null
-        ? _latestValue.duration
-        : Duration.zero;
+    final duration = _latestValue != null && _latestValue?.duration != null ? _latestValue?.duration ?? Duration.zero : Duration.zero;
 
     return Text(
       '${VideoUtil.formatDuration(duration)}',
@@ -1535,21 +1414,18 @@ class CosTVControlsState extends State<CosTVControls> {
         _hideStuff = false;
       }
     }
-    setState(() {
-      _displayTapped = true;
-    });
+    setState(() {});
   }
 
   Future<Null> _initialize() async {
-    controller.addListener(_updateState);
+    controller?.addListener(_updateState);
     _updateState();
 
-    if ((controller.value != null && controller.value.isPlaying) ||
-        chewieController.autoPlay) {
+    if ((controller?.value != null && (controller?.value.isPlaying ?? false)) || (chewieController?.autoPlay ?? false)) {
       _startHideTimer();
     }
 
-    if (chewieController.showControlsOnInitialize) {
+    if (chewieController?.showControlsOnInitialize ?? false) {
       _initTimer = Timer(Duration(milliseconds: 200), () {
         setState(() {
           _hideStuff = false;
@@ -1563,7 +1439,7 @@ class CosTVControlsState extends State<CosTVControls> {
       _hideStuff = true;
       _showDefaultProgress = true;
       _isAnimateDefaultProgress = true;
-      chewieController.toggleFullScreen();
+      chewieController?.toggleFullScreen();
       _showAfterExpandCollapseTimer = Timer(Duration(milliseconds: 300), () {
         setState(() {
           _cancelAndRestartTimer();
@@ -1573,32 +1449,32 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   void _playPause() {
-    bool isFinished = _latestValue.position >= _latestValue.duration;
+    bool isFinished = (_latestValue?.position ?? Duration.zero) >= (_latestValue?.duration ?? Duration.zero);
 
     setState(() {
-      if (controller.value.isPlaying) {
+      if (controller?.value.isPlaying ?? false) {
         _hideStuff = false;
         _hideTimer?.cancel();
         _startHideTimer();
-        controller.pause();
+        controller?.pause();
       } else {
 //        _cancelAndRestartTimer();
 
-        if (!controller.value.initialized) {
-          controller.initialize().then((_) {
+        if (!(controller?.value.isInitialized ?? false)) {
+          controller?.initialize().then((_) {
             _hideStuff = true;
             _showDefaultProgress = true;
             _isAnimateDefaultProgress = true;
-            controller.play();
+            controller?.play();
           });
         } else {
           if (isFinished) {
             _hideStuff = true;
             _showDefaultProgress = true;
             _isAnimateDefaultProgress = true;
-            controller.seekTo(Duration(seconds: 0));
+            controller?.seekTo(Duration(seconds: 0));
           }
-          controller.play();
+          controller?.play();
         }
       }
     });
@@ -1611,17 +1487,15 @@ class CosTVControlsState extends State<CosTVControls> {
       _showDefaultProgress = true;
       _isAnimateDefaultProgress = true;
     });
-    await controller.seekTo(Duration(seconds: 0));
-    await controller.play();
+    await controller?.seekTo(Duration(seconds: 0));
+    await controller?.play();
     Future.delayed(Duration(milliseconds: 300), () {
       setState(() {
         _isPlayEnd = false;
-        VideoDetailDataMgr.instance
-            .updatePlayEndStatusByKey(widget.controlsKey, false);
+        VideoDetailDataMgr.instance.updatePlayEndStatusByKey(widget.controlsKey, false);
         _isReplayStatus = false;
-        VideoDetailDataMgr.instance
-            .updateReplayStatusByKey(widget.controlsKey, false);
-        controller.play();
+        VideoDetailDataMgr.instance.updateReplayStatusByKey(widget.controlsKey, false);
+        controller?.play();
       });
     });
   }
@@ -1635,28 +1509,25 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   void _updateState() {
-    if (_latestValue != null &&
-        _latestValue.position == controller.value.position) {
+    if (_latestValue != null && _latestValue?.position == controller?.value.position) {
       return;
     }
     setState(() {
-      _latestValue = controller.value;
-      if (_latestValue.position == _latestValue.duration) {
+      _latestValue = controller?.value;
+      if (_latestValue?.position == _latestValue?.duration) {
         _isPlayEnd = true;
         _showDefaultProgress = false;
         _isAnimateDefaultProgress = false;
         _hideTimer?.cancel();
         _startHideTimer();
-        VideoDetailDataMgr.instance
-            .updatePlayEndStatusByKey(widget.controlsKey, true);
+        VideoDetailDataMgr.instance.updatePlayEndStatusByKey(widget.controlsKey, true);
         if (!usrAutoPlaySetting) {
           _isReplayStatus = true;
-          VideoDetailDataMgr.instance
-              .updateReplayStatusByKey(widget.controlsKey, true);
+          VideoDetailDataMgr.instance.updateReplayStatusByKey(widget.controlsKey, true);
         }
         _reportAutoPlayStatus();
         if (widget.videoPlayEndCallBack != null) {
-          widget.videoPlayEndCallBack();
+          widget.videoPlayEndCallBack?.call();
         }
       }
     });
@@ -1665,40 +1536,23 @@ class CosTVControlsState extends State<CosTVControls> {
   Widget _buildProgressBar(bool isEnableDrag) {
     return Expanded(
       child: Padding(
-        padding: EdgeInsets.only(
-            left: isEnableDrag ? 10.0 : 0, right: isEnableDrag ? 10.0 : 0),
+        padding: EdgeInsets.only(left: isEnableDrag ? 10.0 : 0, right: isEnableDrag ? 10.0 : 0),
         child: IgnorePointer(
           ignoring: _isPlayEnd || !isEnableDrag, //播放结束禁止拖动
           child: CosTVVideoProgressBar(
-            controller,
+            controller!,
             onDragStart: () {
               setState(() {
-                _dragging = true;
                 _hideStuff = false;
               });
 
               _hideTimer?.cancel();
             },
             onDragEnd: () {
-              setState(() {
-                _dragging = false;
-              });
+              setState(() {});
               _startHideTimer();
             },
-            colors: chewieController.materialProgressColors ??
-                ChewieProgressColors(
-                    playedColor: Theme
-                        .of(context)
-                        .accentColor,
-                    handleColor: Theme
-                        .of(context)
-                        .accentColor,
-                    bufferedColor: Theme
-                        .of(context)
-                        .backgroundColor,
-                    backgroundColor: Theme
-                        .of(context)
-                        .disabledColor),
+            colors: chewieController!.materialProgressColors,
             isEnableDrag: isEnableDrag,
           ),
         ),
@@ -1707,22 +1561,17 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   Widget _playerImage(String name) {
-    String assetName;
+    String? assetName;
     bool fullscreen = chewieController?.isFullScreen ?? false;
     switch (name) {
       case "play":
-        assetName = fullscreen
-            ? "icn_video_fullscreen_pause.png"
-            : "icn_video_portrait_screen_pause.png";
+        assetName = fullscreen ? "icn_video_fullscreen_pause.png" : "icn_video_portrait_screen_pause.png";
         break;
       case "pause":
-        assetName = fullscreen
-            ? "icn_video_fullscreen_play.png"
-            : "icn_video_portrait_play.png";
+        assetName = fullscreen ? "icn_video_fullscreen_play.png" : "icn_video_portrait_play.png";
         break;
       case "replay":
-        assetName =
-        fullscreen ? "player_fullscreenreplay.png" : "playerreplay.png";
+        assetName = fullscreen ? "player_fullscreenreplay.png" : "playerreplay.png";
         break;
       case "prev":
         assetName = "player_prev.png";
@@ -1731,9 +1580,7 @@ class CosTVControlsState extends State<CosTVControls> {
         assetName = "player_next.png";
         break;
       case "toggle_fullscreen":
-        assetName = fullscreen
-            ? "player_fullscreen_exit.png"
-            : "player_enter_fullscreen.png";
+        assetName = fullscreen ? "player_fullscreen_exit.png" : "player_enter_fullscreen.png";
         break;
       case "lock":
         assetName = "player_fullscreen_lock.png";
@@ -1748,22 +1595,19 @@ class CosTVControlsState extends State<CosTVControls> {
         assetName = "ic_zoom_out_white.png";
         break;
     }
-    return assetName != null
-        ? Image.asset("assets/images/" + assetName)
-        : Container();
+    return assetName != null ? Image.asset("assets/images/" + assetName) : Container();
   }
 
   double _fullscreenFactor(double factor) {
-    return chewieController.isFullScreen ? factor : 1.0;
+    return chewieController?.isFullScreen ?? false ? factor : 1.0;
   }
 
   bool _judgeIsFullScreen() {
-    return chewieController.isFullScreen;
+    return chewieController?.isFullScreen ?? false;
   }
 
   bool _checkHasRecommendVideo() {
-    List<RelateListItemBean> recommendVideoList = VideoDetailDataMgr.instance
-        .getRecommendVideoListByKey(widget.controlsKey);
+    List<RelateListItemBean>? recommendVideoList = VideoDetailDataMgr.instance.getRecommendVideoListByKey(widget.controlsKey);
     if (recommendVideoList != null && recommendVideoList.isNotEmpty) {
       return true;
     }
@@ -1784,14 +1628,12 @@ class CosTVControlsState extends State<CosTVControls> {
           if (!mounted) {
             return;
           }
-          if (event.isReset != null && event.isReset) {
+          if (event.isReset) {
             _isPlayEnd = false;
-            VideoDetailDataMgr.instance
-                .updatePlayEndStatusByKey(pageKey, false);
+            VideoDetailDataMgr.instance.updatePlayEndStatusByKey(pageKey, false);
             _isReplayStatus = false;
             VideoDetailDataMgr.instance.updateReplayStatusByKey(pageKey, false);
-            VideoDetailDataMgr.instance
-                .updateCurCountDownValueByKey(pageKey, 0);
+            VideoDetailDataMgr.instance.updateCurCountDownValueByKey(pageKey, 0);
           }
 
           setState(() {});
@@ -1799,14 +1641,11 @@ class CosTVControlsState extends State<CosTVControls> {
           if (!_judgeIsCurrentEvent(event.flag)) {
             return;
           }
-          if (event.isOpen != null) {
-            if (_isPlayEnd && !event.isOpen) {
-              _notifyStopCountDown();
-              _isReplayStatus = true;
-              VideoDetailDataMgr.instance
-                  .updateReplayStatusByKey(widget.controlsKey, true);
-              setState(() {});
-            }
+          if (_isPlayEnd && !event.isOpen) {
+            _notifyStopCountDown();
+            _isReplayStatus = true;
+            VideoDetailDataMgr.instance.updateReplayStatusByKey(widget.controlsKey, true);
+            setState(() {});
           }
         } else if (event is RefreshRecommendVideoFinishEvent) {
           if (!_judgeIsCurrentEvent(event.flag)) {
@@ -1815,64 +1654,48 @@ class CosTVControlsState extends State<CosTVControls> {
           if (!mounted) {
             return;
           }
-          if (event.isSuccess != null) {
-            VideoDetailDataMgr.instance
-                .updateIsHandelRequestStatusByKey(widget.controlsKey, false);
-            if (VideoDetailDataMgr.instance
-                .getIsPlayEndStatusByKey(widget.controlsKey)) {
-              setState(() {});
-            }
+          VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(widget.controlsKey, false);
+          if (VideoDetailDataMgr.instance.getIsPlayEndStatusByKey(widget.controlsKey)) {
+            setState(() {});
           }
         } else if (event is FollowStatusChangeEvent) {
           if (!_judgeIsCurrentEvent(event.flag)) {
             return;
           }
-          if (event.isFollow != null && event.isSuccess != null) {
-            VideoDetailDataMgr.instance
-                .updateIsHandelRequestStatusByKey(widget.controlsKey, false);
-            if (mounted &&
-                VideoDetailDataMgr.instance
-                    .getIsPlayEndStatusByKey(widget.controlsKey)) {
-              if (!_judgeIsFullScreen()) {
-                return;
-              }
-              if (event.isFollow && event.isSuccess) {
-                //关注成功，显示关注的人的推荐视频
-                VideoDetailDataMgr.instance
-                    .updateShowUserRecommendByKey(widget.controlsKey, true);
-                if (VideoDetailDataMgr.instance
-                    .checkHasFollowingRecommendVideoByKey(widget.controlsKey)) {
-                  _initCountDownTimer();
-                  setState(() {});
-                } else {
-                  VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(
-                      widget.controlsKey, true);
-                  if (widget.fetchFollowingRecommendVideoCallBack != null) {
-                    widget.fetchFollowingRecommendVideoCallBack();
-                  }
-                  return;
-                }
-              } else if (!event.isFollow && event.isSuccess) {
-                //取消关注
-                _cancelTimer();
+          VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(widget.controlsKey, false);
+          if (mounted && VideoDetailDataMgr.instance.getIsPlayEndStatusByKey(widget.controlsKey)) {
+            if (!_judgeIsFullScreen()) {
+              return;
+            }
+            if (event.isFollow && event.isSuccess) {
+              //关注成功，显示关注的人的推荐视频
+              VideoDetailDataMgr.instance.updateShowUserRecommendByKey(widget.controlsKey, true);
+              if (VideoDetailDataMgr.instance.checkHasFollowingRecommendVideoByKey(widget.controlsKey)) {
+                _initCountDownTimer();
                 setState(() {});
               } else {
-                setState(() {});
+                VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(widget.controlsKey, true);
+                if (widget.fetchFollowingRecommendVideoCallBack != null) {
+                  widget.fetchFollowingRecommendVideoCallBack?.call();
+                }
+                return;
               }
+            } else if (!event.isFollow && event.isSuccess) {
+              //取消关注
+              _cancelTimer();
+              setState(() {});
+            } else {
+              setState(() {});
             }
           }
         } else if (event is FetchFollowingRecommendVideoFinishEvent) {
           if (!_judgeIsCurrentEvent(event.flag)) {
             return;
           }
-          if (event.isSuccess != null && event.isSuccess) {
-            if (mounted &&
-                VideoDetailDataMgr.instance
-                    .getIsPlayEndStatusByKey(widget.controlsKey)) {
-              VideoDetailDataMgr.instance
-                  .updateIsHandelRequestStatusByKey(widget.controlsKey, false);
-              if (VideoDetailDataMgr.instance
-                  .checkHasFollowingRecommendVideoByKey(widget.controlsKey)) {
+          if (event.isSuccess) {
+            if (mounted && VideoDetailDataMgr.instance.getIsPlayEndStatusByKey(widget.controlsKey)) {
+              VideoDetailDataMgr.instance.updateIsHandelRequestStatusByKey(widget.controlsKey, false);
+              if (VideoDetailDataMgr.instance.checkHasFollowingRecommendVideoByKey(widget.controlsKey)) {
                 _initCountDownTimer();
               }
               setState(() {});
@@ -1892,19 +1715,17 @@ class CosTVControlsState extends State<CosTVControls> {
 
   void _cancelListenEvent() {
     if (_eventControls != null) {
-      _eventControls.cancel();
+      _eventControls?.cancel();
       _eventControls = null;
     }
   }
 
   void _notifyStopCountDown() {
-    EventBusHelp.getInstance()
-        .fire(AutoPlayCountDownStatusEvent(widget.controlsKey, true));
+    EventBusHelp.getInstance().fire(AutoPlayCountDownStatusEvent(widget.controlsKey, true));
   }
 
   int _getRecommendVideoListCount(bool isPortrait) {
-    List<RelateListItemBean> videoList = VideoDetailDataMgr.instance
-        .getRecommendVideoListByKey(widget.controlsKey);
+    List<RelateListItemBean>? videoList = VideoDetailDataMgr.instance.getRecommendVideoListByKey(widget.controlsKey);
     if (videoList != null && videoList.isNotEmpty) {
       if (isPortrait) {
         if (videoList.length >= 2) {
@@ -1928,16 +1749,15 @@ class CosTVControlsState extends State<CosTVControls> {
       }
     }
 
-    List<RelateListItemBean> videoList = VideoDetailDataMgr.instance
-        .getRecommendVideoListByKey(widget.controlsKey);
+    List<RelateListItemBean>? videoList = VideoDetailDataMgr.instance.getRecommendVideoListByKey(widget.controlsKey);
     if (videoList != null && videoList.isNotEmpty && index < videoList.length) {
       return AutoPlayRecommendVideoItem(
         videoInfo: videoList[index],
         rightPadding: rightPadding,
         leftMargin: leftMargin,
-        clickRecommendVideoCallBack: (RelateListItemBean videoInfo) {
+        clickRecommendVideoCallBack: (RelateListItemBean? videoInfo) {
           if (widget.clickRecommendVideoCallBack != null) {
-            widget.clickRecommendVideoCallBack(videoInfo);
+            widget.clickRecommendVideoCallBack?.call(videoInfo);
           }
         },
       );
@@ -1946,16 +1766,15 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   void _onClickAvatar() {
-    GetVideoInfoDataBean videoInfo = VideoDetailDataMgr.instance
-        .getCurrentVideoInfoByKey(widget.controlsKey);
+    GetVideoInfoDataBean? videoInfo = VideoDetailDataMgr.instance.getCurrentVideoInfoByKey(widget.controlsKey);
     String uid = videoInfo?.uid ?? "";
     if (videoInfo != null && Common.checkIsNotEmptyStr(uid)) {
-      String nickName = videoInfo?.anchorNickname ?? "";
-      String avatar = videoInfo?.anchorImageCompress?.avatarCompressUrl ?? '';
+      String nickName = videoInfo.anchorNickname;
+      String avatar = videoInfo.anchorImageCompress?.avatarCompressUrl ?? "";
       if (ObjectUtil.isEmptyString(avatar)) {
-        avatar = videoInfo?.anchorAvatar ?? '';
+        avatar = videoInfo.anchorAvatar;
       }
-      String isCertification = videoInfo?.isCertification ?? '';
+      String isCertification = videoInfo.isCertification;
       Navigator.of(context).push(SlideAnimationRoute(
         builder: (_) {
           return OthersHomePage(OtherHomeParamsBean(
@@ -1970,10 +1789,8 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   bool _judgeIsShowFullScreenReplay() {
-    if (VideoDetailDataMgr.instance
-        .checkHasFollowingRecommendVideoByKey(widget.controlsKey) &&
-        VideoDetailDataMgr.instance
-            .getIsShowUserRecommendByKey(widget.controlsKey)) {
+    if (VideoDetailDataMgr.instance.checkHasFollowingRecommendVideoByKey(widget.controlsKey) &&
+        VideoDetailDataMgr.instance.getIsShowUserRecommendByKey(widget.controlsKey)) {
       return false;
     }
     return true;
@@ -1984,14 +1801,10 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   _cancelTimer() {
-    VideoDetailDataMgr.instance
-        .updateShowUserRecommendByKey(widget.controlsKey, false);
-    if (_countDownTimer != null) {
-      _countDownTimer.cancel();
-      _countDownTimer = null;
-    }
-    VideoDetailDataMgr.instance.updateRecommendCountDownValueByKey(
-        widget.controlsKey, cRecommendCountDownTime);
+    VideoDetailDataMgr.instance.updateShowUserRecommendByKey(widget.controlsKey, false);
+    _countDownTimer?.cancel();
+    _countDownTimer = null;
+    VideoDetailDataMgr.instance.updateRecommendCountDownValueByKey(widget.controlsKey, cRecommendCountDownTime);
   }
 
   _initCountDownTimer() {
@@ -2001,20 +1814,15 @@ class CosTVControlsState extends State<CosTVControls> {
         if (mounted &&
             VideoDetailDataMgr.instance.getIsPlayEndStatusByKey(pageKey) &&
             VideoDetailDataMgr.instance.getIsShowUserRecommendByKey(pageKey)) {
-          int oldVal = VideoDetailDataMgr.instance
-              .getRecommendCountDownValueByKey(pageKey);
+          int oldVal = VideoDetailDataMgr.instance.getRecommendCountDownValueByKey(pageKey);
           if (oldVal >= 1) {
-            int newVal = cRecommendCountDownTime -
-                (_countDownTimer.tick % (cRecommendCountDownTime + 1));
-            VideoDetailDataMgr.instance
-                .updateRecommendCountDownValueByKey(pageKey, newVal);
+            int newVal = cRecommendCountDownTime - (_countDownTimer?.tick ?? 0 % (cRecommendCountDownTime + 1));
+            VideoDetailDataMgr.instance.updateRecommendCountDownValueByKey(pageKey, newVal);
             setState(() {});
           } else {
             _cancelTimer();
             if (widget.playCreatorRecommendVideoCallBack != null) {
-              widget.playCreatorRecommendVideoCallBack(VideoDetailDataMgr
-                  .instance
-                  .getFirstFollowingRecommendVideoByKey(pageKey));
+              widget.playCreatorRecommendVideoCallBack?.call(VideoDetailDataMgr.instance.getFirstFollowingRecommendVideoByKey(pageKey));
             }
           }
         }
@@ -2023,47 +1831,36 @@ class CosTVControlsState extends State<CosTVControls> {
   }
 
   double _getFullScreenWidth() {
-    return max(
-        MediaQuery
-            .of(context)
-            .size
-            .width, MediaQuery
-        .of(context)
-        .size
-        .height);
+    return max(MediaQuery.of(context).size.width, MediaQuery.of(context).size.height);
   }
 
   void _reportAutoPlayStatus() {
     String isAutoPlay = usrAutoPlaySetting ? "1" : '0';
-    DataReportUtil.instance.reportData(
-        eventName: "Video_autoplay", params: {"if_autoplay": isAutoPlay});
+    DataReportUtil.instance.reportData(eventName: "Video_autoplay", params: {"if_autoplay": isAutoPlay});
   }
 
   void _handlePlayPrevVideo() {
     if (widget.playPreVideoCallBack != null) {
-      widget.playPreVideoCallBack();
+      widget.playPreVideoCallBack?.call();
     }
   }
 
   void _handlePlayNextVideo() {
     if (widget.playNextVideoCallBack != null) {
-      widget.playNextVideoCallBack();
+      widget.playNextVideoCallBack?.call();
     }
   }
 
   void _handleClickZoomOut() {
-    if(widget.clickZoomOutCallBack != null){
-      widget.clickZoomOutCallBack();
+    if (widget.clickZoomOutCallBack != null) {
+      widget.clickZoomOutCallBack?.call();
     }
   }
 
   bool _checkIsShowPlayStatusLoading() {
-    bool isLoadData =
-    VideoDetailDataMgr.instance.getLoadStatuesByKey(widget.controlsKey);
-    if (_latestValue != null &&
-        !_latestValue.isPlaying &&
-        _latestValue.duration == null ||
-        _latestValue.isBuffering ||
+    bool isLoadData = VideoDetailDataMgr.instance.getLoadStatuesByKey(widget.controlsKey);
+    if (_latestValue != null && !(_latestValue?.isPlaying ?? false) && _latestValue?.duration == null ||
+        (_latestValue?.isBuffering ?? false) ||
         isLoadData) {
       return true;
     }

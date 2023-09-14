@@ -12,7 +12,7 @@ enum CommentErrorType {
 class CommentErrorWidget extends StatelessWidget {
   final CommentErrorType commentErrorType;
 
-  CommentErrorWidget({this.commentErrorType});
+  CommentErrorWidget({required this.commentErrorType});
 
   @override
   Widget build(BuildContext context) {

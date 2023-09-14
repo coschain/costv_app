@@ -10,7 +10,7 @@ class CosLongLogUtil {
   static String _startLine = "$_split$_title$_split";
   static String _endLine = "$_split$_separator$_separator$_separator$_split";
 
-  static void init({String title, int limitLength}) {
+  static void init({required String title, required int limitLength}) {
     _title = title;
     _limitLength = limitLength ??= _limitLength;
     _startLine = "$_split$_title$_split";

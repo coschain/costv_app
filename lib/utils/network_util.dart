@@ -4,22 +4,25 @@ import 'package:connectivity/connectivity.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 
 class NetWorkUtil {
-  static NetWorkUtil _instance;
+  static NetWorkUtil? _instance;
+
   static NetWorkUtil get instance => _getInstance();
-  Connectivity _connectivity;
-  ConnectivityResult _connectivityResult;
-  StreamSubscription<ConnectivityResult> _connectivitySubscription;
+  late Connectivity _connectivity;
+  ConnectivityResult? _connectivityResult;
+  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
   bool _isChecking = false;
   String _tag = "connectivity";
+
   NetWorkUtil._();
+
   static NetWorkUtil _getInstance() {
     if (_instance == null) {
       _instance = NetWorkUtil._();
-      _instance._connectivity = Connectivity();
-      _instance.initConnectivity();
-      _instance._listenStatusChange();
+      _instance?._connectivity = Connectivity();
+      _instance?.initConnectivity();
+      _instance?._listenStatusChange();
     }
-    return _instance;
+    return _instance!;
   }
 
   Future<void> initConnectivity() async {
@@ -52,7 +55,7 @@ class NetWorkUtil {
 
   void cancelListen() {
     if (_connectivitySubscription == null) {
-      _connectivitySubscription.cancel();
+      _connectivitySubscription?.cancel();
     }
   }
 

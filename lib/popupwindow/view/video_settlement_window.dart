@@ -19,7 +19,8 @@ class VideoSettlementWindow extends StatefulWidget {
 }
 
 class VideoSettlementWindowState extends State<VideoSettlementWindow> with WidgetsBindingObserver{
-  VideoSettlementBean _bean;
+  late VideoSettlementBean _bean;
+
   @override
   void initState() {
     _bean = widget._bean;

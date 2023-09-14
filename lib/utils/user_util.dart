@@ -13,7 +13,6 @@ enum UserSettingType {
 String autoPlayVideoDefault = "-1";
 
 class UserUtil {
-
   static const String contentUidStart = 'data-id="';
   static const String contentUidEnd = '">@';
   static const String contentNickNameStart = '">@';
@@ -21,23 +20,21 @@ class UserUtil {
 
   static bool checkIsFollowByStateCode(String code) {
     if (!TextUtil.isEmpty(code)) {
-      if (code == FollowStateResponse.followStateFollowing ||
-          code == FollowStateResponse.followStateFriend) {
+      if (code == FollowStateResponse.followStateFollowing || code == FollowStateResponse.followStateFriend) {
         return true;
       }
     }
     return false;
   }
 
-  static String getContentUid(String content){
-    if(ObjectUtil.isEmptyString(content)){
+  static String getContentUid(String content) {
+    if (ObjectUtil.isEmptyString(content)) {
       return '';
     }
-    String contentUid;
+    String contentUid = "";
     int indexStart = content.indexOf(contentUidStart);
     if (indexStart >= 0) {
-      String subStringLinkUid = content.substring(
-          indexStart + contentUidStart.length, content.length);
+      String subStringLinkUid = content.substring(indexStart + contentUidStart.length, content.length);
       int indexEnd = subStringLinkUid.indexOf(contentUidEnd);
       if (indexEnd >= 0) {
         contentUid = subStringLinkUid.substring(0, indexEnd);
@@ -46,15 +43,14 @@ class UserUtil {
     return contentUid;
   }
 
-  static String getContentNickName(String content){
-    if(ObjectUtil.isEmptyString(content)){
+  static String getContentNickName(String content) {
+    if (ObjectUtil.isEmptyString(content)) {
       return '';
     }
-    String contentNickName;
+    String contentNickName = "";
     int indexStart = content.indexOf(contentNickNameStart);
     if (indexStart >= 0) {
-      String subStringLinkUid = content.substring(
-          indexStart + contentNickNameStart.length, content.length);
+      String subStringLinkUid = content.substring(indexStart + contentNickNameStart.length, content.length);
       int indexEnd = subStringLinkUid.indexOf(contentNickNameEnd);
       if (indexEnd >= 0) {
         contentNickName = subStringLinkUid.substring(0, indexEnd);
@@ -64,13 +60,13 @@ class UserUtil {
   }
 
   static String getContentReply(String content) {
-    if(ObjectUtil.isEmptyString(content)){
+    if (ObjectUtil.isEmptyString(content)) {
       return '';
     }
     String reply = '';
     int indexLast = content.lastIndexOf(">");
-    if (indexLast >= 0 && (indexLast+1) < content.length) {
-      reply = content.substring(indexLast+1);
+    if (indexLast >= 0 && (indexLast + 1) < content.length) {
+      reply = content.substring(indexLast + 1);
     }
     return reply;
   }
@@ -82,9 +78,9 @@ class UserUtil {
       return false;
     }
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    bool val = prefs.getBool(uid);
+    bool? val = prefs.getBool(uid);
     if (val == null) {
-      return false;//默认改为关闭,显示推荐列表
+      return false; //默认改为关闭,显示推荐列表
     }
     return val;
   }
@@ -92,7 +88,7 @@ class UserUtil {
   ///更新用户是否打开自动播放的配置
   static Future<void> updateUserAutoPlaySetting(String uid, bool val) async {
     if (TextUtil.isEmpty(uid)) {
-      return false;
+      return null;
     }
     if (Common.judgeHasLogIn() && Constant.uid == uid) {
       usrAutoPlaySetting = val;

@@ -11,71 +11,76 @@ description: A new Flutter application.
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.1.5
+version: 1.4.2
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.17.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: 0.1.3
-  event_bus: 1.1.1
-  json_annotation: 4.0.1
-  shared_preferences: 2.0.6
-  fluttertoast: 3.1.3
-  dio: 3.0.10
-  flutter_picker: 1.1.5
-  common_utils: 2.0.2
-  flustars: 2.0.1
-  device_info: 0.4.2+10
-  cached_network_image: 2.5.1
-  url_launcher: 5.7.6
-  sqflite: 2.0.0+3
-  package_info: 0.4.3+4
-  share: 2.0.4
-  chewie:
-    path: plugins/chewie
-  permission_handler: 4.4.0+hotfix.4
-  sensors_analytics_flutter_plugin: 1.0.6
-  encrypt: 5.0.0
-  get_ip: 0.4.0
-  flutter_slidable: 0.5.7
-  flutter_datetime_picker: 1.5.0
-  firebase_analytics: 5.0.16
-  auto_size_text: 2.1.0
-  wakelock: 0.1.4+2
-  visibility_detector: 0.2.0
-  flutter_linkify: 3.1.2
-  connectivity: 0.4.9+5
-  lottie: 1.1.0
-  video_thumbnail: 0.2.5+1
-  path_provider: 2.0.2
-  path: 1.8.0
-  image_cropper: 1.3.1
-  facebook_audience_network: 0.5.0
-  webview_flutter: 2.0.12
+  cupertino_icons: ^1.0.5
+  event_bus: ^2.0.0
+  json_annotation: ^4.8.0
+  shared_preferences: ^2.1.0
+  fluttertoast: ^8.2.1
+  dio: ^5.1.1
+  flutter_picker: ^2.1.0
+  common_utils: ^2.1.0
+  flustars: ^2.0.1
+  device_info: ^2.0.3
+  cached_network_image: ^3.2.3
+  image_picker: ^0.8.7+1
+  url_launcher: ^6.1.10
+  sqflite: ^2.2.6
+  package_info: ^2.0.2
+  share: ^2.0.4
+  permission_handler: ^10.2.0
+  sensors_analytics_flutter_plugin: ^2.3.1
+  encrypt: ^5.0.1
+  network_info_plus: ^3.0.3
+  flutter_slidable: ^2.0.0
+  flutter_datetime_picker_plus: ^2.0.1
+  firebase_analytics: ^10.2.0
+  firebase_core: ^2.9.0
+  auto_size_text: ^3.0.0
+  wakelock: ^0.6.2
+  flutter_linkify: ^5.0.2
+  connectivity: ^3.0.6
+  lottie: ^2.3.2
+  video_thumbnail: ^0.5.3
+  path_provider: ^2.0.14
+  path: ^1.6.4
+  image_cropper: ^3.0.2
+  facebook_audience_network: ^1.0.1
+  visibility_detector: ^0.4.0+2
+  webview_flutter: ^4.0.7
+  logger: ^1.3.0
+  emoji_picker_flutter: ^1.5.4
+  device_info_plus: ^8.0.0
+  package_info_plus: ^3.0.1
+  android_id: ^0.1.3+1
+
   tvc_upload:
     path: plugins/tvc_upload
+  chewie:
+    path: plugins/chewie
   cosdart:
     git:
-      url: git://github.com/coschain/cosdart.git
-      ref: master
-
-  image_picker:
-    path: plugins/image_picker
+      url: https://github.com/coschain/cosdart.git
+  webview_flutter_android: ^3.9.2
+#    path: plugins/cosdart
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   #json序列化相关
-  build_runner: 1.11.1
-  json_serializable: 4.0.2
+  build_runner: ^2.3.3
+  json_serializable: ^6.6.1
 
 
 # For information on the generic Dart part of this file, see the
@@ -278,7 +283,6 @@ flutter:
     - assets/images/ic_more.png
     - assets/images/img_upload_succ.png
     - assets/images/img_default_video_cover.png
-    - assets/images/terms_note.png
     - assets/epamoji/epamoji_agree.png
     - assets/epamoji/epamoji_agree_lock.png
     - assets/epamoji/epamoji_amazed.png

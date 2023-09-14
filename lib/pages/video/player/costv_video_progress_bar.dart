@@ -1,23 +1,22 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:video_player/video_player.dart';
 
 class CosTVVideoProgressBar extends StatefulWidget {
   CosTVVideoProgressBar(
-      this.controller, {
-        ChewieProgressColors colors,
-        this.onDragEnd,
-        this.onDragStart,
-        this.onDragUpdate,
-        this.isEnableDrag = true,
-      }) : colors = colors ?? ChewieProgressColors();
+    this.controller, {
+    required this.colors,
+    this.onDragEnd,
+    this.onDragStart,
+    this.onDragUpdate,
+    this.isEnableDrag = true,
+  });
 
   final VideoPlayerController controller;
   final ChewieProgressColors colors;
-  final Function() onDragStart;
-  final Function() onDragEnd;
-  final Function() onDragUpdate;
+  final Function()? onDragStart;
+  final Function()? onDragEnd;
+  final Function()? onDragUpdate;
   bool isEnableDrag;
 
   @override
@@ -37,7 +36,7 @@ class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
     };
   }
 
-  VoidCallback listener;
+  late VoidCallback listener;
   bool _controllerWasPlaying = false;
 
   VideoPlayerController get controller => widget.controller;
@@ -80,7 +79,7 @@ class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
         ),
       ),
       onHorizontalDragStart: (DragStartDetails details) {
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           return;
         }
         _controllerWasPlaying = controller.value.isPlaying;
@@ -89,17 +88,17 @@ class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
         }
 
         if (widget.onDragStart != null) {
-          widget.onDragStart();
+          widget.onDragStart?.call();
         }
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           return;
         }
         seekToRelativePosition(details.globalPosition);
 
         if (widget.onDragUpdate != null) {
-          widget.onDragUpdate();
+          widget.onDragUpdate?.call();
         }
       },
       onHorizontalDragEnd: (DragEndDetails details) {
@@ -108,11 +107,11 @@ class _CosTVVideoProgressBarState extends State<CosTVVideoProgressBar> {
         }
 
         if (widget.onDragEnd != null) {
-          widget.onDragEnd();
+          widget.onDragEnd?.call();
         }
       },
       onTapDown: (TapDownDetails details) {
-        if (!controller.value.initialized) {
+        if (!controller.value.isInitialized) {
           return;
         }
         seekToRelativePosition(details.globalPosition);
@@ -150,13 +149,11 @@ class _ProgressBarPainter extends CustomPainter {
       ),
       colors.backgroundPaint,
     );
-    if (!value.initialized) {
+    if (!value.isInitialized) {
       return;
     }
-    final double playedPartPercent =
-        value.position.inMilliseconds / value.duration.inMilliseconds;
-    final double playedPart =
-    playedPartPercent > 1 ? size.width : playedPartPercent * size.width;
+    final double playedPartPercent = value.position.inMilliseconds / value.duration.inMilliseconds;
+    final double playedPart = playedPartPercent > 1 ? size.width : playedPartPercent * size.width;
     for (DurationRange range in value.buffered) {
       final double start = range.startFraction(value.duration) * size.width;
       final double end = range.endFraction(value.duration) * size.width;

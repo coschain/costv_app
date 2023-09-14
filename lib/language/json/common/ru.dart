@@ -31,8 +31,6 @@ var commonRu = {
     "emojiUnlockTitle": "How to unlock all stickers in \"Epamoji\"",
     "emojiUnlockHint": "Send 100 Gifting Votes or more in total to Voepa, to unlock all stickers in \"Epamoji\"",
     "emojiUnlockGo": "(Note: Please go to COS.TV Web on your phone or computer to try Gifting Votes function)"
-  },
-  "blockVideo":"Скрыть это видео",
-  "blockCreator":"Блокировать автора",
+  }
 }
 ;

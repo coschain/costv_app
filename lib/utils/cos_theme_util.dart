@@ -11,15 +11,15 @@ class AppThemeUtil {
 
   ///设置不同模式下的色值
   static Color setDifferentModeColor({
-    String lightColorStr,
+    String? lightColorStr,
     double lightAlpha = 1.0,
-    Color  lightColor,
-    String darkColorStr,
+    Color? lightColor,
+    String? darkColorStr,
     double darkAlpha = 1.0,
-    Color  darkColor,
+    Color? darkColor,
   }) {
     if (checkIsDarkMode()) {
-      if (Common.checkIsNotEmptyStr(darkColorStr)) {
+      if (darkColorStr != null && darkColorStr.isNotEmpty) {
         if (darkAlpha < 0) {
           darkAlpha = 0;
         }
@@ -28,7 +28,7 @@ class AppThemeUtil {
         return darkColor;
       }
     } else {
-      if (Common.checkIsNotEmptyStr(lightColorStr)) {
+      if (lightColorStr != null && lightColorStr.isNotEmpty) {
         if (lightAlpha < 0) {
           lightAlpha = 0;
         }
@@ -37,15 +37,14 @@ class AppThemeUtil {
         return lightColor;
       }
     }
-    return null;
+    return Colors.white;
   }
-
-
 
   ///获取一级亮度颜色
-  static  String getFirstLevelTitleColorStr() {
+  static String getFirstLevelTitleColorStr() {
     return "333333";
   }
+
   ///获取二级评论颜色
   static String getSecondaryTitleColorStr() {
     if (checkIsDarkMode()) {
@@ -57,7 +56,6 @@ class AppThemeUtil {
   static String getUnselectedHomeIcn() {
     if (checkIsDarkMode()) {
       return DarkModelBottomBarImgAssetUtil.homeUnSelectedIcnPath;
-
     }
     return LightModelBottomBarImgAssetUtil.homeUnSelectedIcnPath;
   }
@@ -65,7 +63,6 @@ class AppThemeUtil {
   static String getSelectedHomeIcn() {
     if (checkIsDarkMode()) {
       return DarkModelBottomBarImgAssetUtil.homeSelectedIcnPath;
-
     }
     return LightModelBottomBarImgAssetUtil.homeSelectedIcnPath;
   }
@@ -111,7 +108,6 @@ class AppThemeUtil {
     }
     return LightModelBottomBarImgAssetUtil.messageUnSelectedIcnPath;
   }
-
 
   static String getUnselectedHistoryIcn() {
     if (checkIsDarkMode()) {
@@ -383,21 +379,22 @@ class AppThemeUtil {
   }
 
   static Color getUploadHintTextColor() {
-    return Common.getColorFromHexString(checkIsDarkMode()? "3E3E3E" : "D6D6D6", 1.0);
+    return Common.getColorFromHexString(checkIsDarkMode() ? "3E3E3E" : "D6D6D6", 1.0);
   }
 
   static Color getListSeparatorColor() {
-    return Common.getColorFromHexString(checkIsDarkMode()? "3E3E3E" : "D6D6D6", 1.0);
+    return Common.getColorFromHexString(checkIsDarkMode() ? "3E3E3E" : "D6D6D6", 1.0);
   }
 
   static Color getButtonDisabledColor() {
-    return Common.getColorFromHexString(checkIsDarkMode()? "3E3E3E" : "D6D6D6", 1.0);
+    return Common.getColorFromHexString(checkIsDarkMode() ? "3E3E3E" : "D6D6D6", 1.0);
   }
 }
 
 ///暗黑模式文字颜色
 class DarkModelTextColorUtil {
   DarkModelTextColorUtil._();
+
   static const String firstLevelBrightnessColorStr = "D6D6D6";
   static const String secondaryBrightnessColorStr = "858585";
   static const String videoWorthColorStr = "D19900";
@@ -406,12 +403,16 @@ class DarkModelTextColorUtil {
 ///暗黑模式页面、弹窗等背景色
 class DarkModelBgColorUtil {
   DarkModelBgColorUtil._();
+
   //页面背景颜色
   static const String pageBgColorStr = "1D1D1D";
+
   //弹窗、状态栏等二级界面颜色
   static const String secondaryPageColorStr = "2A2A2A";
+
   //确认按钮等背景颜色
   static const String confirmBgColorStr = "858585";
+
   //取消按钮等背景颜色
   static const String cancelBgColorStr = "285EDB";
 }
@@ -419,6 +420,7 @@ class DarkModelBgColorUtil {
 ///暗黑模式底部bar本地图片Asset地址
 class DarkModelBottomBarImgAssetUtil {
   DarkModelBottomBarImgAssetUtil._();
+
   static const String homeSelectedIcnPath = "assets/images/dark_icn_home_select.png";
   static const String homeUnSelectedIcnPath = "assets/images/dark_icn_home_unselect.png";
   static const String hotSelectedIcnPath = "assets/images/dark_icn_hot_select.png";
@@ -432,9 +434,9 @@ class DarkModelBottomBarImgAssetUtil {
   static const String watchHistoryLikedIcnPath = "assets/images/dark_icn_liked.png";
 }
 
-
 class LightModelBottomBarImgAssetUtil {
   LightModelBottomBarImgAssetUtil._();
+
   static const String homeSelectedIcnPath = "assets/images/ic_home_select.png";
   static const String homeUnSelectedIcnPath = "assets/images/ic_home.png";
   static const String hotSelectedIcnPath = "assets/images/ic_popular_select.png";

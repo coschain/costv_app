@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/values/app_colors.dart';
@@ -10,10 +9,10 @@ typedef VideoTagOnTapCallback = void Function(int index, String tag);
 class VideoTagsContainer extends StatelessWidget {
   final List<String> tags;
   final bool hasDeleteIcon;
-  final VideoTagOnTapCallback onTap;
+  final VideoTagOnTapCallback? onTap;
 
   VideoTagsContainer({
-    @required this.tags,
+    required this.tags,
     this.hasDeleteIcon = false,
     this.onTap,
   });
@@ -41,7 +40,7 @@ class VideoTagsContainer extends StatelessWidget {
           deleteIcon: Icon(Icons.close, size: 14, color: Colors.white),
           onDeleted: () {
             if (onTap != null) {
-              onTap(i, tags[i]);
+              onTap?.call(i, tags[i]);
             }
           },
         );
@@ -76,7 +75,7 @@ class VideoTagsContainer extends StatelessWidget {
               color: Common.getColorFromHexString(AppThemeUtil.getSecondaryTitleColorStr(), 1.0),
             )),
             onPressed: () {
-              onTap(i, tags[i]);
+              onTap?.call(i, tags[i]);
             },
           );
         }

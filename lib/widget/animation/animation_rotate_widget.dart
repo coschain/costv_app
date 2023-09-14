@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 ///中心处旋转动画，注意角度传递的是π
 class AnimationRotateWidget extends StatefulWidget {
-
   /// 注意这个角度，π为180°
   static const PI = 3.1415926;
   final double endAngle;
@@ -13,21 +12,18 @@ class AnimationRotateWidget extends StatefulWidget {
   @override
   _AnimationRotateWidgetState createState() => _AnimationRotateWidgetState();
 
-  AnimationRotateWidget({this.endAngle = PI, this.rotated = false, this.duration = 300, this.child});
+  AnimationRotateWidget({this.endAngle = PI, this.rotated = false, this.duration = 300, required this.child});
 }
 
-class _AnimationRotateWidgetState extends State<AnimationRotateWidget>
-    with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<double> _animation;
+class _AnimationRotateWidgetState extends State<AnimationRotateWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
   double angle = 0;
 
   @override
   void initState() {
-    _controller =
-        AnimationController(vsync: this, duration: Duration(milliseconds: widget.duration));
-    _animation =
-    Tween(begin: 0.0, end: widget.endAngle).animate(_controller)
+    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: widget.duration));
+    _animation = Tween(begin: 0.0, end: widget.endAngle).animate(_controller)
       ..addListener(() {
         setState(() {
           angle = _animation.value;
@@ -49,10 +45,7 @@ class _AnimationRotateWidgetState extends State<AnimationRotateWidget>
 
   @override
   void dispose() {
-    if(_controller != null){
-      _controller.dispose();
-      _controller = null;
-    }
+    _controller.dispose();
     super.dispose();
   }
 

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -35,16 +34,12 @@ import 'package:costv_android/widget/page_title_widget.dart';
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:costv_android/widget/single_video_item.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-
-import 'webview/webview_page.dart';
 
 const String subscribeLogPrefix = "MySubScriptionPage";
 
 class MySubscriptionPage extends StatefulWidget {
-  MySubscriptionPage({Key key}) : super(key: key);
+  MySubscriptionPage({Key? key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -59,10 +54,8 @@ class MySubscriptionPage extends StatefulWidget {
   _MySubscriptionPageState createState() => _MySubscriptionPageState();
 }
 
-class _MySubscriptionPageState extends State<MySubscriptionPage>
-    with RouteAware {
-  GlobalKey<NetRequestFailTipsViewState> _failTipsKey =
-      new GlobalKey<NetRequestFailTipsViewState>();
+class _MySubscriptionPageState extends State<MySubscriptionPage> with RouteAware {
+  GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   static const tag = '_MySubscriptionPageState';
   int _pageSize = 20, _curPage = 1;
   bool _hasNextPage = false,
@@ -76,9 +69,9 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
       _isScrolling = false;
   List<FollowRelationData> _followingList = [];
   List<GetVideoListNewDataListBean> _videoList = [];
-  ExchangeRateInfoData _rateInfo;
-  dynamic_properties _chainDgpo;
-  StreamSubscription _eventSubscription;
+  ExchangeRateInfoData? _rateInfo;
+  dynamic_properties? _chainDgpo;
+  StreamSubscription? _eventSubscription;
   bool _isLoggedIn = false;
   String _uid = "";
   int videoItemIdx = 0;
@@ -86,14 +79,13 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
   double videoItemHeight = 0, followingListHeight = 0;
   Map<int, GlobalObjectKey<SingleVideoItemState>> keyMap = {};
   GlobalObjectKey _followingListKey = GlobalObjectKey("followingList");
-  GlobalObjectKey<RefreshAndLoadMoreListViewState> _subListViewKey =
-      GlobalObjectKey<RefreshAndLoadMoreListViewState>("sbuscriptionListView");
+  GlobalObjectKey<RefreshAndLoadMoreListViewState> _subListViewKey = GlobalObjectKey<RefreshAndLoadMoreListViewState>("sbuscriptionListView");
   Map<int, double> _visibleFractionMap = {};
 
   @override
   void didUpdateWidget(MySubscriptionPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
   }
 
   @override
@@ -207,8 +199,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
                   },
                   onRefresh: _reloadData,
                   isShowItemLine: false,
-                  bottomMessage:
-                      InternationalLocalizations.noMoreSubscribeVideo,
+                  bottomMessage: InternationalLocalizations.noMoreSubscribeVideo,
                   isRefreshEnable: true,
                   isLoadMoreEnable: true,
                   scrollEndCallBack: (last, cur) {
@@ -221,8 +212,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
                     });
                   },
                   scrollStatusCallBack: (scrollNotification) {
-                    if (scrollNotification is ScrollStartCallBack ||
-                        scrollNotification is ScrollUpdateNotification) {
+                    if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
                       _isScrolling = true;
                     }
                   },
@@ -238,7 +228,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
   //top following list
   Widget _topFollowingListContainer() {
     double screenWidth = MediaQuery.of(context).size.width;
-    double contentHeight = 98, btnWidth = 40.0, listPadding = 5;
+    double btnWidth = 40.0;
     return Container(
       key: _followingListKey,
       width: screenWidth,
@@ -255,8 +245,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
       ),
       child: Container(
         color: AppThemeUtil.setDifferentModeColor(
-            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
-            darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
 //        padding: EdgeInsets.only(left: listPadding),
         width: screenWidth,
         child: Row(
@@ -276,7 +265,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
                   child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       physics: AlwaysScrollableScrollPhysics(),
-                      itemCount: _followingList?.length ?? 0,
+                      itemCount: _followingList.length,
                       itemBuilder: (BuildContext context, int index) {
                         return _getFollowItem(index);
                       }),
@@ -298,10 +287,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
                     height: AppDimens.item_size_96_5,
                     padding: EdgeInsets.only(left: 2),
                     decoration: BoxDecoration(
-                      color: AppThemeUtil.setDifferentModeColor(
-                          lightColor:
-                              Common.getColorFromHexString("F6F6F6", 1.0),
-                          darkColorStr: "3E3E3E"),
+                      color: AppThemeUtil.setDifferentModeColor(lightColor: Common.getColorFromHexString("F6F6F6", 1.0), darkColorStr: "3E3E3E"),
                       boxShadow: [
                         BoxShadow(
                           color: Color.fromRGBO(0, 0, 0, 0.1),
@@ -320,9 +306,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
                           width: 15,
                           height: 15,
                         ),
-//                          onPressed: () {
-//                            _jumpToUserFollowingListPage(_uid);
-//                          }
+                        onPressed: () {},
                       ),
                     ),
                   ),
@@ -340,21 +324,11 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   ///登录
   void _startLogIn() {
-    if (Platform.isAndroid) {
-      WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
-    } else {
-      Navigator.of(context).push(SlideAnimationRoute(
-        builder: (_) {
-          return WebViewPage(
-            Constant.logInWebViewUrl,
-          );
-        },
-      ));
-    }
+    WebViewUtil.instance.openWebView(Constant.logInWebViewUrl, context);
   }
 
   SingleFollowItem _getFollowItem(int index) {
-    int fListCnt = _followingList?.length ?? 0;
+    int fListCnt = _followingList.length;
     if (index >= 0 && index < fListCnt) {
       return SingleFollowItem(
         relationData: _followingList[index],
@@ -367,19 +341,16 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   Widget _getSearchWidget() {
     return Container(
-      color: AppThemeUtil.setDifferentModeColor(
-          lightColorStr: "FFFFFFFF",
-          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+      color: AppThemeUtil.setDifferentModeColor(lightColorStr: "FFFFFFFF", darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       child: PageTitleWidget(tag),
     );
   }
 
   SingleVideoItem _getVideoItem(int index) {
-    int vListCnt = _videoList?.length ?? 0;
+    int vListCnt = _videoList.length;
     if (index >= 0 && index < vListCnt) {
       GetVideoListNewDataListBean video = _videoList[index];
-      GlobalObjectKey<SingleVideoItemState> myKey =
-          new GlobalObjectKey<SingleVideoItemState>(video.id);
+      GlobalObjectKey<SingleVideoItemState> myKey = new GlobalObjectKey<SingleVideoItemState>(video.id);
       keyMap[index] = myKey;
       return SingleVideoItem(
         key: myKey,
@@ -407,14 +378,13 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
           //登出成功
           if (event is LoginStatusEvent) {
             if (event.type == LoginStatusEvent.typeLoginSuccess) {
-              if (Common.checkIsNotEmptyStr(event.uid)) {
-                _uid = event.uid;
+              if (Common.checkIsNotEmptyStr(event.uid ?? "")) {
+                _uid = event.uid ?? "'";
                 _isLoggedIn = true;
                 _reloadData();
                 setState(() {});
               } else {
-                CosLogUtil.log(
-                    "$subscribeLogPrefix: success log in but get empty uid");
+                CosLogUtil.log("$subscribeLogPrefix: success log in but get empty uid");
               }
             } else if (event.type == LoginStatusEvent.typeLogoutSuccess) {
               _resetPageData();
@@ -424,10 +394,8 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
             if (event.from == BottomTabType.TabSubscription.index) {
               if (event.from == event.to) {
                 if (_hasFollowing) {
-                  if (VideoUtil.checkVideoListIsNotEmpty(_videoList) &&
-                      _subListViewKey != null &&
-                      _subListViewKey.currentState != null) {
-                    _subListViewKey.currentState.scrollToTop();
+                  if (VideoUtil.checkVideoListIsNotEmpty(_videoList) && _subListViewKey.currentState != null) {
+                    _subListViewKey.currentState?.scrollToTop();
                   }
                 } else if (!_hasFollowing && _isLoggedIn && _isSuccessLoad) {
                   //没有关注任何人,点击tab刷新数据
@@ -473,10 +441,10 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
     _hasFollowing = true;
     _isFirstLoad = true;
     tmpHasMore = false;
-    if (_videoList != null && _videoList.isNotEmpty) {
+    if (_videoList.isNotEmpty) {
       _videoList.clear();
     }
-    if (_followingList != null && _followingList.isNotEmpty) {
+    if (_followingList.isNotEmpty) {
       _followingList.clear();
     }
     if (keyMap.isNotEmpty) {
@@ -492,7 +460,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
   ///取消监听消息事件
   void _cancelListenEvent() {
     if (_eventSubscription != null) {
-      _eventSubscription.cancel();
+      _eventSubscription?.cancel();
     }
   }
 
@@ -540,9 +508,8 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 //  }
 
   void _jumpToUserFollowingListPage(String uid) {
-    if (uid == null || uid.length < 1) {
-      CosLogUtil.log(
-          "$subscribeLogPrefix: can't jump to following list page duto empty uid");
+    if (uid.length < 1) {
+      CosLogUtil.log("$subscribeLogPrefix: can't jump to following list page duto empty uid");
       return;
     }
     Navigator.of(context).push(SlideAnimationRoute(
@@ -561,7 +528,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
       ///following 列表作为listView的第一个item
       cnt += 1;
     }
-    if (_videoList != null && _videoList.isNotEmpty) {
+    if (_videoList.isNotEmpty) {
       cnt += _videoList.length;
     }
     return cnt;
@@ -569,7 +536,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   ///检查following列表是否为空
   bool _checkHasFollowingData() {
-    if (_followingList != null && _followingList.isNotEmpty) {
+    if (_followingList.isNotEmpty) {
       return true;
     }
     return false;
@@ -577,38 +544,32 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   ///检查是否有following或是视频数据
   bool _checkHasPageData() {
-    if (_checkHasFollowingData() ||
-        VideoUtil.checkVideoListIsNotEmpty(_videoList)) {
+    if (_checkHasFollowingData() || VideoUtil.checkVideoListIsNotEmpty(_videoList)) {
       return true;
     }
     return false;
   }
 
   /// 拉取订阅视频列表
-  Future<List<GetVideoListNewDataListBean>> _loadSubscribeVideoList(
-      bool isNextPage) async {
-    List<GetVideoListNewDataListBean> list;
+  Future<List<GetVideoListNewDataListBean>?> _loadSubscribeVideoList(bool isNextPage) async {
+    List<GetVideoListNewDataListBean>? list;
     if (isNextPage && !_hasNextPage) {
       return _videoList;
     }
     int page = isNextPage ? _curPage + 1 : 1;
-    await RequestManager.instance
-        .getSubscribeVideoList(tag, _uid, page, _pageSize)
-        .then((response) {
+    await RequestManager.instance.getSubscribeVideoList(tag, _uid, page, _pageSize).then((response) {
       if (response == null || !mounted) {
         CosLogUtil.log("$subscribeLogPrefix: fail to request uid:$_uid's "
             "video list");
         list = null;
         return;
       }
-      GetVideoListNewBean bean =
-          GetVideoListNewBean.fromJson(json.decode(response.data));
+      GetVideoListNewBean bean = GetVideoListNewBean.fromJson(json.decode(response.data));
       bool isSuccess = (bean.status == SimpleResponse.statusStrSuccess);
-      List<GetVideoListNewDataListBean> dataList =
-          isSuccess ? (bean.data?.list ?? []) : [];
+      List<GetVideoListNewDataListBean> dataList = isSuccess ? (bean.data?.list ?? []) : [];
       list = dataList;
       if (isSuccess) {
-        tmpHasMore = bean.data.hasNext == "1";
+        tmpHasMore = bean.data?.hasNext == "1";
         if (isNextPage) {
           _hasNextPage = tmpHasMore;
           if (dataList.isNotEmpty) {
@@ -619,7 +580,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
         }
       } else {
         CosLogUtil.log("$subscribeLogPrefix: fail to request uid:$_uid's "
-            "video list of page:$page, the error msg is ${bean.message}, "
+            "video list of page:$page, the error msg is ${bean.msg}, "
             "error code is ${bean.status}");
         if (bean.status == "1200001") {
           //没有关注任何人
@@ -641,26 +602,19 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
   }
 
   /// 拉取following列表
-  Future<List<FollowRelationData>> _loadFollowingList() async {
-    List<FollowRelationData> list;
-    await RequestManager.instance
-        .getUserFollowingList(tag, _uid, 1, _pageSize)
-        .then((response) {
+  Future<List<FollowRelationData>?> _loadFollowingList() async {
+    List<FollowRelationData>? list;
+    await RequestManager.instance.getUserFollowingList(tag, _uid, 1, _pageSize).then((response) {
       if (response == null || !mounted) {
         CosLogUtil.log("$subscribeLogPrefix: fail to fetch following list of"
             " uid:$_uid's first page data");
         list = null;
         return;
       }
-      FollowRelationListBean bean =
-          FollowRelationListBean.fromJson(json.decode(response.data));
+      FollowRelationListBean bean = FollowRelationListBean.fromJson(json.decode(response.data));
       if (bean.status == SimpleResponse.statusStrSuccess) {
-        list = bean.data?.list ?? [];
-//        setState(() {
-//
-//        });
+        list = bean.data.list;
       } else {
-//        ToastUtil.showToast(AppStrings.failToLoadData, gravity: ToastGravity.CENTER);
         CosLogUtil.log("$subscribeLogPrefix: fail to load following list "
             "of uid:$_uid, the error is ${bean.status}");
         if (bean.status == tokenErrCode) {
@@ -679,8 +633,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   Future<void> _loadNextPageData() async {
     if (_isFetching) {
-      CosLogUtil.log(
-          "$subscribeLogPrefix: is fething data when load next page");
+      CosLogUtil.log("$subscribeLogPrefix: is fething data when load next page");
       return;
     }
     _isFetching = true;
@@ -703,29 +656,19 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
     bool isNeedLoadRate = (_rateInfo == null) ? true : false;
     Iterable<Future> reqList;
     if (isNeedLoadRate) {
-      reqList = [
-        _loadFollowingList(),
-        _loadSubscribeVideoList(false),
-        CosSdkUtil.instance.getChainState(),
-        VideoUtil.requestExchangeRate(tag)
-      ];
+      reqList = [_loadFollowingList(), _loadSubscribeVideoList(false), CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
     } else {
-      reqList = [
-        _loadFollowingList(),
-        _loadSubscribeVideoList(false),
-        CosSdkUtil.instance.getChainState(),
-        VideoUtil.requestExchangeRate(tag)
-      ];
+      reqList = [_loadFollowingList(), _loadSubscribeVideoList(false), CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
     }
     await Future.wait(
       reqList,
     ).then((valList) {
-      if (valList != null && mounted) {
+      if (mounted) {
         int resLen = valList.length;
-        List<FollowRelationData> followingList;
-        List<GetVideoListNewDataListBean> videoList;
-        ExchangeRateInfoData rateData = _rateInfo;
-        dynamic_properties dgpo = _chainDgpo;
+        List<FollowRelationData>? followingList;
+        List<GetVideoListNewDataListBean>? videoList;
+        ExchangeRateInfoData? rateData = _rateInfo;
+        dynamic_properties? dgpo = _chainDgpo;
         bool isGetFollowSuccess = false, isGetVideoSuccess = false;
         int followCnt = 0, videoCnt = 0;
         if (resLen >= 1) {
@@ -737,10 +680,8 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
         }
         if (resLen >= 3) {
           GetChainStateResponse bean = valList[2];
-          if (bean != null && bean.state != null && bean.state.dgpo != null) {
-            dgpo = bean.state.dgpo;
-            _chainDgpo = dgpo;
-          }
+          dgpo = bean.state.dgpo;
+          _chainDgpo = dgpo;
         }
 
         if (isNeedLoadRate && resLen >= 4) {
@@ -802,8 +743,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
         }
       }
     }).catchError((err) {
-      CosLogUtil.log(
-          "$subscribeLogPrefix: fail to reload data, the error is $err");
+      CosLogUtil.log("$subscribeLogPrefix: fail to reload data, the error is $err");
       if (!_checkHasPageData()) {
         if (_isFirstLoad && _isSuccessLoad) {
           _isSuccessLoad = false;
@@ -829,7 +769,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   void _showLoadDataFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
@@ -845,7 +785,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
 
   //视频曝光上报
   void _reportVideoExposure() {
-    if (_videoList == null || _videoList.isEmpty) {
+    if (_videoList.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleItemIndex();
@@ -854,10 +794,7 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
         int idx = visibleList[i];
         if (idx >= 0 && idx < _videoList.length) {
           GetVideoListNewDataListBean bean = _videoList[idx];
-          VideoReportUtil.reportVideoExposure(
-              VideoExposureType.SubscribePageType,
-              bean.id ?? '',
-              bean.uid ?? '');
+          VideoReportUtil.reportVideoExposure(VideoExposureType.SubscribePageType, bean.id, bean.uid);
         }
       }
     }
@@ -868,9 +805,9 @@ class _MySubscriptionPageState extends State<MySubscriptionPage>
  following list item
  */
 class SingleFollowItem extends StatefulWidget {
-  final FollowRelationData relationData;
-  final ExchangeRateInfoData rateInfo;
-  final dynamic_properties chainDgpo;
+  final FollowRelationData? relationData;
+  final ExchangeRateInfoData? rateInfo;
+  final dynamic_properties? chainDgpo;
 
   SingleFollowItem({this.relationData, this.rateInfo, this.chainDgpo});
 
@@ -881,9 +818,8 @@ class SingleFollowItem extends StatefulWidget {
 class _SingleFollowItemState extends State<SingleFollowItem> {
   @override
   Widget build(BuildContext context) {
-    double avatarWidth = 50.0, bgWidth = 67, bgHeight = 71;
-    String avatar =
-        widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
+    double avatarWidth = 50.0, bgWidth = 67;
+    String avatar = widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(avatar)) {
       avatar = widget.relationData?.avatar ?? '';
     }
@@ -891,8 +827,7 @@ class _SingleFollowItemState extends State<SingleFollowItem> {
       alignment: Alignment.center,
       width: bgWidth,
       color: AppThemeUtil.setDifferentModeColor(
-          lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
-          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+          lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0), darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       child: Material(
         color: Colors.transparent,
         child: Ink(
@@ -908,9 +843,7 @@ class _SingleFollowItemState extends State<SingleFollowItem> {
               children: <Widget>[
                 Container(
                   decoration: BoxDecoration(
-                    border: Border.all(
-                        color: AppColors.color_ebebeb,
-                        width: AppDimens.item_line_height_0_5),
+                    border: Border.all(color: AppColors.color_ebebeb, width: AppDimens.item_line_height_0_5),
                     borderRadius: BorderRadius.circular(avatarWidth / 2),
                   ),
                   child: Stack(
@@ -918,8 +851,7 @@ class _SingleFollowItemState extends State<SingleFollowItem> {
                       CircleAvatar(
                         backgroundColor: AppColors.color_ffffff,
                         radius: avatarWidth / 2,
-                        backgroundImage:
-                            AssetImage('assets/images/ic_default_avatar.png'),
+                        backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                       ),
                       CircleAvatar(
                         backgroundColor: AppColors.color_transparent,
@@ -944,8 +876,7 @@ class _SingleFollowItemState extends State<SingleFollowItem> {
                     style: TextStyle(
                       color: AppThemeUtil.setDifferentModeColor(
                         lightColor: Colors.black,
-                        darkColorStr:
-                            DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                       ),
                       fontSize: 11,
                       inherit: false,
@@ -955,7 +886,7 @@ class _SingleFollowItemState extends State<SingleFollowItem> {
               ],
             ),
             onTap: () {
-              _jumpToUserCenter(widget.relationData.uid);
+              _jumpToUserCenter(widget.relationData?.uid ?? "");
             },
           ),
         ),
@@ -968,8 +899,7 @@ class _SingleFollowItemState extends State<SingleFollowItem> {
 //      CosLogUtil.log("$subscribeLogPrefix: can't open webview due to uid is empty");
 //      return;
 //    }
-    String avatar =
-        widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
+    String avatar = widget.relationData?.anchorImageCompress?.avatarCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(avatar)) {
       avatar = widget.relationData?.avatar ?? '';
     }

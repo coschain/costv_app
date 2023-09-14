@@ -7,9 +7,9 @@ typedef CosSDKFailCallBack = void Function(String error);
 typedef LoadTimeCallBack = void Function(int milliseconds);
 
 class CosSdkUtil {
-  static CosSdkUtil _instance;
+  static CosSdkUtil? _instance;
 
-  CosChainClient _client;
+  CosChainClient? _client;
 
   factory CosSdkUtil() => _getInstance();
 
@@ -20,30 +20,30 @@ class CosSdkUtil {
   static CosSdkUtil _getInstance() {
     if (_instance == null) {
       _instance = CosSdkUtil._();
-      _instance._client = Constant.isDebug
-          ? CosChainClient("dev", "34.199.54.140", 8888, false)   // dev
-          : CosChainClient.of(Network.main);                      // main
+      _instance?._client = Constant.isDebug
+          ? CosChainClient("dev", "34.199.54.140", 8888, false) // dev
+          : CosChainClient.of(Network.main); // main
     }
-    return _instance;
+    return _instance!;
   }
 
-  Future<AccountResponse> getAccountChainInfo(String name) async {
-    AccountResponse bean;
+  Future<AccountResponse?> getAccountChainInfo(String name) async {
+    AccountResponse? bean;
     try {
-      bean = await _client.getAccountByName(name);
-      CosLogUtil.log("CosSdkUtil getAccountChainInfo bean: " + bean.writeToJson());
-    } catch(e) {
+      bean = await _client?.getAccountByName(name);
+      CosLogUtil.log("CosSdkUtil getAccountChainInfo bean:  ${bean?.writeToJson()}");
+    } catch (e) {
       CosLogUtil.log("CosSdkUtil getAccountChainInfo error: " + e.toString());
     }
     return bean;
   }
 
-  Future<GetChainStateResponse> getChainState({CosSDKFailCallBack fallCallBack, LoadTimeCallBack loadTimeCallBack}) async {
-    GetChainStateResponse bean;
+  Future<GetChainStateResponse?> getChainState({CosSDKFailCallBack? fallCallBack, LoadTimeCallBack? loadTimeCallBack}) async {
+    GetChainStateResponse? bean;
     int sTime = DateTime.now().millisecondsSinceEpoch;
     try {
-      bean = await _client.getChainState();
-      CosLogUtil.log("CosSdkUtil getChainState bean: " + bean.writeToJson());
+      bean = await _client?.getChainState();
+      CosLogUtil.log("CosSdkUtil getChainState bean:  + ${bean?.writeToJson()}");
     } catch (e) {
       CosLogUtil.log("CosSdkUtil getChainState error: " + e.toString());
       if (fallCallBack != null) {

@@ -11,14 +11,13 @@ class LoginInfoDbProvider {
   static const String columnChainAccountName = 'chain_account_name';
   static const String columnExpires = 'expires';
 
-  Database _db;
+  Database? _db;
 
-  Future<Database> open() async {
+  Future<Database?> open() async {
     var databasesPath = await getDatabasesPath();
     String path = join(databasesPath, '$dbName.db');
-    if (_db == null || !_db.isOpen) {
-      _db = await openDatabase(path, version: dbVersion,
-          onCreate: (Database db, int version) async {
+    if (_db == null || !(_db?.isOpen ?? false)) {
+      _db = await openDatabase(path, version: dbVersion, onCreate: (Database db, int version) async {
         await db.execute('''
           create table $tableName (
           $columnUid text primary key,
@@ -31,16 +30,15 @@ class LoginInfoDbProvider {
     return _db;
   }
 
-  Future<int> insert(LoginInfoDbBean loginInfoDbBean) async {
+  Future<int?> insert(LoginInfoDbBean loginInfoDbBean) async {
     assert(_db != null);
-    return await _db.insert(tableName, loginInfoDbBean.toMap(),
-        conflictAlgorithm: ConflictAlgorithm.replace);
+    return await _db?.insert(tableName, loginInfoDbBean.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<LoginInfoDbBean> getLoginInfoDbBean() async {
-    assert(_db != null);
-    List<Map> maps = await _db.query(tableName);
-    if (maps.length > 0) {
+  Future<LoginInfoDbBean?>? getLoginInfoDbBean() async {
+    if (_db == null) return null;
+    List<Map<String, Object?>>? maps = await _db!.query(tableName);
+    if ((maps.length ?? 0) > 0) {
       return LoginInfoDbBean.fromMap(maps.first);
     }
     return null;
@@ -48,19 +46,17 @@ class LoginInfoDbProvider {
 
   Future<int> deleteAll() async {
     assert(_db != null);
-    return await _db.delete(tableName);
+    return await _db!.delete(tableName);
   }
 
   Future<int> update(LoginInfoDbBean loginInfoDbBean) async {
     assert(_db != null);
-    return await _db.update(tableName, loginInfoDbBean.toMap(),
-        where: '$columnUid = ?',
-        whereArgs: [loginInfoDbBean.getUid]);
+    return await _db!.update(tableName, loginInfoDbBean.toMap(), where: '$columnUid = ?', whereArgs: [loginInfoDbBean.getUid]);
   }
 
   Future close() async {
-    if (_db != null && _db.isOpen) {
-      _db.close();
+    if (_db != null && _db!.isOpen) {
+      _db!.close();
     }
   }
 }

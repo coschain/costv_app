@@ -1,7 +1,6 @@
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/pages/upload/video_tags_container.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/values/app_colors.dart';
@@ -9,10 +8,9 @@ import 'package:costv_android/values/app_colors.dart';
 const int MaxTagSize = 20;
 
 class VideoTagsSheet extends StatefulWidget {
-
-  final List sysTags;
-  final List<int> selectedSysTags;
-  final List<String> userTags;
+  final List? sysTags;
+  final List<int>? selectedSysTags;
+  final List<String>? userTags;
 
   VideoTagsSheet({
     this.sysTags,
@@ -25,21 +23,20 @@ class VideoTagsSheet extends StatefulWidget {
 }
 
 class _VideoTagsSheetState extends State<VideoTagsSheet> {
-
   List<int> _sysTags = [];
   List<String> _userTags = [];
-  String _inputTag;
+  String _inputTag = "";
   bool _changed = false;
-  TextEditingController _inputController;
+  late TextEditingController _inputController;
 
   @override
   void initState() {
     super.initState();
     if (widget.selectedSysTags != null) {
-      _sysTags.addAll(widget.selectedSysTags);
+      _sysTags.addAll(widget.selectedSysTags!);
     }
     if (widget.userTags != null) {
-      _userTags.addAll(widget.userTags);
+      _userTags.addAll(widget.userTags!);
     }
     _inputController = TextEditingController();
   }
@@ -55,123 +52,124 @@ class _VideoTagsSheetState extends State<VideoTagsSheet> {
           child: Container(
             width: MediaQuery.of(context).size.width,
             child: Material(
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(4)),
-                color: AppThemeUtil.setDifferentModeColor(
-                  lightColor: AppColors.color_f6f6f6,
-                  darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
-                ),
-                child: Column(
-                  children: <Widget>[
-                    Container(
-                      height: 400,
-                      padding: EdgeInsets.all(15),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Container(
-                              decoration: BoxDecoration(
-                                color: AppThemeUtil.setDifferentModeColor(
-                                  lightColor: Color(0xffe7e7e7),
-                                  darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
-                                ),
-                                borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(4), topRight: Radius.circular(4)),
+              color: AppThemeUtil.setDifferentModeColor(
+                lightColor: AppColors.color_f6f6f6,
+                darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
+              ),
+              child: Column(
+                children: <Widget>[
+                  Container(
+                    height: 400,
+                    padding: EdgeInsets.all(15),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Container(
+                            decoration: BoxDecoration(
+                              color: AppThemeUtil.setDifferentModeColor(
+                                lightColor: Color(0xffe7e7e7),
+                                darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
                               ),
-                              padding: EdgeInsets.only(left: 15, right: 0),
-                              margin: EdgeInsets.only(top: 5, bottom: 20),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(
-                                    child: TextField(
-                                      controller: _inputController,
-                                      style: TextStyle(fontSize: 15),
-                                      decoration: InputDecoration(
-                                        border: InputBorder.none,
-                                        hintText: InternationalLocalizations.uploadTagInputHint,
-                                        hintStyle: TextStyle(color: AppThemeUtil.getUploadHintTextColor()),
-                                      ),
-                                      maxLines: 1,
-                                      onChanged: (s) {
-                                        if (s.length > MaxTagSize) {
-                                          s = s.substring(0, MaxTagSize);
-                                          _inputController.text = s;
-                                        }
-                                        setState(() {
-                                          _inputTag = s;
-                                        });
-                                      },
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: EdgeInsets.only(left: 15, right: 0),
+                            margin: EdgeInsets.only(top: 5, bottom: 20),
+                            child: Row(
+                              children: <Widget>[
+                                Expanded(
+                                  child: TextField(
+                                    controller: _inputController,
+                                    style: TextStyle(fontSize: 15),
+                                    decoration: InputDecoration(
+                                      border: InputBorder.none,
+                                      hintText: InternationalLocalizations.uploadTagInputHint,
+                                      hintStyle: TextStyle(color: AppThemeUtil.getUploadHintTextColor()),
                                     ),
-                                  ),
-                                  ObjectUtil.isEmptyString(_inputTag)? Container():
-                                  FlatButton(
-                                    child: Text(InternationalLocalizations.uploadTagAdd),
-                                    textColor: Color(0xFF357CFF),
-                                    splashColor: Colors.transparent,
-                                    onPressed: (){
+                                    maxLines: 1,
+                                    onChanged: (s) {
+                                      if (s.length > MaxTagSize) {
+                                        s = s.substring(0, MaxTagSize);
+                                        _inputController.text = s;
+                                      }
                                       setState(() {
-                                        _addTag(_inputTag);
-                                        _inputTag = "";
+                                        _inputTag = s;
                                       });
-                                      _inputController.clear();
                                     },
                                   ),
-                                ],
-                              ),
+                                ),
+                                ObjectUtil.isEmptyString(_inputTag)
+                                    ? Container()
+                                    : ElevatedButton(
+                                        child: Text(InternationalLocalizations.uploadTagAdd),
+                                        onPressed: () {
+                                          setState(() {
+                                            _addTag(_inputTag);
+                                            _inputTag = "";
+                                          });
+                                          _inputController.clear();
+                                        },
+                                      ),
+                              ],
                             ),
-                            recommendTags.length > 0? Text(InternationalLocalizations.uploadTagRecommends) : Container(),
-                            recommendTags.length > 0? Container(
-                              padding: EdgeInsets.only(top: 10, bottom: 20),
-                              child: VideoTagsContainer(
-                                tags: recommendTags,
-                                onTap: (index, t) {
-                                  setState(() {
-                                    _addTag(t);
-                                  });
-                                },
-                              ),
-                            ) : Container(),
-                            chosenTags.length > 0? Text(InternationalLocalizations.uploadTagSelected) : Container(),
-                            chosenTags.length > 0? Container(
-                              padding: EdgeInsets.only(top: 10, bottom: 20),
-                              child: VideoTagsContainer(
-                                tags: chosenTags,
-                                hasDeleteIcon: true,
-                                onTap: (index, t) {
-                                  setState(() {
-                                    _removeTag(t);
-                                  });
-                                },
-                              ),
-                            ) : Container(),
-                          ],
-                        ),
+                          ),
+                          recommendTags.length > 0 ? Text(InternationalLocalizations.uploadTagRecommends) : Container(),
+                          recommendTags.length > 0
+                              ? Container(
+                                  padding: EdgeInsets.only(top: 10, bottom: 20),
+                                  child: VideoTagsContainer(
+                                    tags: recommendTags,
+                                    onTap: (index, t) {
+                                      setState(() {
+                                        _addTag(t);
+                                      });
+                                    },
+                                  ),
+                                )
+                              : Container(),
+                          chosenTags.length > 0 ? Text(InternationalLocalizations.uploadTagSelected) : Container(),
+                          chosenTags.length > 0
+                              ? Container(
+                                  padding: EdgeInsets.only(top: 10, bottom: 20),
+                                  child: VideoTagsContainer(
+                                    tags: chosenTags,
+                                    hasDeleteIcon: true,
+                                    onTap: (index, t) {
+                                      setState(() {
+                                        _removeTag(t);
+                                      });
+                                    },
+                                  ),
+                                )
+                              : Container(),
+                        ],
                       ),
                     ),
-                    Container(
-                      height: 0.5,
-                      color: AppThemeUtil.getListSeparatorColor(),
-                    ),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: FlatButton(
-                            child: Text(
-                                _changed? InternationalLocalizations.confirm : InternationalLocalizations.cancel,
-                                style: TextStyle(fontSize: 15)
-                            ),
-                            onPressed: (){
-                              if (_changed) {
-                                Navigator.of(context).pop([_sysTags, _userTags]);
-                              } else {
-                                Navigator.of(context).pop();
-                              }
-                            },
-                          ),
+                  ),
+                  Container(
+                    height: 0.5,
+                    color: AppThemeUtil.getListSeparatorColor(),
+                  ),
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: ElevatedButton(
+                          child:
+                              Text(_changed ? InternationalLocalizations.confirm : InternationalLocalizations.cancel, style: TextStyle(fontSize: 15)),
+                          onPressed: () {
+                            if (_changed) {
+                              Navigator.of(context).pop([_sysTags, _userTags]);
+                            } else {
+                              Navigator.of(context).pop();
+                            }
+                          },
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         )
@@ -181,9 +179,9 @@ class _VideoTagsSheetState extends State<VideoTagsSheet> {
 
   List<String> get _unSelectedSysTags {
     List<String> r = [];
-    for (int i = 0; i < widget.sysTags.length; i++) {
+    for (int i = 0; i < widget.sysTags!.length; i++) {
       if (_sysTags.indexOf(i) < 0) {
-        r.add(widget.sysTags[i][1]);
+        r.add(widget.sysTags![i][1]);
       }
     }
     return r;
@@ -191,8 +189,8 @@ class _VideoTagsSheetState extends State<VideoTagsSheet> {
 
   List<String> get _selectedTags {
     List<String> r = [];
-    _sysTags.forEach((index){
-      r.add(widget.sysTags[index][1]);
+    _sysTags.forEach((index) {
+      r.add(widget.sysTags![index][1]);
     });
     r.addAll(_userTags);
     return r;
@@ -205,8 +203,8 @@ class _VideoTagsSheetState extends State<VideoTagsSheet> {
     }
     _changed = true;
     int sysTagIndex = -1;
-    for (int i = 0; i < widget.sysTags.length; i++) {
-      if (widget.sysTags[i][1] == t) {
+    for (int i = 0; i < widget.sysTags!.length; i++) {
+      if (widget.sysTags![i][1] == t) {
         sysTagIndex = i;
         break;
       }
@@ -225,8 +223,8 @@ class _VideoTagsSheetState extends State<VideoTagsSheet> {
   void _removeTag(String t) {
     _changed = true;
     int sysTagIndex = -1;
-    for (int i = 0; i < widget.sysTags.length; i++) {
-      if (widget.sysTags[i][1] == t) {
+    for (int i = 0; i < widget.sysTags!.length; i++) {
+      if (widget.sysTags![i][1] == t) {
         sysTagIndex = i;
         break;
       }

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:common_utils/common_utils.dart';
@@ -29,15 +28,15 @@ import 'package:image_picker/image_picker.dart';
 class PageTitleWidget extends StatefulWidget {
   final String tag;
 
-  PageTitleWidget(this.tag, {Key key}) : super(key: key);
+  PageTitleWidget(this.tag, {Key? key}) : super(key: key);
 
   @override
   _PageTitleWidgetState createState() => _PageTitleWidgetState();
 }
 
 class _PageTitleWidgetState extends State<PageTitleWidget> {
-  String _avatar;
-  StreamSubscription _subscription;
+  String _avatar = "";
+  StreamSubscription? _subscription;
 
   @override
   void initState() {
@@ -66,7 +65,7 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
             }
           }
         } else if (event is CloudControlFinishEvent) {
-          if (mounted && event.isSuccess != null && event.isSuccess) {
+          if (mounted && event.isSuccess) {
             setState(() {});
           }
         }
@@ -82,9 +81,7 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
       }
       AccountGetInfoBean bean =
           AccountGetInfoBean.fromJson(json.decode(response.data));
-      if (bean != null &&
-          bean.status == SimpleResponse.statusStrSuccess &&
-          bean.data != null) {
+      if (bean.status == SimpleResponse.statusStrSuccess) {
         Constant.accountGetInfoDataBean = bean.data;
         String avatar = bean.data.imageCompress?.avatarCompressUrl ?? '';
         if (ObjectUtil.isEmptyString(avatar)) {
@@ -139,7 +136,8 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppThemeUtil.setDifferentModeColor(darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
+      color: AppThemeUtil.setDifferentModeColor(
+          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
       margin: EdgeInsets.only(
         left: AppDimens.margin_15,
         right: AppDimens.margin_10,
@@ -181,42 +179,36 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
                   ),
                 ),
               ),
-              Offstage(
-                offstage: Platform.isIOS,
-                child: Material(
-                  color: AppColors.color_transparent,
-                  child: Ink(
-                    child: InkWell(
-                      child: Container(
-                        margin: EdgeInsets.only(
-                            left: AppDimens.margin_15,
-                            top: AppDimens.margin_5,
-                            right: AppDimens.margin_5,
-                            bottom: AppDimens.margin_5),
-                        child: Image.asset(AppThemeUtil.getUploadIcn()),
-                      ),
-                      onTap: () async {
-                        _reportUploadClick();
-                        if (ObjectUtil.isEmptyString(Constant.uid)) {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (_){
-                            return VideoUploadPage();
-                          }));
-                        } else {
-                          var file = await ImagePicker.pickVideo(source: ImageSource.gallery);
-                          String videoPath = file?.path;
-                          if (!ObjectUtil.isEmptyString(videoPath)) {
-                            _reportPickedVideo();
-                            CosLogUtil.log("Video path: $videoPath");
-                            Navigator.of(context).push(MaterialPageRoute(builder: (_){
-                              return VideoUploadPage(uid: Constant.uid, videoPath: videoPath);
-                            }));
-                          }
-                        }
-                      },
+              Material(
+                color: AppColors.color_transparent,
+                child: Ink(
+                  child: InkWell(
+                    child: Container(
+                      margin: EdgeInsets.only(
+                          left: AppDimens.margin_15,
+                          top: AppDimens.margin_5,
+                          right: AppDimens.margin_5,
+                          bottom: AppDimens.margin_5),
+                      child: Image.asset(AppThemeUtil.getUploadIcn()),
                     ),
+                    onTap: () {
+                      _reportUploadClick();
+                      if (ObjectUtil.isEmptyString(Constant.uid)) {
+                        WebViewUtil.instance
+                            .openWebView(Constant.logInWebViewUrl, context);
+                      } else {
+                        Navigator.of(context).push(SlideAnimationRoute(
+                          builder: (_) {
+                            return WebViewPage(
+                              Constant.uploadWebViewUrl,
+                            );
+                          },
+                        ));
+                      }
+                    },
                   ),
                 ),
-              ),  
+              ),
               Offstage(
                 offstage: !CloudControlUtil.instance.isShowPop,
                 child: Material(
@@ -259,18 +251,8 @@ class _PageTitleWidgetState extends State<PageTitleWidget> {
                     ),
                     onTap: () {
                       if (ObjectUtil.isEmptyString(Constant.uid)) {
-                        if (Platform.isAndroid) {
-                          WebViewUtil.instance
-                              .openWebView(Constant.logInWebViewUrl);
-                        } else {
-                          Navigator.of(context).push(SlideAnimationRoute(
-                            builder: (_) {
-                              return WebViewPage(
-                                Constant.logInWebViewUrl,
-                              );
-                            },
-                          ));
-                        }
+                        WebViewUtil.instance
+                            .openWebView(Constant.logInWebViewUrl, context);
                       } else {
                         Navigator.of(context).push(SlideAnimationRoute(
                           builder: (_) {

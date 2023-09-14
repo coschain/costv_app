@@ -5,17 +5,16 @@ import 'package:costv_android/values/app_styles.dart';
 import 'package:flutter/material.dart';
 
 class NoMoreDataWidget extends StatelessWidget {
-
   String bottomMessage;
 
   NoMoreDataWidget({
-    this.bottomMessage,
-    Key key,
+    required this.bottomMessage,
+    Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    if(bottomMessage == null){
+    if (bottomMessage == null) {
       bottomMessage = InternationalLocalizations.noMoreData;
     }
 
@@ -23,8 +22,7 @@ class NoMoreDataWidget extends StatelessWidget {
       return Container();
     }
     return Container(
-      margin: EdgeInsets.only(
-          top: AppDimens.margin_25, bottom: AppDimens.margin_25),
+      margin: EdgeInsets.only(top: AppDimens.margin_25, bottom: AppDimens.margin_25),
       alignment: Alignment.center,
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -37,8 +35,7 @@ class NoMoreDataWidget extends StatelessWidget {
             ),
           ),
           Container(
-            padding: EdgeInsets.only(
-                left: AppDimens.margin_10, right: AppDimens.margin_10),
+            padding: EdgeInsets.only(left: AppDimens.margin_10, right: AppDimens.margin_10),
             child: Text(
               bottomMessage,
               style: AppStyles.text_style_c0c0c0_14,

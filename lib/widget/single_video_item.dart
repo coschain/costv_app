@@ -1,5 +1,3 @@
-import 'dart:ffi';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:chewie/chewie.dart';
 import 'package:common_utils/common_utils.dart';
@@ -22,13 +20,11 @@ import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:costv_android/widget/video_player_item_widget.dart';
 import 'package:costv_android/widget/video_time_widget.dart';
 import 'package:costv_android/widget/video_worth_view.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'package:costv_android/utils/global_util.dart';
 import 'package:video_player/video_player.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 enum EnterSource {
   HomePage,
@@ -41,26 +37,21 @@ enum EnterSource {
   HotTopicMusic,
 }
 
-typedef ClickPlayVideoCallBack = Function(GetVideoListNewDataListBean video);
+typedef ClickPlayVideoCallBack = Function(GetVideoListNewDataListBean? video);
 typedef VisibilityChangedCallback = Function(int index, double visibleFraction);
-typedef ClickBlockCallback = Function(int index);
 
 class SingleVideoItem extends StatefulWidget {
-  final GetVideoListNewDataListBean videoData;
-  final ExchangeRateInfoData exchangeRate; //汇率
-  final dynamic_properties dgpoBean;
-  final int index;
-  final ClickPlayVideoCallBack playVideoCallBack;
-  final ClickBlockCallback blockCallBack;
-
-  final EnterSource source;
-  final VisibilityChangedCallback visibilityChangedCallback;
+  final GetVideoListNewDataListBean? videoData;
+  final ExchangeRateInfoData? exchangeRate; //汇率
+  final dynamic_properties? dgpoBean;
+  final int? index;
+  final ClickPlayVideoCallBack? playVideoCallBack;
+  final EnterSource? source;
+  final VisibilityChangedCallback? visibilityChangedCallback;
   final bool isNeedAutoPlay;
-  final bool isNeedMoreAction;
-
 
   SingleVideoItem({
-    Key key,
+    Key? key,
     this.videoData,
     this.exchangeRate,
     this.dgpoBean,
@@ -69,8 +60,6 @@ class SingleVideoItem extends StatefulWidget {
     this.source,
     this.visibilityChangedCallback,
     this.isNeedAutoPlay = false,
-    this.isNeedMoreAction = false,
-    this.blockCallBack,
   }) : super(key: key);
 
   @override
@@ -80,15 +69,15 @@ class SingleVideoItem extends StatefulWidget {
 }
 
 class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
-  bool _isNeedAutoPlay = false, _isIniting = false, _initSuccess = false, _isNeedMoreAction = false;
-  VideoPlayerController _videoPlayerController;
-  ChewieController _chewieController;
+  late bool _isNeedAutoPlay = false, _isIniting = false, _initSuccess = false;
+  VideoPlayerController? _videoPlayerController;
+  ChewieController? _chewieController;
   String _tag = "SingleVideoItem";
 
   @override
   void dispose() {
     if (widget.visibilityChangedCallback != null) {
-      widget.visibilityChangedCallback(widget.index ?? -1, 0.0);
+      widget.visibilityChangedCallback?.call(widget.index ?? -1, 0.0);
     }
     _videoPlayerController?.pause();
     _videoPlayerController?.dispose();
@@ -100,10 +89,9 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
   @override
   void initState() {
     super.initState();
-    _isNeedMoreAction = widget.isNeedMoreAction;
     _isNeedAutoPlay = widget.isNeedAutoPlay;
     if (_isNeedAutoPlay) {
-      _initVideoPlayers(widget?.videoData?.videosource, false);
+      _initVideoPlayers(widget.videoData?.videosource ?? "", false);
     }
   }
 
@@ -115,15 +103,13 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
 
   @override
   void didUpdateWidget(SingleVideoItem oldWidget) {
-    String oldUrl = oldWidget.videoData?.videosource;
-    String newUrl = widget.videoData?.videosource;
+    String oldUrl = oldWidget.videoData?.videosource ?? "";
+    String newUrl = widget.videoData?.videosource ?? "";
     if (Common.checkIsNotEmptyStr(newUrl) && oldUrl != newUrl) {
       final oldPlayerController = _videoPlayerController;
       final oldChewieController = _chewieController;
       oldPlayerController?.pause();
 
-      _videoPlayerController = null;
-      _chewieController = null;
       if (widget.isNeedAutoPlay) {
         _initVideoPlayers(newUrl, false);
       }
@@ -133,7 +119,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         oldChewieController?.dispose();
       });
     }
-    routeObserver.subscribe(this, ModalRoute.of(context));
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
     super.didUpdateWidget(oldWidget);
   }
 
@@ -152,34 +138,29 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
       worthWidth = calcWidth + 10;
     }
     double authorBgWidth = descWidth - worthWidth - 5;
-    String imageUrl =
-        widget.videoData?.videoImageCompress?.videoCompressUrl ?? '';
+    String imageUrl = widget.videoData?.videoImageCompress?.videoCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(imageUrl)) {
       imageUrl = widget.videoData?.videoCoverBig ?? '';
     }
-    String avatar =
-        widget.videoData?.anchorImageCompress?.avatarCompressUrl ?? '';
+    String avatar = widget.videoData?.anchorImageCompress?.avatarCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(avatar)) {
       avatar = widget.videoData?.anchorAvatar ?? '';
     }
     return VisibilityDetector(
-      key: GlobalObjectKey(widget.videoData.id ?? (widget.index?.toString() ?? "")),
+      key: GlobalObjectKey(widget.videoData?.id ?? (widget.index?.toString() ?? "")),
       onVisibilityChanged: (VisibilityInfo info) {
         if (widget.visibilityChangedCallback != null) {
-          widget.visibilityChangedCallback(
-              widget.index ?? -1, info.visibleFraction);
+          widget.visibilityChangedCallback?.call(widget.index ?? -1, info.visibleFraction);
         }
         if (info.visibleFraction < 1.0 && mounted) {
-          if (ModalRoute.of(context).isCurrent) {
+          if (ModalRoute.of(context)!.isCurrent) {
             //如果当前是顶层路由，则停止，避免点搜索的时候被暂停
             stopPlay();
           }
         }
       },
       child: Container(
-        color: AppThemeUtil.setDifferentModeColor(
-            lightColor: AppColors.color_f6f6f6,
-            darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+        color: AppThemeUtil.setDifferentModeColor(lightColor: AppColors.color_f6f6f6, darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
         width: MediaQuery.of(context).size.width,
         child: Column(
           children: <Widget>[
@@ -187,13 +168,9 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
             _buildVideoParts(itemWidth, imgHeight, imageUrl),
             // video desc
             Container(
-              color: AppThemeUtil.setDifferentModeColor(
-                  lightColor: AppColors.color_f6f6f6,
-                  darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
-              margin: EdgeInsets.only(
-                  left: AppDimens.margin_10, right: AppDimens.margin_10),
-              padding: EdgeInsets.only(
-                  top: AppDimens.margin_13, bottom: AppDimens.margin_13),
+              color: AppThemeUtil.setDifferentModeColor(lightColor: AppColors.color_f6f6f6, darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+              margin: EdgeInsets.only(left: AppDimens.margin_10, right: AppDimens.margin_10),
+              padding: EdgeInsets.only(top: AppDimens.margin_13, bottom: AppDimens.margin_13),
               child: Row(
                 mainAxisSize: MainAxisSize.max,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -205,9 +182,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        border: Border.all(
-                            color: AppColors.color_ebebeb,
-                            width: AppDimens.item_line_height_0_5),
+                        border: Border.all(color: AppColors.color_ebebeb, width: AppDimens.item_line_height_0_5),
                         borderRadius: BorderRadius.circular(avatarSize / 2),
                       ),
                       child: Stack(
@@ -215,8 +190,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                           CircleAvatar(
                             backgroundColor: AppColors.color_ffffff,
                             radius: avatarSize / 2,
-                            backgroundImage: AssetImage(
-                                'assets/images/ic_default_avatar.png'),
+                            backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                           ),
                           CircleAvatar(
                             backgroundColor: AppColors.color_transparent,
@@ -236,33 +210,23 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: <Widget>[
-                        //title + MoreAction
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          mainAxisSize: MainAxisSize.max,
-                          children: [
-                            Expanded(flex:1, 
-                              child: Container(
-                                margin: EdgeInsets.fromLTRB(descMargin, 0, 0, 0),
-                                child: Text(
-                                  widget.videoData?.title ?? "",
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 2,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: AppThemeUtil.setDifferentModeColor(
-                                      lightColorStr: "333333",
-                                      darkColorStr: DarkModelTextColorUtil
-                                          .firstLevelBrightnessColorStr,
-                                    ),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              )
+                        //title
+                        Container(
+                          margin: EdgeInsets.fromLTRB(descMargin, 0, 0, 0),
+                          child: Text(
+                            widget.videoData?.title ?? "",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AppThemeUtil.setDifferentModeColor(
+                                lightColorStr: "333333",
+                                darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
+                              ),
+                              fontWeight: FontWeight.bold,
                             ),
-                            _buildMoreAction(context),
-                        ],),
+                          ),
+                        ),
                         // author · watch number · date
                         Container(
                           margin: EdgeInsets.fromLTRB(descMargin, 2, 0, 0),
@@ -271,75 +235,19 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: <Widget>[
-//                              Container(
-//                                constraints: BoxConstraints(
-//                                  maxWidth: authorBgWidth,
-//                                ),
-//                                child: Row(
-//                                  crossAxisAlignment: CrossAxisAlignment.center,
-//                                  children: <Widget>[
-//                                    Container(
-//                                      constraints: BoxConstraints(
-//                                        maxWidth: authorBgWidth / 2,
-//                                      ),
-//                                      child: Text(
-//                                        _formatAuthor() ?? "",
-//                                        maxLines: 1,
-//                                        overflow: TextOverflow.ellipsis,
-//                                        style: TextStyle(
-//                                          textBaseline: TextBaseline.alphabetic,
-//                                          color: Common.getColorFromHexString(
-//                                              "858585", 1.0),
-//                                          fontSize: 11,
-//                                        ),
-//                                      ),
-//                                    ),
-//                                    Container(
-//                                      constraints: BoxConstraints(
-//                                        maxWidth: authorBgWidth / 2,
-//                                      ),
-//                                      child: Text(
-//                                        _formatWatchNumber() ?? "",
-//                                        maxLines: 1,
-//                                        overflow: TextOverflow.ellipsis,
-//                                        style: TextStyle(
-//                                          color: Common.getColorFromHexString(
-//                                              "858585", 1.0),
-//                                          fontSize: 11,
-//                                        ),
-//                                      ),
-//                                    ),
-////                                Container(
-////                                  constraints: BoxConstraints(
-////                                    maxWidth: authorBgWidth / 3,
-////                                  ),
-////                                  child:  Text (
-////                                    _formatCreateTimeDesc() ?? "",
-////                                    maxLines: 1,
-////                                    overflow: TextOverflow.ellipsis,
-////                                    style: TextStyle(
-////                                      color: Common.getColorFromHexString("858585", 1.0),
-////                                      fontSize: 11,
-////                                    ),
-////                                  ),
-////                                ),
-//                                  ],
-//                                ),
-//                              ),
                               Container(
                                 constraints: BoxConstraints(
                                   maxWidth: authorBgWidth,
                                 ),
                                 child: Text(
-                                  '${_formatAuthor() ?? ''}${_formatWatchNumber() ?? ''}',
+                                  '${_formatAuthor()}${_formatWatchNumber() ?? ''}',
                                   textAlign: TextAlign.start,
                                   maxLines: 3,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     color: AppThemeUtil.setDifferentModeColor(
                                       lightColorStr: "858585",
-                                      darkColorStr: DarkModelTextColorUtil
-                                          .secondaryBrightnessColorStr,
+                                      darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr,
                                     ),
                                     fontSize: 11,
                                   ),
@@ -348,10 +256,8 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                               //author
                               //视频价值
                               Container(
-                                constraints:
-                                    BoxConstraints(maxWidth: worthWidth),
-                                child: VideoWorthWidget(
-                                    _getCurrencySymbol(), _calcVideoWorth()),
+                                constraints: BoxConstraints(maxWidth: worthWidth),
+                                child: VideoWorthWidget(_getCurrencySymbol(), _calcVideoWorth()),
                               ),
                             ],
                           ),
@@ -360,12 +266,12 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
                     ),
                     onTap: () {
                       _onClickToPlayVideo(
-                        widget.videoData?.id,
-                        widget.videoData?.uid,
-                        widget.videoData?.videosource,
+                        widget.videoData?.id ?? "'",
+                        widget.videoData?.uid ?? "",
+                        widget.videoData?.videosource ?? "",
                       );
                     },
-                  )),
+                  ))
                 ],
               ),
             ),
@@ -373,78 +279,6 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         ),
       ),
     );
-  }
-
-  void _showBottomMoreMenu(BuildContext context){
-    showModalBottomSheet(
-      context: context,
-      isDismissible: true,
-      isScrollControlled: false,
-      backgroundColor: AppThemeUtil.setDifferentModeColor(
-              lightColor: AppColors.color_f6f6f6,
-              darkColorStr: DarkModelBgColorUtil.pageBgColorStr,
-            ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topLeft: Radius.circular(15), topRight: Radius.circular(15))),
-      builder: (BuildContext context) {
-        return SizedBox( height:155, 
-          child: Column(
-            children: [
-              InkWell(child: Container(
-                height: 50,
-                alignment: Alignment.center,
-                child: Text( InternationalLocalizations.blockVideo,
-                  textAlign: TextAlign.center
-                ),
-              ), onTap: (){
-                Navigator.pop(context);
-                if (widget.blockCallBack != null){
-                  widget.blockCallBack(0);
-                }
-              },),
-              InkWell(child: Container(
-                height: 50,
-                alignment: Alignment.center,
-                child: Text( InternationalLocalizations.blockCreator,
-                  textAlign: TextAlign.center
-                ),
-              ), onTap: (){
-                Navigator.pop(context);
-                if (widget.blockCallBack != null){
-                  widget.blockCallBack(1);
-                }
-              },),
-              InkWell(child: Container(
-                height: 50,
-                alignment: Alignment.center,
-                child: Text( InternationalLocalizations.cancel,
-                  textAlign: TextAlign.center
-                ),
-              ), onTap: (){
-                Navigator.pop(context);
-              },),
-            ],
-
-          )
-        );
-      });
-
-  }
-
-  Widget _buildMoreAction(BuildContext context){
-    if (this._isNeedMoreAction){
-        return InkWell(
-                    child: Container(
-                      height: 33.0,
-                      child: IconButton(
-                          icon: Icon(Icons.more_vert),
-                          tooltip: 'MoreAction',
-                          onPressed: () => _showBottomMoreMenu(context),
-                        ),
-                    )
-                  );
-    } else {
-      return InkWell(child: Container());
-    }
   }
 
 //  Future<void> resetMediaController() async {
@@ -464,15 +298,15 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
     }
 
     if (_videoPlayerController != null && _chewieController != null) {
-      if (_videoPlayerController?.value?.isPlaying ?? false) {
+      if (_videoPlayerController?.value.isPlaying ?? false) {
         return;
       }
-      _videoPlayerController.play();
+      _videoPlayerController?.play();
     } else {
       if (_isIniting) {
         return;
       }
-      _initVideoPlayers(widget.videoData?.videosource, false);
+      _initVideoPlayers(widget.videoData?.videosource ?? "", false);
     }
   }
 
@@ -487,11 +321,11 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         _isIniting = false;
       });
     }
-    if (_videoPlayerController?.value?.isPlaying ?? false) {
-      _videoPlayerController.pause();
-      VideoPlayerValue playValue = _videoPlayerController?.value;
-      if (playValue != null && playValue.position != null && playValue.position > Duration(seconds: 0)) {
-        _videoPlayerController.seekTo(Duration(seconds: 0));
+    if (_videoPlayerController?.value.isPlaying ?? false) {
+      _videoPlayerController?.pause();
+      VideoPlayerValue? playValue = _videoPlayerController?.value;
+      if (playValue != null && playValue.position > Duration(seconds: 0)) {
+        _videoPlayerController?.seekTo(Duration(seconds: 0));
       }
     }
   }
@@ -520,16 +354,15 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         child: (_chewieController != null && _videoPlayerController != null)
             ? ClipRect(
                 child: Chewie(
-                controller: _chewieController,
+                controller: _chewieController!,
               ))
-            : _buildVideoCover(
-                itemWidth, imgHeight, widget.videoData?.videosource),
+            : _buildVideoCover(itemWidth, imgHeight, widget.videoData?.videosource ?? ""),
       ),
       onTap: () {
         _onClickToPlayVideo(
-          widget.videoData?.id,
-          widget.videoData?.uid,
-          widget.videoData?.videosource,
+          widget.videoData?.id ?? "",
+          widget.videoData?.uid ?? "",
+          widget.videoData?.videosource ?? "",
         );
       },
     );
@@ -537,9 +370,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
 
   Widget _buildVideoCover(double itemWidth, double imgHeight, String imageUrl) {
     return Container(
-      color: AppThemeUtil.setDifferentModeColor(
-          lightColor: AppColors.color_f6f6f6,
-          darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+      color: AppThemeUtil.setDifferentModeColor(lightColor: AppColors.color_f6f6f6, darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
 //      padding: EdgeInsets.symmetric(horizontal: 10),
       width: itemWidth,
       height: imgHeight,
@@ -586,9 +417,9 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         ),
         onTap: () {
           _onClickToPlayVideo(
-            widget.videoData?.id,
-            widget.videoData?.uid,
-            widget.videoData?.videosource,
+            widget.videoData?.id ?? "",
+            widget.videoData?.uid ?? "",
+            widget.videoData?.videosource ?? "",
           );
         },
       ),
@@ -597,10 +428,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
 
   //计算视频价值文字的宽度
   double _calcVideoWorthWidth() {
-    TextStyle style = TextStyle(
-        fontSize: 12.5,
-        color: Common.getColorFromHexString("D19900", 1.0),
-        fontFamily: "DIN");
+    TextStyle style = TextStyle(fontSize: 12.5, color: Common.getColorFromHexString("D19900", 1.0), fontFamily: "DIN");
     //使用MediaQuery.of(context).textScaleFactor,避免不同机型计算的宽度不够
     TextPainter painter = TextPainter(
       maxLines: 1,
@@ -615,9 +443,8 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
   }
 
   Widget _getVideoDurationWidget() {
-    if (Common.checkVideoDurationValid(widget.videoData?.duration)) {
-      return VideoTimeWidget(
-          Common.formatVideoDuration(widget.videoData?.duration));
+    if (Common.checkVideoDurationValid(widget.videoData?.duration ?? "")) {
+      return VideoTimeWidget(Common.formatVideoDuration(widget.videoData?.duration ?? ""));
     }
     return Container();
   }
@@ -625,7 +452,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
   //底部视频时长等
   Widget _buildBottomParts() {
     double bottomPosition = 0;
-    if (!Common.checkVideoDurationValid(widget.videoData?.duration)) {
+    if (!Common.checkVideoDurationValid(widget.videoData?.duration ?? "")) {
       bottomPosition = 10;
     }
     return Positioned(
@@ -657,8 +484,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
               color: Colors.transparent,
               child: CircularProgressIndicator(
                 strokeWidth: 1.0,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                    Common.getColorFromHexString("FFFFFF", 1.0)),
+                valueColor: AlwaysStoppedAnimation<Color>(Common.getColorFromHexString("FFFFFF", 1.0)),
               )),
         ),
       );
@@ -672,31 +498,30 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
 
   String _formatAuthor() {
     String desc = "";
-    if (Common.checkIsNotEmptyStr(widget.videoData?.anchorNickname)) {
-      desc += widget.videoData.anchorNickname + " ";
+    if (Common.checkIsNotEmptyStr(widget.videoData?.anchorNickname ?? "")) {
+      desc += widget.videoData?.anchorNickname ?? "" + " ";
     }
     return desc;
   }
 
   String _formatWatchNumber() {
     String desc = "";
-    if (Common.checkIsNotEmptyStr(widget.videoData?.watchNum)) {
+    if (Common.checkIsNotEmptyStr(widget.videoData?.watchNum ?? "")) {
       if (_formatAuthor().length > 0) {
         desc += "· ";
       }
-      desc +=
-          '${InternationalLocalizations.watchNumberDesc(widget.videoData.watchNum)} ';
+      desc += '${InternationalLocalizations.watchNumberDesc(widget.videoData?.watchNum ?? "")} ';
     }
     return desc;
   }
 
   String _formatCreateTimeDesc() {
     String desc = "";
-    if (Common.checkIsNotEmptyStr(widget.videoData?.createdAt)) {
+    if (Common.checkIsNotEmptyStr(widget.videoData?.createdAt ?? "")) {
       if (_formatAuthor().length > 0 || _formatWatchNumber().length > 0) {
         desc += "· ";
       }
-      desc += Common.calcDiffTimeByStartTime(widget.videoData.createdAt);
+      desc += Common.calcDiffTimeByStartTime(widget.videoData?.createdAt ?? "");
     }
     return desc;
   }
@@ -717,7 +542,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
 //    stopPlay(false);
     stopPlay();
     if (widget.playVideoCallBack != null) {
-      widget.playVideoCallBack(widget.videoData);
+      widget.playVideoCallBack?.call(widget.videoData);
     }
     Navigator.of(context).push(SlideAnimationRoute(
       builder: (_) {
@@ -734,8 +559,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
   }
 
   void _onClickAvatar() {
-    String avatar =
-        widget.videoData?.anchorImageCompress?.avatarCompressUrl ?? '';
+    String avatar = widget.videoData?.anchorImageCompress?.avatarCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(avatar)) {
       avatar = widget.videoData?.anchorAvatar ?? '';
     }
@@ -755,27 +579,21 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
 
   ///计算视频收益
   String _calcVideoWorth() {
-    return VideoUtil.getVideoWorth(
-        widget.exchangeRate, widget.dgpoBean, widget.videoData);
+    return VideoUtil.getVideoWorth(widget.exchangeRate, widget.dgpoBean, widget.videoData);
   }
 
   void _reportVideoClick() {
-    if (widget?.videoData?.id != null) {
+    if (widget.videoData?.id != null) {
       if (widget.source == EnterSource.HomePage) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.HomePage, widget.videoData?.id);
+        VideoReportUtil.reportClickVideo(ClickVideoSource.HomePage, widget.videoData?.id ?? "");
       } else if (widget.source == EnterSource.HotPage) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.Hot, widget.videoData?.id);
+        VideoReportUtil.reportClickVideo(ClickVideoSource.Hot, widget.videoData?.id ?? "");
       } else if (widget.source == EnterSource.SubscribePage) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.Subscribe, widget.videoData?.id);
+        VideoReportUtil.reportClickVideo(ClickVideoSource.Subscribe, widget.videoData?.id ?? "");
       } else if (widget.source == EnterSource.OtherCenter) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.OtherCenter, widget.videoData?.id);
+        VideoReportUtil.reportClickVideo(ClickVideoSource.OtherCenter, widget.videoData?.id ?? "");
       } else if (_judgeEnterFromTopicDetail()) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.HotTopic, widget.videoData?.id);
+        VideoReportUtil.reportClickVideo(ClickVideoSource.HotTopic, widget.videoData?.id ?? "");
       }
     }
   }
@@ -818,7 +636,7 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
     }
     _isIniting = true;
     _videoPlayerController = VideoPlayerController.network(videoUrl);
-    await _videoPlayerController.initialize().then((_) {
+    await _videoPlayerController?.initialize().then((_) {
       if (!mounted) {
         return;
       }
@@ -827,13 +645,13 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
         if (_isNeedAutoPlay) {
           _initSuccess = true;
           _chewieController = ChewieController(
-            videoPlayerController: _videoPlayerController,
-            aspectRatio: _videoPlayerController.value.aspectRatio,
+            videoPlayerController: _videoPlayerController!,
+            aspectRatio: _videoPlayerController?.value.aspectRatio,
             autoPlay: true,
             looping: true,
             showControlsOnInitialize: false,
             allowMuting: false,
-            isLive: _videoPlayerController.value.duration == Duration.zero,
+            isLive: _videoPlayerController?.value.duration == Duration.zero,
             customControls: VideoPlayerItemWidget(
               key: UniqueKey(),
             ),
@@ -842,15 +660,12 @@ class SingleVideoItemState extends State<SingleVideoItem> with RouteAware {
             isInitFullScreen: false,
           );
           //静音播放
-          _chewieController.setVolume(0);
-        } else {
-          _videoPlayerController = null;
-          _chewieController = null;
+          _chewieController?.setVolume(0);
         }
       });
     }).catchError((err) {
       CosLogUtil.log("$_tag: fail to init video "
-          "source:${widget?.videoData?.videosource ?? ""}, the error is $err");
+          "source:${widget.videoData?.videosource ?? ""}, the error is $err");
       setState(() {
         _initSuccess = false;
         _isIniting = false;

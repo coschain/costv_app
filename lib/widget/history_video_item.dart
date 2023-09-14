@@ -31,17 +31,17 @@ typedef DeleteVideoCallback = void Function(String uid, String vid);
 typedef VisibilityChangedCallback = Function(int index, double visibleFraction);
 
 class HistoryVideoItem extends StatefulWidget {
-  final GetVideoListNewDataListBean video;
-  final ExchangeRateInfoData exchangeRate; //汇率
-  final dynamic_properties dgpoBean;
-  final int index;
-  final DeleteVideoCallback deleteCallBack;
-  final String logPrefix;
-  final HistoryItemPageSource source;
+  final GetVideoListNewDataListBean? video;
+  final ExchangeRateInfoData? exchangeRate; //汇率
+  final dynamic_properties? dgpoBean;
+  final int? index;
+  final DeleteVideoCallback? deleteCallBack;
+  final String? logPrefix;
+  final HistoryItemPageSource? source;
   final bool isEnableDelete;
-  final VisibilityChangedCallback visibilityChangedCallback;
-  final double radius;
-  final SlidableController controller;
+  final VisibilityChangedCallback? visibilityChangedCallback;
+  final double? radius;
+  final SlidableController? controller;
 
   HistoryVideoItem({
     this.video,
@@ -63,13 +63,13 @@ class HistoryVideoItem extends StatefulWidget {
   }
 }
 
-class _HistoryVideoItemState extends State<HistoryVideoItem> {
-  String _logPrefix;
+class _HistoryVideoItemState extends State<HistoryVideoItem> with SingleTickerProviderStateMixin {
+  String? _logPrefix;
 
   @override
   void initState() {
     super.initState();
-    if (!Common.checkIsNotEmptyStr(widget.logPrefix)) {
+    if (!Common.checkIsNotEmptyStr(widget.logPrefix ?? "")) {
       _logPrefix = _getLogPrefix();
     } else {
       _logPrefix = widget.logPrefix;
@@ -80,21 +80,16 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width - 20;
     double rate = screenWidth / 375.0, coverRate = 9 / 16;
-    double coverWidth = 149 * rate,
-        coverHeight = coverWidth * coverRate,
-        boldFontSize = 14,
-        normalFontSize = 11,
-        rDescMargin = 8.0;
+    double coverWidth = 149 * rate, coverHeight = coverWidth * coverRate, boldFontSize = 14, normalFontSize = 11, rDescMargin = 8.0;
     double rightDescWidth = screenWidth - rDescMargin - coverWidth;
     String imageUrl = widget.video?.videoImageCompress?.videoCompressUrl ?? '';
     if (ObjectUtil.isEmptyString(imageUrl)) {
       imageUrl = widget.video?.videoCoverBig ?? '';
     }
     return VisibilityDetector(
-      key: Key(widget.video.id ?? widget.index),
+      key: Key(widget.video?.id ?? widget.index.toString()),
       child: Slidable(
-        key: Key('key${widget?.index?.toString() ?? widget.video.id}'),
-        controller: widget.controller ?? SlidableController(),
+        key: Key('key${widget.index?.toString() ?? widget.video?.id}'),
         enabled: widget.isEnableDelete,
         child: Container(
           padding: EdgeInsets.only(top: AppDimens.margin_15),
@@ -120,8 +115,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                             width: coverWidth,
                             height: coverHeight,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.all(
-                                  Radius.circular(widget.radius ?? 0)),
+                              borderRadius: BorderRadius.all(Radius.circular(widget.radius ?? 0)),
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
@@ -132,30 +126,16 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                               ),
                             ),
                             child: ClipRRect(
-                                borderRadius:
-                                    BorderRadius.circular(widget.radius ?? 0),
+                                borderRadius: BorderRadius.circular(widget.radius ?? 0),
                                 child: CachedNetworkImage(
                                   fit: BoxFit.contain,
                                   imageUrl: imageUrl,
                                   placeholder: (context, url) => Container(
-                                    color: Common.getColorFromHexString(
-                                        "D6D6D6", 1.0),
+                                    color: Common.getColorFromHexString("D6D6D6", 1.0),
                                   ),
-                                  errorWidget: (context, url, error) => Container(),
                                 )),
                           ),
                           _getVideoTimeWidget(),
-//                          Positioned(
-//                            left: 10,
-//                            top: 10,
-//                            child: Text(
-//                              widget.video.id ?? '',
-//                              style: TextStyle(
-//                                color: Colors.red,
-//                                fontSize: 10
-//                              ),
-//                            ),
-//                          ),
                         ],
                       ),
                     ),
@@ -178,10 +158,8 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                       style: TextStyle(
                         fontSize: boldFontSize,
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor:
-                                Common.getColorFromHexString("333333", 1.0),
-                            darkColorStr: DarkModelTextColorUtil
-                                .firstLevelBrightnessColorStr),
+                            lightColor: Common.getColorFromHexString("333333", 1.0),
+                            darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -193,10 +171,8 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                       style: TextStyle(
                         fontSize: normalFontSize,
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor:
-                                Common.getColorFromHexString("A0A0A0", 1.0),
-                            darkColorStr: DarkModelTextColorUtil
-                                .secondaryBrightnessColorStr),
+                            lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
+                            darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr),
                       ),
                     ),
                     // 视频价值
@@ -208,10 +184,8 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                           fontWeight: FontWeight.bold,
                           fontSize: boldFontSize,
                           color: AppThemeUtil.setDifferentModeColor(
-                              lightColor:
-                                  Common.getColorFromHexString("333333", 1.0),
-                              darkColorStr: DarkModelTextColorUtil
-                                  .firstLevelBrightnessColorStr),
+                              lightColor: Common.getColorFromHexString("333333", 1.0),
+                              darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                           fontFamily: "DIN"),
                     ),
                     // 播放量和时间
@@ -220,10 +194,8 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
                       maxLines: 1,
                       style: TextStyle(
                         color: AppThemeUtil.setDifferentModeColor(
-                            lightColor:
-                                Common.getColorFromHexString("A0A0A0", 1.0),
-                            darkColorStr: DarkModelTextColorUtil
-                                .secondaryBrightnessColorStr),
+                            lightColor: Common.getColorFromHexString("A0A0A0", 1.0),
+                            darkColorStr: DarkModelTextColorUtil.secondaryBrightnessColorStr),
                         fontSize: normalFontSize,
                       ),
                       child: Container(
@@ -242,51 +214,35 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
             ],
           ),
         ),
-        actionExtentRatio: 0.25,
-        actionPane: SlidableDrawerActionPane(),
-        actions: <Widget>[],
-        secondaryActions: <Widget>[
-          InkWell(
-            child: Image.asset(
-              "assets/images/ic_delete.png",
-              fit: BoxFit.cover,
+        endActionPane: ActionPane(
+          motion: ScrollMotion(),
+          children: [
+            InkWell(
+              child: Image.asset(
+                "assets/images/ic_delete.png",
+                fit: BoxFit.cover,
+              ),
+              onTap: () {
+                _showDeleteConfirmDialog();
+              },
             ),
-            onTap: () {
-              _showDeleteConfirmDialog();
-            },
-          ),
-
-//          IconSlideAction(
-//            caption: '',
-//            color: Common.getColorFromHexString("FA4F00", 1.0),
-//            iconWidget: Container(
-//              width: screenWidth*0.25,
-//              color: Colors.black,
-//              child: Image.asset(
-//                "assets/images/ic_delete.png",
-//                fit: BoxFit.cover,
-//              ),
-//            ),
-//            onTap: () => _showDeleteConfirmDialog(),
-//          ),
-        ],
+          ],
+        ),
       ),
       onVisibilityChanged: (VisibilityInfo info) {
         if (widget.visibilityChangedCallback != null) {
-          widget.visibilityChangedCallback(
-              widget.index ?? -1, info.visibleFraction);
+          widget.visibilityChangedCallback?.call(widget.index ?? -1, info.visibleFraction);
         }
       },
     );
   }
 
   Widget _getVideoTimeWidget() {
-    if (Common.checkVideoDurationValid(widget.video?.duration)) {
+    if (Common.checkVideoDurationValid(widget.video?.duration ?? "")) {
       return Positioned(
         right: 0,
         bottom: 0,
-        child:
-            VideoTimeWidget(Common.formatVideoDuration(widget.video?.duration)),
+        child: VideoTimeWidget(Common.formatVideoDuration(widget.video?.duration ?? "")),
       );
     }
     return Container();
@@ -294,9 +250,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
 
   void _onClickPlayVideo() {
     _reportVideoClick();
-    String vid = widget.video?.id,
-        uid = widget.video?.uid,
-        videoSource = widget.video?.videosource;
+    String vid = widget.video?.id ?? "", uid = widget.video?.uid ?? "", videoSource = widget.video?.videosource ?? "";
     if (!Common.checkIsNotEmptyStr(vid)) {
       CosLogUtil.log("$_logPrefix: fail to jumtp to video detail page "
           "due to empty vid");
@@ -323,28 +277,24 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
   }
 
   void _reportVideoClick() {
-    if (widget?.video?.id != null) {
+    if (widget.video?.id != null) {
 //      DataReportUtil.instance.reportData(
 //          eventName: "Click_video",
 //          params: {"Click_video": widget.video.id}
 //      );
       if (widget.source == HistoryItemPageSource.OtherHome) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.OtherCenter, widget.video?.id ?? '');
+        VideoReportUtil.reportClickVideo(ClickVideoSource.OtherCenter, widget.video?.id ?? '');
       } else if (widget.source == HistoryItemPageSource.likedVideoListPage) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.UserLiked, widget.video?.id ?? '');
+        VideoReportUtil.reportClickVideo(ClickVideoSource.UserLiked, widget.video?.id ?? '');
       } else if (widget.source == HistoryItemPageSource.watchVideoHistoryPage) {
-        VideoReportUtil.reportClickVideo(
-            ClickVideoSource.History, widget.video?.id ?? '');
+        VideoReportUtil.reportClickVideo(ClickVideoSource.History, widget.video?.id ?? '');
       }
     }
   }
 
   String _getVideoWorth() {
     String symbol = Common.getCurrencySymbolByLanguage();
-    String worth = VideoUtil.getVideoWorth(
-        widget.exchangeRate, widget.dgpoBean, widget.video);
+    String worth = VideoUtil.getVideoWorth(widget.exchangeRate, widget.dgpoBean, widget.video);
     return '$symbol $worth';
   }
 
@@ -353,16 +303,16 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
       title: Text(""),
       content: Text(InternationalLocalizations.deleteVideoTips),
       actions: <Widget>[
-        new FlatButton(
+        new ElevatedButton(
           onPressed: () {
             if (widget.deleteCallBack != null) {
-              widget.deleteCallBack(widget.video?.uid, widget.video?.id);
+              widget.deleteCallBack?.call(widget.video?.uid ?? "", widget.video?.id ?? "");
             }
             Navigator.of(context).pop(true);
           },
           child: new Text(InternationalLocalizations.confirm),
         ),
-        new FlatButton(
+        new ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop(false);
           },
@@ -377,7 +327,7 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
         });
     if (isDismiss) {
       if (widget.deleteCallBack != null) {
-        widget.deleteCallBack(widget.video?.uid, widget.video?.id);
+        widget.deleteCallBack?.call(widget.video?.uid ?? "", widget.video?.id ?? "");
       }
     }
   }
@@ -387,16 +337,14 @@ class _HistoryVideoItemState extends State<HistoryVideoItem> {
       return "watchVideoHistoryPage";
     } else if (widget.source == HistoryItemPageSource.likedVideoListPage) {
       return "LikedVideoListPage";
-    } else if (widget.source ==
-        HistoryItemPageSource.ticketRewardVideoListPage) {
+    } else if (widget.source == HistoryItemPageSource.ticketRewardVideoListPage) {
       return "TicketRewardVideoListPage";
     }
     return "";
   }
 
   VideoDetailsEnterSource _getVideoDetailEnterSource() {
-    VideoDetailsEnterSource source =
-        VideoDetailsEnterSource.VideoDetailsEnterSourceUnknown;
+    VideoDetailsEnterSource source = VideoDetailsEnterSource.VideoDetailsEnterSourceUnknown;
     if (widget.source == HistoryItemPageSource.watchVideoHistoryPage) {
       source = VideoDetailsEnterSource.VideoDetailsEnterSourceWatchHistoryList;
     } else if (widget.source == HistoryItemPageSource.likedVideoListPage) {

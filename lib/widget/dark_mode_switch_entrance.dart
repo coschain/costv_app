@@ -7,12 +7,10 @@ import 'package:costv_android/utils/common_util.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/data_report_util.dart';
 import 'package:costv_android/utils/global_util.dart';
-import 'package:costv_android/widget/app_mode_switch_toast.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class DarkModeSwitchEntrance extends StatefulWidget {
-  DarkModeSwitchEntrance({Key key}):super(key: key);
+  DarkModeSwitchEntrance({Key? key}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -20,17 +18,17 @@ class DarkModeSwitchEntrance extends StatefulWidget {
   }
 }
 
-class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
-    with SingleTickerProviderStateMixin {
-  AnimationController _controller;
-  Animation<double> _positionY;
-  Animation<double> _lFadeIn;
-  Animation<double> _dFadeIn;
-  bool isAnimation = false,_isSwitchEnable = true, _isOpen = false;
+class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _positionY;
+  late Animation<double> _lFadeIn;
+  late Animation<double> _dFadeIn;
+  bool isAnimation = false, _isSwitchEnable = true, _isOpen = false;
   double _moveY = 18.0;
   double _initLight = 0;
   double _initDark = -18;
-  StreamSubscription _eventSubscription;
+  StreamSubscription? _eventSubscription;
+
   @override
   void initState() {
     _isOpen = brightnessModel == Brightness.dark;
@@ -63,22 +61,17 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
     if (AppThemeUtil.checkIsDarkMode()) {
       modeDesc = InternationalLocalizations.darkModeDesc;
     }
-    double itemWidth = MediaQuery.of(context).size.width,
-        lIconSize = 16.0,
-        descLeftMargin = 10,
-        itemPadding = 15.0;
+    double itemWidth = MediaQuery.of(context).size.width, lIconSize = 16.0, descLeftMargin = 10, itemPadding = 15.0;
     return Material(
       color: Colors.transparent,
       child: Ink(
         color: AppThemeUtil.setDifferentModeColor(
-            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0),
-            darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr
-        ),
+            lightColor: Common.getColorFromHexString("FFFFFFFF", 1.0), darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr),
         child: InkWell(
           child: Container(
             width: itemWidth,
             padding: EdgeInsets.only(
-              top:itemPadding,
+              top: itemPadding,
               bottom: itemPadding,
               left: itemPadding,
             ),
@@ -89,10 +82,7 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
                 _buildIcn(),
                 //描述
                 Container(
-                  width: itemWidth -
-                      descLeftMargin -
-                      itemPadding  -
-                      lIconSize - 65,
+                  width: itemWidth - descLeftMargin - itemPadding - lIconSize - 65,
                   margin: EdgeInsets.only(left: descLeftMargin),
                   child: Text(
                     modeDesc,
@@ -101,9 +91,7 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
                     style: TextStyle(
                       fontSize: 14,
                       color: AppThemeUtil.setDifferentModeColor(
-                          lightColor: Common.getColorFromHexString("333333", 1.0),
-                          darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr
-                      ),
+                          lightColor: Common.getColorFromHexString("333333", 1.0), darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr),
                     ),
                   ),
                 ),
@@ -112,8 +100,7 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
               ],
             ),
           ),
-          onTap: () {
-          },
+          onTap: () {},
         ),
       ),
     );
@@ -122,8 +109,8 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
   ///icon
   Widget _buildIcn() {
     return Transform.translate(
-      offset: Offset(0,0),
-      child:  Stack(
+      offset: Offset(0, 0),
+      child: Stack(
         alignment: Alignment.topCenter,
         children: <Widget>[
           Container(
@@ -140,7 +127,6 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
               ),
             ),
           ),
-
           Positioned(
             top: _initDark + _positionY.value,
             child: Opacity(
@@ -151,11 +137,9 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
               ),
             ),
           ),
-
         ],
       ),
     );
-
   }
 
   ///切换开关
@@ -202,10 +186,7 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
         ),
       ),
     );
-
   }
-
-
 
   void startShowAnimation(bool isToDarkMode) {
     if (isAnimation) {
@@ -215,29 +196,15 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
     double moveYStart = isToDarkMode ? 0 : -_moveY;
     double moveYEnd = isToDarkMode ? _moveY : 0;
     if (isToDarkMode) {
-      _lFadeIn = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Interval(0.0, 0.01, curve: Curves.easeIn)
-      ));
-      _dFadeIn = Tween<double>(begin: 1.0, end: 1.0).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Interval(0.0, 0.0, curve: Curves.easeIn)
-      ));
+      _lFadeIn = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Interval(0.0, 0.01, curve: Curves.easeIn)));
+      _dFadeIn = Tween<double>(begin: 1.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Interval(0.0, 0.0, curve: Curves.easeIn)));
     } else {
-      _lFadeIn = Tween<double>(begin: 1.0, end: 1.0).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Interval(0.0, 0.0, curve: Curves.easeIn)
-      ));
-      _dFadeIn = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(
-          parent: _controller,
-          curve: Interval(0.0, 0.01, curve: Curves.easeIn)
-      ));
-
+      _lFadeIn = Tween<double>(begin: 1.0, end: 1.0).animate(CurvedAnimation(parent: _controller, curve: Interval(0.0, 0.0, curve: Curves.easeIn)));
+      _dFadeIn = Tween<double>(begin: 1.0, end: 0.0).animate(CurvedAnimation(parent: _controller, curve: Interval(0.0, 0.01, curve: Curves.easeIn)));
     }
     try {
       if (_controller.isCompleted) {
         _controller.reverse();
-
       } else {
         _positionY = Tween<double>(begin: moveYStart, end: moveYEnd).animate(CurvedAnimation(
           parent: _controller,
@@ -255,9 +222,7 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
   }
 
   void updateState() {
-    setState(() {
-
-    });
+    setState(() {});
   }
 
   void listenAnimationStatus(AnimationStatus status) {
@@ -282,7 +247,7 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
       _eventSubscription = EventBusHelp.getInstance().on().listen((event) {
         if (event != null) {
           if (event is SystemSwitchModeEvent) {
-            if (event.oldVal != null && event.curVal != null && event.oldVal != event.curVal) {
+            if (event.oldVal != event.curVal) {
               if (!mounted) {
                 return;
               }
@@ -298,10 +263,10 @@ class DarkModeSwitchEntranceState extends State<DarkModeSwitchEntrance>
   ///取消监听消息事件
   void _cancelListenEvent() {
     if (_eventSubscription != null) {
-      _eventSubscription.cancel();
+      _eventSubscription?.cancel();
     }
   }
-  
+
   void _reportDarkModeSwitch() {
     DataReportUtil.instance.reportData(eventName: "Click_darkmode", params: {"Click_darkmode": 1});
   }

@@ -13,7 +13,7 @@ class CosTvFullScreenBuilder {
       dynamic controllerProvider) {
     return AnimatedBuilder(
       animation: animation,
-      builder: (BuildContext context, Widget child) {
+      builder: (BuildContext context, Widget? child) {
         return _buildFullScreenVideo(context, animation, controllerProvider);
       },
     );
@@ -26,21 +26,19 @@ class CosTvFullScreenBuilder {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color.fromRGBO(84, 84, 84, 1.0), Colors.black],
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color.fromRGBO(84, 84, 84, 1.0), Colors.black],
+            ),
           ),
-        ),
-        child: Container(
-          height: MediaQuery.of(context).size.width / aspect,
-          child: ClipRect(
-            child: controllerProvider,
-          )
-        )
-      ),
+          child: Container(
+              height: MediaQuery.of(context).size.width / aspect,
+              child: ClipRect(
+                child: controllerProvider,
+              ))),
     );
   }
 

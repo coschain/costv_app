@@ -1,14 +1,13 @@
 class VideoSettlementBean {
-
-  String _vestStatus;
-  String _moneySymbol;
-  String _totalRevenue;
-  String _totalRevenueVest;
-  String _settlementBonus;
-  String _settlementBonusVest;
-  String _settlementTime;
-  String _giftRevenue;
-  String _giftRevenueVest;
+  String _vestStatus = '';
+  String _moneySymbol = '';
+  String _totalRevenue = '';
+  String _totalRevenueVest = '';
+  String _settlementBonus = '';
+  String _settlementBonusVest = '';
+  String _settlementTime = '';
+  String _giftRevenue = '';
+  String _giftRevenueVest = '';
 
   String get getVestStatus => _vestStatus;
 

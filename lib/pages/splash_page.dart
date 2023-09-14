@@ -3,18 +3,12 @@ import 'dart:async';
 import 'package:costv_android/constant.dart';
 import 'package:costv_android/db/login_info_db_bean.dart';
 import 'package:costv_android/db/login_info_db_provider.dart';
-import 'package:costv_android/pages/home_page.dart';
 import 'package:costv_android/pages/main_page.dart';
-import 'package:costv_android/pages/splash_terms_page.dart';
-import 'package:costv_android/utils/black_list_util.dart';
 import 'package:costv_android/utils/cloud_control_util.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
 import "package:costv_android/utils/data_report_util.dart";
 import 'package:costv_android/utils/global_util.dart';
-import 'package:costv_android/values/app_dimens.dart';
-import 'package:costv_android/values/app_styles.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -29,12 +23,11 @@ class _SplashPageState extends State<SplashPage> {
   static const tag = '_SplashPageState';
   static const waitTime = 1500;
 
-  int _timeBegin;
+  int _timeBegin = 0;
 
   @override
   void initState() {
     super.initState();
-    BlackListUtil.instance;
     _initData();
     CloudControlUtil.instance.fetchCloudControl();
   }
@@ -45,16 +38,13 @@ class _SplashPageState extends State<SplashPage> {
     LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
     try {
       await loginInfoDbProvider.open();
-      LoginInfoDbBean loginInfoDbBean =
-          await loginInfoDbProvider.getLoginInfoDbBean();
+      LoginInfoDbBean? loginInfoDbBean = await loginInfoDbProvider.getLoginInfoDbBean();
       if (loginInfoDbBean != null) {
         Constant.uid = loginInfoDbBean.getUid;
         Constant.token = loginInfoDbBean.getToken;
         Constant.accountName = loginInfoDbBean.getChainAccountName;
-        MethodChannel methodChannelLogin =
-            MethodChannel(MainPageState.channelLogin);
-        methodChannelLogin.invokeMethod(
-            MainPageState.loginSetLoginInfo, Constant.uid);
+        MethodChannel methodChannelLogin = MethodChannel(MainPageState.channelLogin);
+        methodChannelLogin.invokeMethod(MainPageState.loginSetLoginInfo, Constant.uid);
       }
     } catch (e) {
       CosLogUtil.log("$tag: e = $e");
@@ -65,18 +55,12 @@ class _SplashPageState extends State<SplashPage> {
       CosLogUtil.log("$tag time = ${timeEnd - _timeBegin}");
       if ((timeEnd - _timeBegin) < waitTime) {
         CosLogUtil.log("$tag wait");
-        bool accepted = await SplashTermsPage.getAcceptTerms();
-        Future.delayed(
-            Duration(milliseconds: waitTime - (timeEnd - _timeBegin)), () {
+        Future.delayed(Duration(milliseconds: waitTime - (timeEnd - _timeBegin)), () {
           Navigator.pushAndRemoveUntil(
             context,
             SlideAnimationRoute(
               builder: (_) {
-                if (accepted){
-                  return MainPage();
-                } else {
-                  return SplashTermsPage();
-                }
+                return MainPage();
               },
             ),
             (route) => route == null,
@@ -122,14 +106,12 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   void _reportSplashStart(String startTime) {
-    DataReportUtil.instance
-        .reportData(eventName: "Splash", params: {"start": startTime});
+    DataReportUtil.instance.reportData(eventName: "Splash", params: {"start": startTime});
   }
 
   void _reportStartWithDarkMode() {
     if (brightnessModel == Brightness.dark) {
-      DataReportUtil.instance.reportData(
-          eventName: "Start_darkmode", params: {"Start_darkmode": "1"});
+      DataReportUtil.instance.reportData(eventName: "Start_darkmode", params: {"Start_darkmode": "1"});
     }
   }
 }

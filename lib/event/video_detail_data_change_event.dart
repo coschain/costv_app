@@ -1,13 +1,13 @@
 import "package:costv_android/bean/get_video_info_bean.dart";
 import "package:costv_android/bean/relate_list_bean.dart";
-import 'package:chewie/chewie.dart';
 
 class VideoDetailDataChangeEvent {
   String flag;
-  GetVideoInfoDataBean curVideoData;
+  GetVideoInfoDataBean? curVideoData;
   List<RelateListItemBean> recommendVideoList;
   bool isReset;
-  VideoDetailDataChangeEvent(this.flag,this.curVideoData, this.recommendVideoList,this.isReset);
+
+  VideoDetailDataChangeEvent(this.flag, this.curVideoData, this.recommendVideoList, this.isReset);
 }
 
 class AutoPlaySwitchEvent {

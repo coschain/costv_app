@@ -6,12 +6,11 @@ class CommentChildrenListItemParameterBean {
   static const int showTypeVideoComment = 1;
   static const int showTypeCommentList = 2;
 
-  int showType;
-  Object commentChildrenListItemBean;
-  ExchangeRateInfoData exchangeRateInfoData;
-  ChainState chainStateBean;
-  String creatorUid;
-  int index;
-  String vestStatus;
-
+  int showType = 0;
+  Object? commentChildrenListItemBean;
+  ExchangeRateInfoData? exchangeRateInfoData;
+  ChainState? chainStateBean;
+  String creatorUid = "";
+  int index = 0;
+  String vestStatus = '';
 }

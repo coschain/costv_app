@@ -33,13 +33,12 @@ import 'package:costv_android/values/app_dimens.dart';
 import 'package:costv_android/values/app_styles.dart';
 import 'package:costv_android/widget/route/slide_animation_route.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wakelock/wakelock.dart';
 
 class MainPage extends StatefulWidget {
-  MainPage({Key key}) : super(key: key);
+  MainPage({Key? key}) : super(key: key);
 
   // This widget is the home page of your application. It is stateful, meaning
   // that it has a State object (defined below) that contains fields that affect
@@ -70,7 +69,7 @@ class MainPageState extends State<MainPage> {
 
   var _tabImages;
   int _tabIndex = 0;
-  StreamSubscription _streamSubscription;
+  StreamSubscription? _streamSubscription;
   static const _methodChannelPush = const MethodChannel(channelPushMessage);
   static const _methodChannelWebView = const MethodChannel(channelWebView);
   int _total = 0;
@@ -97,33 +96,18 @@ class MainPageState extends State<MainPage> {
     super.dispose();
     RequestManager.instance.cancelAllNetworkRequest(tag);
     if (_streamSubscription != null) {
-      _streamSubscription.cancel();
+      _streamSubscription?.cancel();
       _streamSubscription = null;
     }
   }
 
   _initData() {
     _tabImages = [
-      [
-        Image.asset(AppThemeUtil.getUnselectedHomeIcn()),
-        Image.asset(AppThemeUtil.getSelectedHomeIcn())
-      ],
-      [
-        Image.asset(AppThemeUtil.getUnselectedHotIcn()),
-        Image.asset(AppThemeUtil.getSelectedHotIcn())
-      ],
-      [
-        Image.asset(AppThemeUtil.getUnselectedSubSubscriptionIcn()),
-        Image.asset(AppThemeUtil.getSelectedSubSubscriptionIcn())
-      ],
-      [
-        Image.asset(AppThemeUtil.getUnSelectedMessageCenterIcn()),
-        Image.asset(AppThemeUtil.getSelectedMessageCenterIcn())
-      ],
-      [
-        Image.asset(AppThemeUtil.getUnselectedHistoryIcn()),
-        Image.asset(AppThemeUtil.getSelectedHistoryIcn())
-      ]
+      [Image.asset(AppThemeUtil.getUnselectedHomeIcn()), Image.asset(AppThemeUtil.getSelectedHomeIcn())],
+      [Image.asset(AppThemeUtil.getUnselectedHotIcn()), Image.asset(AppThemeUtil.getSelectedHotIcn())],
+      [Image.asset(AppThemeUtil.getUnselectedSubSubscriptionIcn()), Image.asset(AppThemeUtil.getSelectedSubSubscriptionIcn())],
+      [Image.asset(AppThemeUtil.getUnSelectedMessageCenterIcn()), Image.asset(AppThemeUtil.getSelectedMessageCenterIcn())],
+      [Image.asset(AppThemeUtil.getUnselectedHistoryIcn()), Image.asset(AppThemeUtil.getSelectedHistoryIcn())]
     ];
   }
 
@@ -134,21 +118,18 @@ class MainPageState extends State<MainPage> {
         if (!ObjectUtil.isEmptyString(pushInfo)) {
           String anchorId;
           String vid;
-          if (json.decode(pushInfo)[PushMessageFcmVipBean.keyIsV] ==
-              PushMessageFcmVipBean.isVYes) {
-            PushMessageFcmVipBean bean =
-                PushMessageFcmVipBean.fromJson(json.decode(pushInfo));
-            anchorId = bean?.fromUid ?? '';
-            vid = bean?.vid ?? '';
+          if (json.decode(pushInfo)[PushMessageFcmVipBean.keyIsV] == PushMessageFcmVipBean.isVYes) {
+            PushMessageFcmVipBean bean = PushMessageFcmVipBean.fromJson(json.decode(pushInfo));
+            anchorId = bean.fromUid.toString();
+            vid = bean.vid;
             _httpClearVipMessageUnread(bean);
             Future.delayed(Duration(seconds: 1), () {
               Navigator.of(context).push(SlideAnimationRoute(
                 builder: (_) {
                   return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-                    vid: bean?.vid ?? '',
-                    uid: bean?.fromUid ?? '',
-                    enterSource: VideoDetailsEnterSource
-                        .VideoDetailsEnterSourceNotification,
+                    vid: bean.vid,
+                    uid: bean.fromUid.toString(),
+                    enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceNotification,
                   ));
                 },
                 settings: RouteSettings(name: videoDetailPageRouteName),
@@ -156,21 +137,19 @@ class MainPageState extends State<MainPage> {
               ));
             });
           } else {
-            PushMessageFcmBean bean =
-                PushMessageFcmBean.fromJson(json.decode(pushInfo));
-            anchorId = bean?.anchorId ?? '';
-            vid = bean?.vid ?? '';
+            PushMessageFcmBean bean = PushMessageFcmBean.fromJson(json.decode(pushInfo));
+            anchorId = bean.anchorId;
+            vid = bean.vid;
             _httpClearMessageUnread(bean);
             Future.delayed(Duration(seconds: 1), () {
-              CommentListParameterBean commentListParameterBean =
-                  CommentListParameterBean();
-              commentListParameterBean.videoId = bean?.vid ?? '';
-              commentListParameterBean.vid = bean?.vid ?? '';
-              commentListParameterBean.creatorUid = bean?.toUid ?? '';
-              commentListParameterBean.cid = bean?.postId ?? '';
-              commentListParameterBean.nickName = bean?.fromNickName ?? '';
-              commentListParameterBean.pid = bean?.pid ?? '';
-              commentListParameterBean.uid = bean?.fromUid ?? '';
+              CommentListParameterBean commentListParameterBean = CommentListParameterBean();
+              commentListParameterBean.videoId = bean.vid;
+              commentListParameterBean.vid = bean.vid;
+              commentListParameterBean.creatorUid = bean.toUid;
+              commentListParameterBean.cid = bean.postId;
+              commentListParameterBean.nickName = bean.fromNickName;
+              commentListParameterBean.pid = bean.pid;
+              commentListParameterBean.uid = bean.fromUid;
               if (bean.type == PushMessageFcmBean.typeCommentLike) {
                 if (ObjectUtil.isEmptyString(bean.pid)) {
                   Navigator.of(context).push(SlideAnimationRoute(
@@ -201,10 +180,9 @@ class MainPageState extends State<MainPage> {
                 Navigator.of(context).push(SlideAnimationRoute(
                   builder: (_) {
                     return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-                      vid: bean?.vid ?? '',
-                      uid: bean?.anchorId ?? '',
-                      enterSource: VideoDetailsEnterSource
-                          .VideoDetailsEnterSourceNotification,
+                      vid: bean.vid,
+                      uid: bean.anchorId,
+                      enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceNotification,
                     ));
                   },
                   settings: RouteSettings(name: videoDetailPageRouteName),
@@ -218,9 +196,8 @@ class MainPageState extends State<MainPage> {
         break;
       case pushMessageOpenHome:
         if (!ObjectUtil.isEmptyString(pushInfo)) {
-          PushMessageFcmBean bean =
-              PushMessageFcmBean.fromJson(json.decode(pushInfo));
-          reportClickPush(bean?.anchorId ?? '', bean?.vid ?? '');
+          PushMessageFcmBean bean = PushMessageFcmBean.fromJson(json.decode(pushInfo));
+          reportClickPush(bean.anchorId, bean.vid);
         }
         setState(() {
           _tabIndex = 0;
@@ -233,9 +210,9 @@ class MainPageState extends State<MainPage> {
     DataReportUtil.instance.reportData(
       eventName: "Click_Push",
       params: {
-        "creator_uid": anchorId ?? '',
-        "vid": vid ?? '',
-        "uid": Constant.uid ?? '0',
+        "creator_uid": anchorId,
+        "vid": vid,
+        "uid": Constant.uid,
       },
     );
   }
@@ -249,8 +226,7 @@ class MainPageState extends State<MainPage> {
             builder: (_) {
               return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
                 vid: vid,
-                enterSource: VideoDetailsEnterSource
-                    .VideoDetailsEnterSourceH5LikeRewardVideo,
+                enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceH5LikeRewardVideo,
               ));
             },
             settings: RouteSettings(name: videoDetailPageRouteName),
@@ -261,25 +237,18 @@ class MainPageState extends State<MainPage> {
       case webViewLoginInfo:
         String data = methodCall.arguments;
         if (!ObjectUtil.isEmptyString(data)) {
-          WebPageApiAccessTokenInfoBean bean =
-              WebPageApiAccessTokenInfoBean.fromJson(json.decode(data));
-          if (bean != null &&
-              bean.uid != null &&
-              !ObjectUtil.isEmptyString(bean.token) &&
-              !ObjectUtil.isEmptyString(bean.chainAccountName) &&
-              bean.expires != null) {
+          WebPageApiAccessTokenInfoBean bean = WebPageApiAccessTokenInfoBean.fromJson(json.decode(data));
+          if (!ObjectUtil.isEmptyString(bean.token) && !ObjectUtil.isEmptyString(bean.chainAccountName)) {
             Constant.uid = bean.uid;
             Constant.token = bean.token;
             Constant.accountName = bean.chainAccountName;
-            LoginInfoDbBean loginInfoDbBean = LoginInfoDbBean(
-                bean.uid, bean.token, bean.chainAccountName, bean.expires);
+            LoginInfoDbBean loginInfoDbBean = LoginInfoDbBean(bean.uid, bean.token, bean.chainAccountName, bean.expires);
             CosLogUtil.log(
                 '$tag webViewLoginInfo LoginInfoDbBean{ uid: ${bean.uid}, token: ${bean.token}, chainAccountName: ${bean.chainAccountName}, expires: ${bean.expires}');
             LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
             try {
               await loginInfoDbProvider.open();
-              LoginInfoDbBean loginInfoDbOld =
-                  await loginInfoDbProvider.getLoginInfoDbBean();
+              LoginInfoDbBean? loginInfoDbOld = await loginInfoDbProvider.getLoginInfoDbBean();
               if (loginInfoDbOld == null) {
                 await loginInfoDbProvider.insert(loginInfoDbBean);
               } else {
@@ -290,17 +259,16 @@ class MainPageState extends State<MainPage> {
             } finally {
               await loginInfoDbProvider.close();
             }
-            LoginStatusEvent loginStatusEvent =
-                LoginStatusEvent(LoginStatusEvent.typeLoginSuccess);
+            LoginStatusEvent loginStatusEvent = LoginStatusEvent(LoginStatusEvent.typeLoginSuccess);
             loginStatusEvent.uid = bean.uid;
             EventBusHelp.getInstance().fire(loginStatusEvent);
           }
         }
         break;
       case webViewLogout:
-        Constant.uid = null;
-        Constant.token = null;
-        Constant.accountName = null;
+        Constant.uid = "";
+        Constant.token = "";
+        Constant.accountName = "";
         LoginInfoDbProvider loginInfoDbProvider = LoginInfoDbProvider();
         try {
           await loginInfoDbProvider.open();
@@ -310,21 +278,16 @@ class MainPageState extends State<MainPage> {
         } finally {
           await loginInfoDbProvider.close();
         }
-        EventBusHelp.getInstance()
-            .fire(LoginStatusEvent(LoginStatusEvent.typeLogoutSuccess));
+        EventBusHelp.getInstance().fire(LoginStatusEvent(LoginStatusEvent.typeLogoutSuccess));
         break;
       case webViewOpenVideoPlayPage:
         String data = methodCall.arguments;
         if (!ObjectUtil.isEmptyString(data)) {
-          WebPageApiVideoIdBean bean =
-              WebPageApiVideoIdBean.fromJson(json.decode(data));
+          WebPageApiVideoIdBean bean = WebPageApiVideoIdBean.fromJson(json.decode(data));
           Navigator.of(context).push(SlideAnimationRoute(
             builder: (_) {
               return VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-                  vid: bean?.vid ?? '',
-                  uid: bean?.fuid ?? '',
-                  enterSource: VideoDetailsEnterSource
-                      .VideoDetailsEnterSourceVideoDetail));
+                  vid: bean.vid, uid: bean.fuid ?? "", enterSource: VideoDetailsEnterSource.VideoDetailsEnterSourceVideoDetail));
             },
             settings: RouteSettings(name: videoDetailPageRouteName),
             isCheckAnimation: true,
@@ -334,43 +297,17 @@ class MainPageState extends State<MainPage> {
     }
   }
 
-//  Future<dynamic> _listenVideoSmallWindows(MethodCall methodCall) async {
-//    switch (methodCall.method) {
-//      case VideoSmallWindowsUtil.videoSmallWindowsOpenVideoDetails:
-//        String videoData = methodCall.arguments;
-//        if (!ObjectUtil.isEmptyString(videoData)) {
-//          GetVideoInfoDataBean bean =
-//              GetVideoInfoDataBean.fromJson(json.decode(videoData));
-//          if (bean != null) {
-//            Navigator.of(context).push(SlideAnimationRoute(
-//                widget:
-//                    VideoDetailsPage(VideoDetailPageParamsBean.createInstance(
-//                  vid: bean?.id ?? '',
-//                  uid: bean?.uid ?? '',
-//                  videoSource: bean?.videosource ?? '',
-//                  enterSource: VideoDetailsEnterSource
-//                      .VideoDetailsEnterSourceVideoSmallWindows,
-//                )),
-//                settings: RouteSettings(name: videoDetailPageRouteName)));
-//          }
-//        }
-//        break;
-//    }
-//  }
-
   void _listenBusEvent() {
     EventBusHelp.getInstance().on<LoginStatusEvent>().listen((event) {
-      if (event != null && event is LoginStatusEvent) {
-        if (event.type == LoginStatusEvent.typeLoginSuccess) {
-          _httpAddDevice();
-        }
+      if (event.type == LoginStatusEvent.typeLoginSuccess) {
+        _httpAddDevice();
       }
     });
   }
 
   /// app设备上报接口
   void _httpAddDevice() {
-    RequestManager.instance.addDevice(tag, Constant.uid ?? '').then((response) {
+    RequestManager.instance.addDevice(tag, Constant.uid).then((response) {
       if (response == null || !mounted) {
         return;
       }
@@ -379,17 +316,12 @@ class MainPageState extends State<MainPage> {
 
   /// 获取用户未读总数
   void _httpGetUidUnreadTotal() {
-    RequestManager.instance
-        .getUidUnreadTotal(tag, Constant.uid ?? '')
-        .then((response) {
+    RequestManager.instance.getUidUnreadTotal(tag, Constant.uid).then((response) {
       if (response == null || !mounted) {
         return;
       }
-      GetUidUnreadTotalBean bean =
-          GetUidUnreadTotalBean.fromJson(json.decode(response.data));
-      if (bean.status == SimpleResponse.statusStrSuccess &&
-          bean.getUidUnreadTotalDataBean != null &&
-          !ObjectUtil.isEmptyString(bean.getUidUnreadTotalDataBean.total)) {
+      GetUidUnreadTotalBean bean = GetUidUnreadTotalBean.fromJson(json.decode(response.data));
+      if (bean.status == SimpleResponse.statusStrSuccess && !ObjectUtil.isEmptyString(bean.getUidUnreadTotalDataBean.total)) {
         _total = int.parse(bean.getUidUnreadTotalDataBean.total);
         if (_total > 0) {
           setState(() {});
@@ -400,41 +332,31 @@ class MainPageState extends State<MainPage> {
 
   /// 清除普通用户消息未读
   void _httpClearMessageUnread(PushMessageFcmBean bean) {
-    if (bean != null &&
-        (!ObjectUtil.isEmptyString(Constant.uid) ||
-            !ObjectUtil.isEmptyString(bean.toUid))) {
-      Future<Response> response;
-      String uid = Constant.uid ?? '';
+    if ((!ObjectUtil.isEmptyString(Constant.uid) || !ObjectUtil.isEmptyString(bean.toUid))) {
+      Future<Response?> response;
+      String uid = Constant.uid;
       if (ObjectUtil.isEmptyString(uid)) {
         uid = bean.toUid;
       }
       String postId = '';
       if (bean.type == PushMessageFcmBean.typeVideoRelease) {
-        postId = bean.vid ?? '';
+        postId = bean.vid;
       } else if (bean.type == PushMessageFcmBean.typeVideoLike) {
-        postId = bean.vid ?? '';
+        postId = bean.vid;
       } else if (bean.type == PushMessageFcmBean.typeCommentLike) {
-        if (bean.id != null) {
-          postId = bean.id.toString();
-        }
+        postId = bean.id.toString();
       } else if (bean.type == PushMessageFcmBean.typeVideoComment) {
-        postId = bean.vid ?? '';
+        postId = bean.vid;
       } else if (bean.type == PushMessageFcmBean.typeReplyToComment) {
-        if (bean.id != null) {
-          postId = bean.id.toString();
-        }
+        postId = bean.id.toString();
       } else if (bean.type == PushMessageFcmBean.typeVideoGift) {
-        postId = bean.vid ?? '';
+        postId = bean.vid;
       }
-      if (bean.id != null && bean.id > 0) {
-        response = RequestManager.instance
-            .clearMessageUnread(tag, bean.id.toString(), uid);
+      if (bean.id > 0) {
+        response = RequestManager.instance.clearMessageUnread(tag, bean.id.toString(), uid);
       } else {
-        response = RequestManager.instance.clearMessageUnread(tag, '0', uid,
-            fromUid: bean.fromUid ?? '',
-            vid: bean.vid ?? '',
-            type: bean.type.toString(),
-            postId: postId);
+        response = RequestManager.instance
+            .clearMessageUnread(tag, '0', uid, fromUid: bean.fromUid, vid: bean.vid, type: bean.type.toString(), postId: postId);
       }
       response.then((response) {
         if (response == null || !mounted) {
@@ -445,24 +367,25 @@ class MainPageState extends State<MainPage> {
   }
 
   /// 清除大V用户消息未读
-  void _httpClearVipMessageUnread(PushMessageFcmVipBean bean) {
-    if (bean != null &&
-        (!ObjectUtil.isEmptyString(Constant.uid) ||
-            !ObjectUtil.isEmptyString(bean.toUid))) {
-      Future<Response> response;
-      String uid = Constant.uid ?? '';
+  void _httpClearVipMessageUnread(PushMessageFcmVipBean? bean) {
+    if (bean != null && (!ObjectUtil.isEmptyString(Constant.uid) || !ObjectUtil.isEmptyString(bean.toUid))) {
+      Future<Response?> response;
+      String uid = Constant.uid;
       if (ObjectUtil.isEmptyString(uid)) {
         uid = bean.toUid;
       }
-      if (bean.id != null && bean.id > 0) {
-        response = RequestManager.instance
-            .clearMessageUnread(tag, bean.id.toString(), uid);
+      if (bean.id > 0) {
+        response = RequestManager.instance.clearMessageUnread(tag, bean.id.toString(), uid);
       } else {
-        response = RequestManager.instance.clearMessageUnread(tag, '0', uid,
-            fromUid: bean.fromUid ?? '',
-            vid: bean.vid ?? '',
-            type: bean.type.toString(),
-            postId: bean.postId.toString());
+        response = RequestManager.instance.clearMessageUnread(
+          tag,
+          '0',
+          uid,
+          fromUid: bean.fromUid.toString(),
+          vid: bean.vid,
+          type: bean.type.toString(),
+          postId: bean.postId.toString(),
+        );
       }
       response.then((response) {
         if (response == null || !mounted) {
@@ -498,9 +421,8 @@ class MainPageState extends State<MainPage> {
     return _tabImages[curIndex][0];
   }
 
-  Widget _buildBottomTableItem(
-      int index, double messageMargin, bool isHaveNumber) {
-    String showMsg;
+  Widget _buildBottomTableItem(int index, double messageMargin, bool isHaveNumber) {
+    String showMsg = '';
     if (index == 0) {
       showMsg = InternationalLocalizations.homeTitle;
     } else if (index == 1) {
@@ -553,9 +475,7 @@ class MainPageState extends State<MainPage> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.color_fd3232,
-                  border: Border.all(
-                      color: AppColors.color_ffffff,
-                      width: AppDimens.item_line_height_1),
+                  border: Border.all(color: AppColors.color_ffffff, width: AppDimens.item_line_height_1),
                 ),
                 child: Text(
                   showWTotal,
@@ -592,8 +512,7 @@ class MainPageState extends State<MainPage> {
     curTabIndex = index;
     if (index == tabIndexNotification) {
       _total = 0;
-      DataReportUtil.instance
-          .reportData(eventName: "Click_Tab_notice", params: {});
+      DataReportUtil.instance.reportData(eventName: "Click_Tab_notice", params: {});
     } else {
       if (!ObjectUtil.isEmptyString(Constant.uid)) {
         _httpGetUidUnreadTotal();
@@ -624,8 +543,6 @@ class MainPageState extends State<MainPage> {
   }
 
   Color _getTabBarBgColor() {
-    return AppThemeUtil.setDifferentModeColor(
-        lightColorStr: "FFFFFFF",
-        darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr);
+    return AppThemeUtil.setDifferentModeColor(lightColorStr: "FFFFFFF", darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr);
   }
 }

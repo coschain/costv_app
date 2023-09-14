@@ -1,4 +1,3 @@
-import 'dart:ui';
 
 import 'package:common_utils/common_utils.dart';
 import 'package:costv_android/bean/app_update_version_bean.dart';
@@ -12,13 +11,13 @@ import 'package:url_launcher/url_launcher.dart';
 
 class AppUpdateDialog {
   bool _isForceUpdate = true;
-  String _title, _message = '';
-  String _downloadUrl;
-  String _googlePlayUrl;
+  String _title = '';
+  String _message = '';
+  String _downloadUrl = '';
+  String _googlePlayUrl = '';
 
   Future<void> initData(AppUpdateVersionDataBean bean) async {
-    _googlePlayUrl =
-        'market://details?id=${await PlatformUtil.getPackageName()}';
+    _googlePlayUrl = 'market://details?id=${await PlatformUtil.getPackageName()}';
     if (bean != null) {
       if (bean.type != AppUpdateVersionDataBean.typeForceUpdate) {
         _isForceUpdate = false;
@@ -26,16 +25,14 @@ class AppUpdateDialog {
       if (!ObjectUtil.isEmptyString(bean.vercode)) {
         _title = InternationalLocalizations.updateTitle(bean.vercode);
       } else {
-        _title = InternationalLocalizations.updateTitle(
-            await PlatformUtil.getVersion());
+        _title = InternationalLocalizations.updateTitle(await PlatformUtil.getVersion());
       }
       if (!ObjectUtil.isEmptyString(bean.updateInfo)) {
         _message = bean.updateInfo;
       }
       _downloadUrl = bean.downloadUrl;
     } else {
-      _title = InternationalLocalizations.updateTitle(
-          await PlatformUtil.getVersion());
+      _title = InternationalLocalizations.updateTitle(await PlatformUtil.getVersion());
     }
   }
 
@@ -69,8 +66,7 @@ class AppUpdateDialog {
                       style: AppStyles.text_style_000000_bold_15,
                     ),
                     Container(
-                      padding: EdgeInsets.only(
-                          top: AppDimens.margin_10, bottom: AppDimens.margin_10),
+                      padding: EdgeInsets.only(top: AppDimens.margin_10, bottom: AppDimens.margin_10),
                       child: Text(
                         _message ?? '',
                         style: AppStyles.text_style_666666_14,

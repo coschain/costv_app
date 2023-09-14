@@ -1,6 +1,5 @@
 import 'package:costv_android/values/app_colors.dart';
 import 'package:costv_android/values/app_dimens.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 /// 加载中控件
@@ -8,7 +7,7 @@ class LoadingView extends StatelessWidget {
   final Widget child;
   final bool isShow;
 
-  LoadingView({@required this.child, @required this.isShow}) {
+  LoadingView({required this.child, required this.isShow}) {
     assert(this.child != null || this.isShow != null);
   }
 

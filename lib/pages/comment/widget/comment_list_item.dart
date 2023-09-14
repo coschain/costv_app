@@ -27,8 +27,7 @@ import '../../../widget/animation/video_add_money_widget.dart';
 
 typedef ClickCommentLike(CommentListItemBean bean, int index);
 typedef ClickCommentReply(CommentListItemBean bean, int index);
-typedef ClickChildrenWindows(
-    CommentListItemBean bean, int index, bool isOpenKeyboard);
+typedef ClickChildrenWindows(CommentListItemBean bean, int index, bool isOpenKeyboard);
 typedef ClickCommentDelete(CommentListItemBean bean);
 typedef ClickCommentChildren(CommentChildrenParameterBean bean);
 typedef ClickLoadMoreComment();
@@ -36,17 +35,17 @@ typedef ClickCommentFold();
 
 class CommentListItem extends StatefulWidget {
   final CommentListItemParameterBean bean;
-  final ClickCommentLike clickCommentLike;
-  final ClickCommentReply clickCommentReply;
-  final ClickChildrenWindows clickChildrenWindows;
-  final ClickCommentDelete clickCommentDelete;
-  final ClickCommentChildren clickCommentChildren;
-  final ClickLoadMoreComment clickLoadMoreComment;
-  final ClickCommentFold clickCommentFold;
-  final String darkModeBgColorStr;
+  final ClickCommentLike? clickCommentLike;
+  final ClickCommentReply? clickCommentReply;
+  final ClickChildrenWindows? clickChildrenWindows;
+  final ClickCommentDelete? clickCommentDelete;
+  final ClickCommentChildren? clickCommentChildren;
+  final ClickLoadMoreComment? clickLoadMoreComment;
+  final ClickCommentFold? clickCommentFold;
+  final String? darkModeBgColorStr;
 
   CommentListItem({
-    @required this.bean,
+    required this.bean,
     this.clickCommentLike,
     this.clickCommentReply,
     this.clickChildrenWindows,
@@ -75,13 +74,16 @@ class _CommentListItemState extends State<CommentListItem> {
     String replay = UserUtil.getContentReply(bean.content);
     return InkWell(
       child: Container(
-        width: MediaQuery.of(context).size.width - AppDimens.margin_20,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width - AppDimens.margin_20,
         color: bean.isShowInsertColor
             ? AppColors.color_eff5ff
             : AppThemeUtil.setDifferentModeColor(
-                lightColor: AppColors.color_transparent,
-                darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
-              ),
+          lightColor: AppColors.color_transparent,
+          darkColorStr: DarkModelBgColorUtil.secondaryPageColorStr,
+        ),
         padding: EdgeInsets.only(
           left: AppDimens.margin_10,
           top: AppDimens.margin_5,
@@ -110,9 +112,7 @@ class _CommentListItemState extends State<CommentListItem> {
                   borderRadius: BorderRadius.all(
                     Radius.circular(AppDimens.radius_size_4),
                   ),
-                  border: Border.all(
-                      color: AppColors.color_3674ff,
-                      width: AppDimens.item_line_height_1),
+                  border: Border.all(color: AppColors.color_3674ff, width: AppDimens.item_line_height_1),
                 ),
                 child: Text(
                   InternationalLocalizations.videoCreator,
@@ -136,7 +136,7 @@ class _CommentListItemState extends State<CommentListItem> {
                             OtherHomeParamsBean(
                               uid: contentUid,
                               avatar: bean.avatar,
-                              nickName: contentNickName ?? '',
+                              nickName: contentNickName,
                               isCertification: bean.isCertification,
                               rateInfoData: widget.bean.exchangeRateInfoData,
                               dgpoBean: widget.bean.chainStateBean?.dgpo,
@@ -156,7 +156,7 @@ class _CommentListItemState extends State<CommentListItem> {
       ),
       onTap: () {
         if (widget.clickCommentChildren != null && Common.isAbleClick()) {
-          widget.clickCommentChildren(bean);
+          widget.clickCommentChildren?.call(bean);
         }
       },
     );
@@ -165,71 +165,55 @@ class _CommentListItemState extends State<CommentListItem> {
   @override
   Widget build(BuildContext context) {
     String totalRevenue = "";
-    if (widget.bean != null && widget.bean.exchangeRateInfoData != null) {
-      if (widget.bean.commentListItemBean?.vestStatus ==
-          VideoInfoResponse.vestStatusFinish) {
-        /// 奖励完成
-        double totalRevenueVest = NumUtil.divide(
-          NumUtil.getDoubleByValueStr(
-              widget.bean.commentListItemBean?.vest ?? ''),
-          RevenueCalculationUtil.cosUnit,
-        );
-        double money = RevenueCalculationUtil.vestToRevenue(
-            totalRevenueVest, widget.bean.exchangeRateInfoData);
-        totalRevenue = Common.formatDecimalDigit(money, 2);
-      } else {
-        /// 奖励未完成
-        double settlementBonusVest = RevenueCalculationUtil.getReplyVestByPower(
-            widget.bean.commentListItemBean?.votepower,
-            widget.bean.chainStateBean?.dgpo);
-        double money = (RevenueCalculationUtil.vestToRevenue(
-            settlementBonusVest, widget.bean.exchangeRateInfoData));
-        totalRevenue = Common.formatDecimalDigit(money, 2);
-      }
+    if (widget.bean.commentListItemBean.vestStatus == VideoInfoResponse.vestStatusFinish) {
+      /// 奖励完成
+      double totalRevenueVest = NumUtil.divide(
+        NumUtil.getDoubleByValueStr(widget.bean.commentListItemBean.vest) as num,
+        RevenueCalculationUtil.cosUnit,
+      );
+      double money = RevenueCalculationUtil.vestToRevenue(totalRevenueVest, widget.bean.exchangeRateInfoData);
+      totalRevenue = Common.formatDecimalDigit(money, 2);
+    } else {
+      /// 奖励未完成
+      double settlementBonusVest =
+      RevenueCalculationUtil.getReplyVestByPower(widget.bean.commentListItemBean.votepower, widget.bean.chainStateBean?.dgpo);
+      double money = (RevenueCalculationUtil.vestToRevenue(settlementBonusVest, widget.bean.exchangeRateInfoData));
+      totalRevenue = Common.formatDecimalDigit(money, 2);
     }
     int commentTotal = 0;
     if (!TextUtil.isEmpty(widget.bean.total)) {
       commentTotal = int.parse(widget.bean.total);
     }
-    int commentLength = widget.bean.commentLength ?? 0;
+    int commentLength = widget.bean.commentLength;
     int childrenCount = 0;
-    if (!TextUtil.isEmpty(widget.bean.commentListItemBean?.childrenCount)) {
-      childrenCount = int.parse(widget.bean.commentListItemBean?.childrenCount);
+    if (!TextUtil.isEmpty(widget.bean.commentListItemBean.childrenCount)) {
+      childrenCount = int.parse(widget.bean.commentListItemBean.childrenCount);
     }
-    int newSendChildrenCount =
-        widget.bean.commentListItemBean?.children?.length ?? 0;
+    int newSendChildrenCount = widget.bean.commentListItemBean.children?.length ?? 0;
     int childrenTotalLength = childrenCount + newSendChildrenCount;
     String seeMore = InternationalLocalizations.lookComment;
     if (childrenTotalLength > 1) {
-      seeMore =
-          '${InternationalLocalizations.viewReply(childrenTotalLength.toString() ?? "0")}';
+      seeMore = '${InternationalLocalizations.viewReply(childrenTotalLength.toString())}';
     }
-    String content = widget.bean.commentListItemBean?.content ?? '';
-    bool isShowInsertColor =
-        widget.bean.commentListItemBean?.isShowInsertColor ?? false;
+    String content = widget.bean.commentListItemBean.content;
+    bool isShowInsertColor = widget.bean.commentListItemBean.isShowInsertColor;
     bool isShowDeleteComment = false;
-    bool isShowTopColor =
-        widget.bean.commentListItemBean?.isShowTopColor ?? false;
-    if (ObjectUtil.isNotEmpty(widget.bean.uid ?? '') &&
+    bool isShowTopColor = widget.bean.commentListItemBean.isShowTopColor ?? false;
+    if (ObjectUtil.isNotEmpty(widget.bean.uid) &&
         ObjectUtil.isNotEmpty(Constant.uid) &&
         widget.bean.uid == Constant.uid &&
-        (widget.bean.commentListItemBean.isShowDeleteComment == null ||
-            widget.bean.commentListItemBean.isShowDeleteComment)) {
+        (widget.bean.commentListItemBean.isShowDeleteComment)) {
       isShowDeleteComment = true;
     }
-    String avatar = widget
-            .bean.commentListItemBean?.user?.imageCompress?.avatarCompressUrl ??
-        '';
+    String avatar = widget.bean.commentListItemBean.user.imageCompress?.avatarCompressUrl ?? "";
     if (ObjectUtil.isEmptyString(avatar)) {
-      avatar = widget.bean.commentListItemBean?.user?.avatar ?? '';
+      avatar = widget.bean.commentListItemBean.user.avatar;
     }
-    String certificationStr =
-        widget.bean.commentListItemBean?.user?.isCertification ?? "0";
+    String certificationStr = widget.bean.commentListItemBean.user.isCertification ?? "";
     bool isCertification = certificationStr == "1";
-    String isHolidayCelebrationStr =
-        widget.bean.commentListItemBean?.isHolidayCelebration ?? "0";
+    String isHolidayCelebrationStr = widget.bean.commentListItemBean.isHolidayCelebration ?? "";
     bool isShowWomenDayIcn = isHolidayCelebrationStr == "1";
-    int commentPage = widget.bean.commentPage ?? 0;
+    int commentPage = widget.bean.commentPage;
     Color bgColor;
     if (isShowInsertColor) {
       bgColor = AppThemeUtil.setDifferentModeColor(
@@ -244,14 +228,13 @@ class _CommentListItemState extends State<CommentListItem> {
         );
         Future.delayed(Duration(milliseconds: 1500), () {
           setState(() {
-            widget.bean.commentListItemBean?.isShowTopColor = false;
+            widget.bean.commentListItemBean.isShowTopColor = false;
           });
         });
       } else {
         bgColor = AppThemeUtil.setDifferentModeColor(
           lightColor: AppColors.color_ffffff,
-          darkColorStr:
-              widget.darkModeBgColorStr ?? DarkModelBgColorUtil.pageBgColorStr,
+          darkColorStr: widget.darkModeBgColorStr ?? DarkModelBgColorUtil.pageBgColorStr,
         );
       }
     }
@@ -260,11 +243,7 @@ class _CommentListItemState extends State<CommentListItem> {
       children: <Widget>[
         Container(
           color: bgColor,
-          padding: EdgeInsets.only(
-              left: AppDimens.margin_15,
-              top: AppDimens.margin_15,
-              right: AppDimens.margin_15,
-              bottom: AppDimens.margin_9),
+          padding: EdgeInsets.only(left: AppDimens.margin_15, top: AppDimens.margin_15, right: AppDimens.margin_15, bottom: AppDimens.margin_9),
           child: Row(
             mainAxisSize: MainAxisSize.max,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,23 +252,19 @@ class _CommentListItemState extends State<CommentListItem> {
                 child: Container(
                   width: AppDimens.item_size_15 * 2 + AppDimens.margin_7_5,
                   child: Stack(
-                    overflow: Overflow.visible,
+                    clipBehavior: Clip.none,
                     children: <Widget>[
                       Container(
                         decoration: BoxDecoration(
-                          border: Border.all(
-                              color: AppColors.color_ebebeb,
-                              width: AppDimens.item_line_height_0_5),
-                          borderRadius:
-                              BorderRadius.circular(AppDimens.item_size_15),
+                          border: Border.all(color: AppColors.color_ebebeb, width: AppDimens.item_line_height_0_5),
+                          borderRadius: BorderRadius.circular(AppDimens.item_size_15),
                         ),
                         child: Stack(
                           children: <Widget>[
                             CircleAvatar(
                               backgroundColor: AppColors.color_ffffff,
                               radius: AppDimens.item_size_15,
-                              backgroundImage: AssetImage(
-                                  'assets/images/ic_default_avatar.png'),
+                              backgroundImage: AssetImage('assets/images/ic_default_avatar.png'),
                             ),
                             CircleAvatar(
                               backgroundColor: AppColors.color_transparent,
@@ -325,14 +300,10 @@ class _CommentListItemState extends State<CommentListItem> {
                     builder: (_) {
                       return OthersHomePage(
                         OtherHomeParamsBean(
-                          uid: widget.bean.commentListItemBean.uid ?? '',
+                          uid: widget.bean.commentListItemBean.uid,
                           avatar: avatar,
-                          nickName:
-                              widget.bean.commentListItemBean?.user?.nickname ??
-                                  '',
-                          isCertification: widget.bean.commentListItemBean?.user
-                                  ?.isCertification ??
-                              '',
+                          nickName: widget.bean.commentListItemBean.user.nickname,
+                          isCertification: widget.bean.commentListItemBean.user.isCertification,
                           rateInfoData: widget.bean.exchangeRateInfoData,
                           dgpoBean: widget.bean.chainStateBean?.dgpo,
                         ),
@@ -355,28 +326,21 @@ class _CommentListItemState extends State<CommentListItem> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
                               Offstage(
-                                offstage: !(widget
-                                        .bean.commentListItemBean?.isTopOne ==
-                                    CommentListItemBean.isTopOneYes),
+                                offstage: !(widget.bean.commentListItemBean.isTopOne == CommentListItemBean.isTopOneYes),
                                 child: Container(
-                                  margin: EdgeInsets.only(
-                                      right: AppDimens.margin_3),
-                                  child: Image.asset(
-                                      'assets/images/ic_comment_first.png'),
+                                  margin: EdgeInsets.only(right: AppDimens.margin_3),
+                                  child: Image.asset('assets/images/ic_comment_first.png'),
                                 ),
                               ),
                               InkWell(
                                 child: LimitedBox(
                                   maxWidth: AppDimens.item_size_60,
                                   child: Text(
-                                    widget.bean.commentListItemBean?.user
-                                            ?.nickname ??
-                                        '',
+                                    widget.bean.commentListItemBean.user.nickname,
                                     style: TextStyle(
                                       color: AppThemeUtil.setDifferentModeColor(
                                         lightColor: AppColors.color_333333,
-                                        darkColorStr: DarkModelTextColorUtil
-                                            .firstLevelBrightnessColorStr,
+                                        darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                                       ),
                                       fontSize: AppDimens.text_size_12,
                                       fontWeight: FontWeight.w700,
@@ -386,31 +350,16 @@ class _CommentListItemState extends State<CommentListItem> {
                                   ),
                                 ),
                                 onTap: () {
-                                  Navigator.of(context)
-                                      .push(SlideAnimationRoute(
+                                  Navigator.of(context).push(SlideAnimationRoute(
                                     builder: (_) {
                                       return OthersHomePage(
                                         OtherHomeParamsBean(
-                                          uid: widget.bean.commentListItemBean
-                                                  .uid ??
-                                              '',
+                                          uid: widget.bean.commentListItemBean.uid,
                                           avatar: avatar,
-                                          nickName: widget
-                                                  .bean
-                                                  .commentListItemBean
-                                                  ?.user
-                                                  ?.nickname ??
-                                              '',
-                                          isCertification: widget
-                                                  .bean
-                                                  .commentListItemBean
-                                                  ?.user
-                                                  ?.isCertification ??
-                                              '',
-                                          rateInfoData:
-                                              widget.bean.exchangeRateInfoData,
-                                          dgpoBean:
-                                              widget.bean.chainStateBean?.dgpo,
+                                          nickName: widget.bean.commentListItemBean.user.nickname,
+                                          isCertification: widget.bean.commentListItemBean.user.isCertification,
+                                          rateInfoData: widget.bean.exchangeRateInfoData,
+                                          dgpoBean: widget.bean.chainStateBean?.dgpo,
                                         ),
                                       );
                                     },
@@ -429,9 +378,7 @@ class _CommentListItemState extends State<CommentListItem> {
                               ),
                               //创作者标识
                               Offstage(
-                                offstage: !(widget
-                                        .bean.commentListItemBean?.isCreator ==
-                                    CommentListItemBean.isCreatorYes),
+                                offstage: !(widget.bean.commentListItemBean.isCreator == CommentListItemBean.isCreatorYes),
                                 child: Container(
                                   margin: EdgeInsets.only(
                                     left: AppDimens.margin_5,
@@ -446,9 +393,7 @@ class _CommentListItemState extends State<CommentListItem> {
                                     borderRadius: BorderRadius.all(
                                       Radius.circular(AppDimens.radius_size_4),
                                     ),
-                                    border: Border.all(
-                                        color: AppColors.color_3674ff,
-                                        width: AppDimens.item_line_height_1),
+                                    border: Border.all(color: AppColors.color_3674ff, width: AppDimens.item_line_height_1),
                                   ),
                                   child: Text(
                                     InternationalLocalizations.videoCreator,
@@ -458,14 +403,10 @@ class _CommentListItemState extends State<CommentListItem> {
                               ),
                               //礼物票特权
                               Offstage(
-                                offstage: !(widget.bean.commentListItemBean
-                                        ?.isSendTicket ==
-                                    CommentListItemBean.isSendTicketYes),
+                                offstage: !(widget.bean.commentListItemBean.isSendTicket == CommentListItemBean.isSendTicketYes),
                                 child: Container(
-                                  margin:
-                                      EdgeInsets.only(left: AppDimens.margin_2),
-                                  child: Image.asset(
-                                      'assets/images/ic_comment_heart.png'),
+                                  margin: EdgeInsets.only(left: AppDimens.margin_2),
+                                  child: Image.asset('assets/images/ic_comment_heart.png'),
                                 ),
                               ),
                             ],
@@ -476,33 +417,23 @@ class _CommentListItemState extends State<CommentListItem> {
                                 mainAxisSize: MainAxisSize.max,
                                 children: <Widget>[
                                   AutoSizeText(
-                                    widget.bean.commentListItemBean
-                                            ?.likeCount ??
-                                        '0',
+                                    widget.bean.commentListItemBean.likeCount ?? "",
                                     style: AppStyles.text_style_a0a0a0_14,
                                     minFontSize: 8,
                                   ),
                                   Container(
-                                    margin: EdgeInsets.only(
-                                        left: AppDimens.margin_3),
-                                    child: widget.bean.commentListItemBean
-                                                ?.isLike ==
-                                            CommentListItemBean.isLikeYes
-                                        ? Image.asset(
-                                            'assets/images/ic_comment_like_yes.png')
-                                        : Image.asset(AppThemeUtil
-                                            .getCommentNotLikedIcn()),
+                                    margin: EdgeInsets.only(left: AppDimens.margin_3),
+                                    child: widget.bean.commentListItemBean.isLike == CommentListItemBean.isLikeYes
+                                        ? Image.asset('assets/images/ic_comment_like_yes.png')
+                                        : Image.asset(AppThemeUtil.getCommentNotLikedIcn()),
                                   ),
                                 ],
                               ),
                               padding: EdgeInsets.only(bottom: 10, left: 10),
                             ),
                             onTap: () {
-                              if (widget.clickCommentLike != null &&
-                                  Common.isAbleClick()) {
-                                widget.clickCommentLike(
-                                    widget.bean.commentListItemBean,
-                                    widget.bean.index);
+                              if (widget.clickCommentLike != null && Common.isAbleClick()) {
+                                widget.clickCommentLike?.call(widget.bean.commentListItemBean, widget.bean.index);
                               }
                             },
                           )
@@ -510,9 +441,7 @@ class _CommentListItemState extends State<CommentListItem> {
                       ),
                       InkWell(
                         child: Container(
-                          margin: EdgeInsets.only(
-                              top: AppDimens.margin_5,
-                              right: AppDimens.margin_20),
+                          margin: EdgeInsets.only(top: AppDimens.margin_5, right: AppDimens.margin_20),
                           child: CommentRichTextWidget(
                             content,
                             clickNameListener: (String uid, String name) {
@@ -523,17 +452,10 @@ class _CommentListItemState extends State<CommentListItem> {
                                       OtherHomeParamsBean(
                                         uid: uid,
                                         avatar: '',
-                                        nickName: name ?? '',
-                                        isCertification: widget
-                                                .bean
-                                                .commentListItemBean
-                                                ?.user
-                                                ?.isCertification ??
-                                            '',
-                                        rateInfoData:
-                                            widget.bean.exchangeRateInfoData,
-                                        dgpoBean:
-                                            widget.bean.chainStateBean?.dgpo,
+                                        nickName: name,
+                                        isCertification: widget.bean.commentListItemBean.user.isCertification,
+                                        rateInfoData: widget.bean.exchangeRateInfoData,
+                                        dgpoBean: widget.bean.chainStateBean?.dgpo,
                                       ),
                                     );
                                   },
@@ -541,30 +463,20 @@ class _CommentListItemState extends State<CommentListItem> {
                               }
                             },
                             clickHttpListener: (String url) async {
-                              if (ObjectUtil.isNotEmpty(url) &&
-                                  await canLaunch(url)) {
-                                await launch(url);
+                              if (ObjectUtil.isNotEmpty(url) && await canLaunchUrl(Uri.parse(url))) {
+                                await launchUrl(Uri.parse(url));
                               }
                             },
                           ),
                         ),
                         onTap: () {
-                          if (widget.bean.showType ==
-                              CommentListItemParameterBean
-                                  .showTypeVideoComment) {
-                            if (widget.clickChildrenWindows != null &&
-                                Common.isAbleClick()) {
-                              widget.clickChildrenWindows(
-                                  widget.bean.commentListItemBean,
-                                  widget.bean.index,
-                                  true);
+                          if (widget.bean.showType == CommentListItemParameterBean.showTypeVideoComment) {
+                            if (widget.clickChildrenWindows != null && Common.isAbleClick()) {
+                              widget.clickChildrenWindows?.call(widget.bean.commentListItemBean, widget.bean.index, true);
                             }
                           } else {
-                            if (widget.clickCommentReply != null &&
-                                Common.isAbleClick()) {
-                              widget.clickCommentReply(
-                                  widget.bean.commentListItemBean,
-                                  widget.bean.index);
+                            if (widget.clickCommentReply != null && Common.isAbleClick()) {
+                              widget.clickCommentReply?.call(widget.bean.commentListItemBean, widget.bean.index);
                             }
                           }
                         },
@@ -578,10 +490,9 @@ class _CommentListItemState extends State<CommentListItem> {
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: <Widget>[
                               VideoAddMoneyWidget(
-                                key: Common.getAddMoneyViewKeyFromSymbol(
-                                    widget.bean.commentListItemBean?.cid ?? ""),
+                                key: Common.getAddMoneyViewKeyFromSymbol(widget.bean.commentListItemBean.cid),
                                 baseWidget: Text(
-                                  '${Common.getCurrencySymbolByLanguage()} ${totalRevenue ?? ''}',
+                                  '${Common.getCurrencySymbolByLanguage()} $totalRevenue',
                                   style: TextStyle(
                                     color: AppThemeUtil.setDifferentModeColor(
                                       lightColor: AppColors.color_333333,
@@ -601,12 +512,9 @@ class _CommentListItemState extends State<CommentListItem> {
                                 ),
                               ),
                               Container(
-                                margin:
-                                    EdgeInsets.only(left: AppDimens.margin_10),
+                                margin: EdgeInsets.only(left: AppDimens.margin_10),
                                 child: Text(
-                                  Common.calcDiffTimeByStartTime(widget.bean
-                                          .commentListItemBean?.createdAt ??
-                                      ''),
+                                  Common.calcDiffTimeByStartTime(widget.bean.commentListItemBean.createdAt),
                                   style: AppStyles.text_style_a0a0a0_12,
                                 ),
                               ),
@@ -615,42 +523,27 @@ class _CommentListItemState extends State<CommentListItem> {
                                 child: Ink(
                                   child: InkWell(
                                     child: Container(
-                                      margin: EdgeInsets.only(
-                                          left: AppDimens.margin_15),
-                                      padding:
-                                          EdgeInsets.all(AppDimens.margin_5),
+                                      margin: EdgeInsets.only(left: AppDimens.margin_15),
+                                      padding: EdgeInsets.all(AppDimens.margin_5),
                                       child: Text(
-                                        InternationalLocalizations
-                                            .videoCommentReply,
+                                        InternationalLocalizations.videoCommentReply,
                                         style: TextStyle(
-                                          color: AppThemeUtil
-                                              .setDifferentModeColor(
+                                          color: AppThemeUtil.setDifferentModeColor(
                                             lightColor: AppColors.color_333333,
-                                            darkColorStr: DarkModelTextColorUtil
-                                                .firstLevelBrightnessColorStr,
+                                            darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                                           ),
                                           fontSize: AppDimens.text_size_12,
                                         ),
                                       ),
                                     ),
                                     onTap: () {
-                                      if (widget.bean.showType ==
-                                          CommentListItemParameterBean
-                                              .showTypeVideoComment) {
-                                        if (widget.clickChildrenWindows !=
-                                                null &&
-                                            Common.isAbleClick()) {
-                                          widget.clickChildrenWindows(
-                                              widget.bean.commentListItemBean,
-                                              widget.bean.index,
-                                              true);
+                                      if (widget.bean.showType == CommentListItemParameterBean.showTypeVideoComment) {
+                                        if (widget.clickChildrenWindows != null && Common.isAbleClick()) {
+                                          widget.clickChildrenWindows?.call(widget.bean.commentListItemBean, widget.bean.index, true);
                                         }
                                       } else {
-                                        if (widget.clickCommentReply != null &&
-                                            Common.isAbleClick()) {
-                                          widget.clickCommentReply(
-                                              widget.bean.commentListItemBean,
-                                              widget.bean.index);
+                                        if (widget.clickCommentReply != null && Common.isAbleClick()) {
+                                          widget.clickCommentReply?.call(widget.bean.commentListItemBean, widget.bean.index);
                                         }
                                       }
                                     },
@@ -667,14 +560,11 @@ class _CommentListItemState extends State<CommentListItem> {
                                 child: InkWell(
                                   child: Padding(
                                     padding: EdgeInsets.all(AppDimens.margin_5),
-                                    child: Image.asset(
-                                        AppThemeUtil.getCommentMoreIcn()),
+                                    child: Image.asset(AppThemeUtil.getCommentMoreIcn()),
                                   ),
                                   onTap: () {
-                                    if (widget.clickCommentDelete != null &&
-                                        Common.isAbleClick()) {
-                                      widget.clickCommentDelete(
-                                          widget.bean.commentListItemBean);
+                                    if (widget.clickCommentDelete != null && Common.isAbleClick()) {
+                                      widget.clickCommentDelete?.call(widget.bean.commentListItemBean);
                                     }
                                   },
                                 ),
@@ -695,12 +585,8 @@ class _CommentListItemState extends State<CommentListItem> {
                             ),
                           ),
                           onTap: () {
-                            if (widget.clickChildrenWindows != null &&
-                                Common.isAbleClick()) {
-                              widget.clickChildrenWindows(
-                                  widget.bean.commentListItemBean,
-                                  widget.bean.index,
-                                  false);
+                            if (widget.clickChildrenWindows != null && Common.isAbleClick()) {
+                              widget.clickChildrenWindows?.call(widget.bean.commentListItemBean, widget.bean.index, false);
                             }
                           },
                         ),
@@ -708,29 +594,15 @@ class _CommentListItemState extends State<CommentListItem> {
                       Offstage(
                         offstage: newSendChildrenCount == 0,
                         child: Column(
-                          children:
-                              List.generate(newSendChildrenCount, (int index) {
-                            CommentChildrenParameterBean bean =
-                                CommentChildrenParameterBean();
-                            bean.uid = widget
-                                .bean.commentListItemBean?.children[index]?.uid;
-                            bean.content = widget.bean.commentListItemBean
-                                    ?.children[index]?.content ??
-                                '';
-                            bean.cid =
-                                widget.bean.commentListItemBean?.cid ?? '';
-                            bean.commentName = widget.bean.commentListItemBean
-                                    ?.children[index]?.user?.nickname ??
-                                '';
+                          children: List.generate(newSendChildrenCount, (int index) {
+                            CommentChildrenParameterBean bean = CommentChildrenParameterBean();
+                            bean.uid = widget.bean.commentListItemBean.children?[index].uid ?? "";
+                            bean.content = widget.bean.commentListItemBean.children?[index].content ?? "";
+                            bean.cid = widget.bean.commentListItemBean.cid;
+                            bean.commentName = widget.bean.commentListItemBean.children?[index].user.nickname ?? "";
                             bean.avatar = avatar;
-                            bean.isShowInsertColor = widget
-                                    .bean
-                                    .commentListItemBean
-                                    ?.children[index]
-                                    ?.isShowInsertColor ??
-                                false;
-                            bean.isCreator = widget.bean.commentListItemBean
-                                ?.children[index]?.isCreator;
+                            bean.isShowInsertColor = widget.bean.commentListItemBean.children?[index].isShowInsertColor ?? false;
+                            bean.isCreator = widget.bean.commentListItemBean.children?[index].isCreator ?? "";
                             return _buildCommentChildrenItem(context, bean);
                           }),
                         ),
@@ -743,17 +615,14 @@ class _CommentListItemState extends State<CommentListItem> {
           ),
         ),
         Offstage(
-          offstage: (widget.bean.showType ==
-                  CommentListItemParameterBean.showTypeCommentList ||
-              widget.bean.isLoadMoreComment),
+          offstage: (widget.bean.showType == CommentListItemParameterBean.showTypeCommentList || widget.bean.isLoadMoreComment),
           child: Container(
             margin: EdgeInsets.only(left: AppDimens.margin_45),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
                 Offstage(
-                  offstage: (widget.bean.index != commentLength - 1 ||
-                      commentTotal <= commentLength),
+                  offstage: (widget.bean.index != commentLength - 1 || commentTotal <= commentLength),
                   child: InkWell(
                     child: Container(
                       padding: EdgeInsets.all(AppDimens.margin_5),
@@ -767,23 +636,20 @@ class _CommentListItemState extends State<CommentListItem> {
                           ),
                           Container(
                             margin: EdgeInsets.only(left: AppDimens.margin_3),
-                            child: Image.asset(
-                                'assets/images/ic_right_comment.png'),
+                            child: Image.asset('assets/images/ic_right_comment.png'),
                           )
                         ],
                       ),
                     ),
                     onTap: () {
-                      if (widget.clickLoadMoreComment != null &&
-                          Common.isAbleClick()) {
-                        widget.clickLoadMoreComment();
+                      if (widget.clickLoadMoreComment != null && Common.isAbleClick()) {
+                        widget.clickLoadMoreComment?.call();
                       }
                     },
                   ),
                 ),
                 Offstage(
-                  offstage: (widget.bean.index != commentLength - 1 ||
-                      commentPage <= 2),
+                  offstage: (widget.bean.index != commentLength - 1 || commentPage <= 2),
                   child: InkWell(
                     child: Container(
                       padding: EdgeInsets.all(AppDimens.margin_5),
@@ -794,9 +660,8 @@ class _CommentListItemState extends State<CommentListItem> {
                       ),
                     ),
                     onTap: () {
-                      if (widget.clickCommentFold != null &&
-                          Common.isAbleClick()) {
-                        widget.clickCommentFold();
+                      if (widget.clickCommentFold != null && Common.isAbleClick()) {
+                        widget.clickCommentFold?.call();
                       }
                     },
                   ),
@@ -806,8 +671,7 @@ class _CommentListItemState extends State<CommentListItem> {
           ),
         ),
         Offstage(
-          offstage: (widget.bean.showType ==
-                  CommentListItemParameterBean.showTypeCommentList ||
+          offstage: (widget.bean.showType == CommentListItemParameterBean.showTypeCommentList ||
               !widget.bean.isLoadMoreComment ||
               widget.bean.index != widget.bean.commentLength - 1),
           child: Align(
@@ -816,8 +680,7 @@ class _CommentListItemState extends State<CommentListItem> {
           ),
         ),
         Offstage(
-          offstage: (widget.bean.showType ==
-                  CommentListItemParameterBean.showTypeCommentList ||
+          offstage: (widget.bean.showType == CommentListItemParameterBean.showTypeCommentList ||
               widget.bean.index != widget.bean.commentLength - 1 ||
               commentTotal > commentLength),
           child: NoMoreDataWidget(
@@ -825,9 +688,7 @@ class _CommentListItemState extends State<CommentListItem> {
           ),
         ),
         Offstage(
-          offstage: (widget.bean.showType ==
-                  CommentListItemParameterBean.showTypeCommentList ||
-              widget.bean.commentLength != 0),
+          offstage: (widget.bean.showType == CommentListItemParameterBean.showTypeCommentList || widget.bean.commentLength != 0),
           child: Container(
             height: AppDimens.item_line_height_0_5,
             color: AppColors.color_ebebeb,

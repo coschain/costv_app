@@ -16,9 +16,7 @@ import 'package:costv_android/widget/loading_view.dart';
 import 'package:costv_android/widget/net_request_fail_view.dart';
 import "package:costv_android/widget/page_remind_widget.dart";
 import 'package:costv_android/widget/refresh_and_loadmore_listview.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:cosdart/types.dart';
 import 'package:costv_android/utils/video_report_util.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -26,45 +24,46 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 Color itemColor = Common.getColorFromHexString("3F3F3F3F", 0.05);
 final pageLogPrefix = "WatchVideoHistoryPage";
 
-typedef DeleteVideoCallback = void Function(String uid,String vid);
+typedef DeleteVideoCallback = void Function(String uid, String vid);
 
 class WatchVideoHistory extends StatefulWidget {
   final String uid;
-  WatchVideoHistory({@required this.uid});
+
+  WatchVideoHistory({required this.uid});
+
   @override
   State<StatefulWidget> createState() {
     return _WatchVideoHistoryState();
   }
 }
 
-class _WatchVideoHistoryState extends State<WatchVideoHistory> {
-
+class _WatchVideoHistoryState extends State<WatchVideoHistory> with SingleTickerProviderStateMixin {
   static const String tag = '_WatchVideoHistoryState';
   GlobalKey<NetRequestFailTipsViewState> _failTipsKey = new GlobalKey<NetRequestFailTipsViewState>();
   int _pageSize = 20;
-  bool _hasNextPage = false, _isFetching = false, _isShowLoading = true,
-      _isDeleting = false, _isSuccessLoad = true, _isScrolling = false;
+  bool _hasNextPage = false, _isFetching = false, _isShowLoading = true, _isDeleting = false, _isSuccessLoad = true, _isScrolling = false;
   String _lastKey = "0";
   List<GetVideoListNewDataListBean> _videoList = [];
-  ExchangeRateInfoData _rateInfo;
-  dynamic_properties _chainDgpo;
-  Map<int,double> _visibleFractionMap = {};
-  SlidableController _slidableController = SlidableController();
-
+  ExchangeRateInfoData? _rateInfo;
+  dynamic_properties? _chainDgpo;
+  Map<int, double> _visibleFractionMap = {};
+  late SlidableController _slidableController;
 
   @override
   void initState() {
     _reloadData();
     super.initState();
+    _slidableController = SlidableController(this);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(title: InternationalLocalizations.watchHistory,),
+      appBar: CustomAppBar(
+        title: InternationalLocalizations.watchHistory,
+      ),
       body: _getPageBody(),
-
     );
-
   }
 
   Widget _getPageBody() {
@@ -76,55 +75,50 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
           clickCallBack: () {
             _isShowLoading = true;
             _reloadData();
-            setState(() {
-
-            });
+            setState(() {});
           },
         ),
       );
     }
     return LoadingView(
-        isShow: _isShowLoading,
-        child: NetRequestFailTipsView(
-          key: _failTipsKey,
-          baseWidget: Container(
-            color: AppThemeUtil.setDifferentModeColor(
-              lightColor: Common.getColorFromHexString("3F3F3F3F", 0.05),
-              darkColorStr: DarkModelBgColorUtil.pageBgColorStr
-            ),
-            padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
-            child: RefreshAndLoadMoreListView(
-              itemCount: _videoList?.length ?? 0,
-              itemBuilder: (BuildContext context, int position) {
-                if (!_isScrolling) {
-                  _visibleFractionMap[position] = 1;
-                }
-                return _getHistoryVideoItem(position);
-              },
-              isHaveMoreData: _hasNextPage,
-              onRefresh: _reloadData,
-              onLoadMore: () {
-                _loadNextPageData();
-              },
-              isRefreshEnable: true,
-              isLoadMoreEnable: true,
-              bottomMessage: InternationalLocalizations.noMoreHistoryVideo,
-              scrollStatusCallBack: (scrollNotification) {
-                if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
-                  _isScrolling = true;
-                } else if (scrollNotification is ScrollEndNotification) {
-                  _isScrolling = false;
-                  Future.delayed(Duration(milliseconds: 500), () {
-                    if (!_isScrolling) {
-                      _reportVideoExposure();
-                    }
-                  });
-                }
-              },
-            ),
+      isShow: _isShowLoading,
+      child: NetRequestFailTipsView(
+        key: _failTipsKey,
+        baseWidget: Container(
+          color: AppThemeUtil.setDifferentModeColor(
+              lightColor: Common.getColorFromHexString("3F3F3F3F", 0.05), darkColorStr: DarkModelBgColorUtil.pageBgColorStr),
+          padding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: RefreshAndLoadMoreListView(
+            itemCount: _videoList.length,
+            itemBuilder: (BuildContext context, int position) {
+              if (!_isScrolling) {
+                _visibleFractionMap[position] = 1;
+              }
+              return _getHistoryVideoItem(position);
+            },
+            isHaveMoreData: _hasNextPage,
+            onRefresh: _reloadData,
+            onLoadMore: () {
+              _loadNextPageData();
+            },
+            isRefreshEnable: true,
+            isLoadMoreEnable: true,
+            bottomMessage: InternationalLocalizations.noMoreHistoryVideo,
+            scrollStatusCallBack: (scrollNotification) {
+              if (scrollNotification is ScrollStartCallBack || scrollNotification is ScrollUpdateNotification) {
+                _isScrolling = true;
+              } else if (scrollNotification is ScrollEndNotification) {
+                _isScrolling = false;
+                Future.delayed(Duration(milliseconds: 500), () {
+                  if (!_isScrolling) {
+                    _reportVideoExposure();
+                  }
+                });
+              }
+            },
           ),
         ),
-
+      ),
     );
   }
 
@@ -137,29 +131,25 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
     bool isNeedLoadRate = (_rateInfo == null) ? true : false;
     Iterable<Future> reqList;
     if (isNeedLoadRate) {
-      reqList = [_loadWatchedVideoList(false),
-        CosSdkUtil.instance.getChainState(),VideoUtil.requestExchangeRate(tag)];
+      reqList = [_loadWatchedVideoList(false), CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
     } else {
-      reqList = [_loadWatchedVideoList(false),
-        CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
+      reqList = [_loadWatchedVideoList(false), CosSdkUtil.instance.getChainState(), VideoUtil.requestExchangeRate(tag)];
     }
     await Future.wait(
       reqList,
     ).then((valList) {
-      if (valList != null && mounted) {
-        int resLen = valList?.length ?? 0;
-        List<GetVideoListNewDataListBean> videoList;
-        ExchangeRateInfoData rateData = _rateInfo;
-        dynamic_properties dgpo = _chainDgpo;
+      if (mounted) {
+        int resLen = valList.length;
+        List<GetVideoListNewDataListBean>? videoList;
+        ExchangeRateInfoData? rateData = _rateInfo;
+        dynamic_properties? dgpo = _chainDgpo;
         if (resLen >= 1) {
           videoList = valList[0];
         }
         if (resLen >= 2) {
           GetChainStateResponse bean = valList[1];
-          if (bean  != null && bean.state != null && bean.state.dgpo != null) {
-            dgpo= bean.state.dgpo;
-            _chainDgpo = dgpo;
-          }
+          dgpo = bean.state.dgpo;
+          _chainDgpo = dgpo;
         }
 
         if (isNeedLoadRate && resLen >= 3) {
@@ -194,18 +184,14 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
       } else {
         _showLoadDataFailTips();
       }
-
     }).whenComplete(() {
       _isFetching = false;
       if (mounted && _isShowLoading) {
         _isShowLoading = false;
-        setState(() {
-
-        });
+        setState(() {});
       }
     });
     return;
-
   }
 
   Future<void> _loadNextPageData() async {
@@ -218,14 +204,13 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
   }
 
   ///获取观看历史数据
-   Future<List<GetVideoListNewDataListBean>> _loadWatchedVideoList(bool isNextPage) async {
-    List<GetVideoListNewDataListBean> list;
+  Future<List<GetVideoListNewDataListBean>?> _loadWatchedVideoList(bool isNextPage) async {
+    List<GetVideoListNewDataListBean>? list;
     if (isNextPage && !_hasNextPage) {
       return list;
     }
     String page = isNextPage ? _lastKey : "0";
-    await RequestManager.instance.getVideoWatchHistoryList(tag, widget.uid,
-        page, pageSize: _pageSize.toString()).then((response) {
+    await RequestManager.instance.getVideoWatchHistoryList(tag, widget.uid, page, pageSize: _pageSize.toString()).then((response) {
       if (response == null || !mounted) {
         CosLogUtil.log("$pageLogPrefix: fail to request uid:${widget.uid}'s "
             "watched video list");
@@ -236,29 +221,25 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
       List<GetVideoListNewDataListBean> dataList = isSuccess ? (bean.data?.list ?? []) : [];
       list = dataList;
       if (isSuccess) {
-        _hasNextPage = bean.data.hasNext == "1";
-        if (bean.data.lastKey != null) {
-          _lastKey = bean.data.lastKey;
+        _hasNextPage = bean.data?.hasNext == "1";
+        if (bean.data?.lastKey != null) {
+          _lastKey = bean.data?.lastKey ?? "";
         }
         if (isNextPage) {
           if (dataList.isNotEmpty) {
             _videoList.addAll(dataList);
           }
-          setState(() {
-
-          });
+          setState(() {});
         }
-
       } else {
         CosLogUtil.log("$pageLogPrefix: fail to request uid:${widget.uid}'s "
-            "history video list of page:$page, the error msg is ${bean.message}, "
+            "history video list of page:$page, the error msg is ${bean.msg}, "
             "error code is ${bean.status}");
       }
     }).catchError((err) {
       CosLogUtil.log("$pageLogPrefix: fail to load watched video list of "
           "uid:${widget.uid}, the error is $err");
-    }).whenComplete(() {
-    });
+    }).whenComplete(() {});
     return list;
   }
 
@@ -271,15 +252,12 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
       _isShowLoading = true;
     });
     _isDeleting = true;
-    SimpleResponse res;
-    await RequestManager.instance.deleteVideoHistory(tag, widget.uid,
-        vid:video.id,
-        type: "0").then((response) {
-      SimpleBean bean = SimpleBean.fromJson(json.decode(response.data));
+    await RequestManager.instance.deleteVideoHistory(tag, widget.uid, vid: video.id, type: "0").then((response) {
+      SimpleBean bean = SimpleBean.fromJson(json.decode(response?.data));
       if (bean.data != SimpleResponse.responseSuccess) {
         CosLogUtil.log("$pageLogPrefix: fail to delete video,vid is ${video.id}, uid is ${widget.uid}");
       } else {
-        if (_videoList != null && _videoList.length > 0) {
+        if (_videoList.length > 0) {
           int idx = _videoList.indexOf(video);
           if (idx != -1) {
             _videoList.removeAt(idx);
@@ -297,7 +275,7 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
   }
 
   HistoryVideoItem _getHistoryVideoItem(int idx) {
-    int listCnt = _videoList?.length ?? 0;
+    int listCnt = _videoList.length;
     if (idx >= 0 && idx < listCnt) {
       return HistoryVideoItem(
         source: HistoryItemPageSource.watchVideoHistoryPage,
@@ -305,7 +283,7 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
         index: idx,
         exchangeRate: _rateInfo,
         dgpoBean: _chainDgpo,
-        deleteCallBack: (String uid,String vid) {
+        deleteCallBack: (String uid, String vid) {
           if (Common.checkIsNotEmptyStr(uid) && Common.checkIsNotEmptyStr(vid)) {
             _deleteWatchHistory(_videoList[idx]);
           } else {
@@ -314,7 +292,7 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
         },
         visibilityChangedCallback: (int index, double visibleFraction) {
           if (_visibleFractionMap == null) {
-            _visibleFractionMap  = {};
+            _visibleFractionMap = {};
           }
           _visibleFractionMap[index] = visibleFraction;
         },
@@ -327,13 +305,13 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
 
   void _showLoadDataFailTips() {
     if (_failTipsKey.currentState != null) {
-      _failTipsKey.currentState.showWithAnimation();
+      _failTipsKey.currentState?.showWithAnimation();
     }
   }
 
   List<int> _getVisibleItemIndex() {
     List<int> idxList = [];
-    _visibleFractionMap.forEach((int key,double val) {
+    _visibleFractionMap.forEach((int key, double val) {
       if (val > 0) {
         idxList.add(key);
       }
@@ -343,7 +321,7 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
 
   //视频曝光上报
   void _reportVideoExposure() {
-    if (_videoList == null || _videoList.isEmpty) {
+    if (_videoList.isEmpty) {
       return;
     }
     List<int> visibleList = _getVisibleItemIndex();
@@ -352,12 +330,9 @@ class _WatchVideoHistoryState extends State<WatchVideoHistory> {
         int idx = visibleList[i];
         if (idx >= 0 && idx < _videoList.length) {
           GetVideoListNewDataListBean bean = _videoList[idx];
-          VideoReportUtil.reportVideoExposure(
-              VideoExposureType.HistoryType,bean.id ?? '', bean.uid ?? ''
-          );
+          VideoReportUtil.reportVideoExposure(VideoExposureType.HistoryType, bean.id, bean.uid);
         }
       }
-
     }
   }
 }

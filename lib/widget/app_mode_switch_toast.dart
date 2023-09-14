@@ -1,17 +1,15 @@
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/utils/common_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 final Duration aniDuration = Duration(milliseconds: 300);
 bool _isShow = false;
 
 class AppModeSwitchToast {
-  static AppModeSwitchToastView preToast;
+  static AppModeSwitchToastView? preToast;
 
   static show(BuildContext context, bool isDarkMode) {
     preToast?.remove();
-    preToast = null;
     var overlayState = Overlay.of(context);
     OverlayEntry overlayEntry = OverlayEntry(builder: (context) {
       return AppModeSwitchToastWidget(isDarkMode);
@@ -25,8 +23,8 @@ class AppModeSwitchToast {
 }
 
 class AppModeSwitchToastView {
-  OverlayEntry overlayEntry;
-  OverlayState overlayState;
+  late OverlayEntry overlayEntry;
+  late OverlayState overlayState;
   bool dismissed = false;
 
   _show() async {
@@ -45,15 +43,13 @@ class AppModeSwitchToastView {
     _isShow = false;
     overlayEntry.markNeedsBuild();
     await Future.delayed(aniDuration);
-    overlayEntry?.remove();
+    overlayEntry.remove();
   }
 
   remove() async {
     this.dismissed = true;
-    overlayEntry?.remove();
-    overlayEntry = null;
+    overlayEntry.remove();
   }
-
 }
 
 class AppModeSwitchToastWidget extends StatelessWidget {

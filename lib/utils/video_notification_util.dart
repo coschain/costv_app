@@ -4,10 +4,9 @@ import 'package:flutter/services.dart';
 class VideoNotificationUtil {
 
 
-  static const platformNotification =
-      const MethodChannel('com.contentos.plugin/notification');
+  static const platformNotification = const MethodChannel('com.contentos.plugin/notification');
 
-  static VideoNotificationUtil _instance;
+  static VideoNotificationUtil? _instance;
 
   factory VideoNotificationUtil() => _getInstance();
 
@@ -19,7 +18,7 @@ class VideoNotificationUtil {
     if (_instance == null) {
       _instance = VideoNotificationUtil._();
     }
-    return _instance;
+    return _instance!;
   }
 
   openVideoNotification(String data) async {

@@ -10,10 +10,8 @@ typedef ClickNameListener = Function(String uid, String name);
 typedef ClickHttpListener = Function(String url);
 
 class CommentRichTextWidget extends StatelessWidget {
-  static final altUidOneStart =
-      '<a href="[removed]void(0);" class="s-nick" data-id="';
-  static final altUidTwoStart =
-      '<a href="javascript:void(0);" class="s-nick" data-id="';
+  static final altUidOneStart = '<a href="[removed]void(0);" class="s-nick" data-id="';
+  static final altUidTwoStart = '<a href="javascript:void(0);" class="s-nick" data-id="';
   static final altUidEnd = '">@';
   static final altNameEnd = '</a>';
   static final urlRegex = RegExp(
@@ -23,15 +21,15 @@ class CommentRichTextWidget extends StatelessWidget {
 
   String text;
   double runSpacing;
-  ClickNameListener clickNameListener;
-  ClickHttpListener clickHttpListener;
+  ClickNameListener? clickNameListener;
+  ClickHttpListener? clickHttpListener;
 
   CommentRichTextWidget(
     this.text, {
     this.runSpacing = 10,
     this.clickNameListener,
     this.clickHttpListener,
-    Key key,
+    Key? key,
   }) : super(key: key) {
     assert(ObjectUtil.isNotEmpty(text));
   }
@@ -56,8 +54,7 @@ class CommentRichTextWidget extends StatelessWidget {
         if (data is Widget) {
           listEmojiTemp.add(data);
         } else {
-          List<dynamic> listEmoji =
-              _emojiTextConvertToWidget(data, emojiBean.value, emojiBean.code);
+          List<dynamic> listEmoji = _emojiTextConvertToWidget(data, emojiBean.value, emojiBean.code);
           if (!ObjectUtil.isEmptyList(listEmoji)) {
             listEmojiTemp.addAll(listEmoji);
           }
@@ -87,25 +84,21 @@ class CommentRichTextWidget extends StatelessWidget {
     return listWidget;
   }
 
-  List<dynamic> _userTextConvertToWidget(String text,
-      {List<dynamic> listData}) {
+  List<dynamic> _userTextConvertToWidget(String text, {List<dynamic>? listData}) {
     if (!ObjectUtil.isEmptyString(text)) {
       if (listData == null) {
         listData = [];
       }
       int startOneIndex = text.indexOf(altUidOneStart);
       int startTwoIndex = text.indexOf(altUidTwoStart);
-      if (startOneIndex >= 0 &&
-          (startOneIndex < startTwoIndex || startTwoIndex < 0)) {
+      if (startOneIndex >= 0 && (startOneIndex < startTwoIndex || startTwoIndex < 0)) {
         String textUidStart = text.substring(0, startOneIndex);
-        String textUidEnd =
-            text.substring(startOneIndex + altUidOneStart.length);
+        String textUidEnd = text.substring(startOneIndex + altUidOneStart.length);
         String uid;
         int uidEndIndex = textUidEnd.indexOf(altUidEnd);
         if (uidEndIndex >= 0) {
           uid = textUidEnd.substring(0, uidEndIndex);
-          String textNameEnd =
-              textUidEnd.substring(uidEndIndex + altUidEnd.length);
+          String textNameEnd = textUidEnd.substring(uidEndIndex + altUidEnd.length);
           int nameEndIndex = textNameEnd.indexOf(altNameEnd);
           if (nameEndIndex >= 0) {
             String name = textNameEnd.substring(0, nameEndIndex);
@@ -115,7 +108,7 @@ class CommentRichTextWidget extends StatelessWidget {
             listData.add(InkWell(
               onTap: () {
                 if (clickNameListener != null && Common.isAbleClick()) {
-                  clickNameListener(uid, name);
+                  clickNameListener?.call(uid, name);
                 }
               },
               child: Text(
@@ -127,8 +120,7 @@ class CommentRichTextWidget extends StatelessWidget {
                     decorationColor: AppColors.color_3674ff),
               ),
             ));
-            String textProcess =
-                textNameEnd.substring(nameEndIndex + altNameEnd.length);
+            String textProcess = textNameEnd.substring(nameEndIndex + altNameEnd.length);
             if (ObjectUtil.isNotEmpty(textProcess)) {
               _userTextConvertToWidget(textProcess, listData: listData);
             }
@@ -143,14 +135,12 @@ class CommentRichTextWidget extends StatelessWidget {
       } else {
         if (startTwoIndex >= 0) {
           String textUidStart = text.substring(0, startTwoIndex);
-          String textUidEnd =
-              text.substring(startTwoIndex + altUidTwoStart.length);
+          String textUidEnd = text.substring(startTwoIndex + altUidTwoStart.length);
           String uid;
           int uidEndIndex = textUidEnd.indexOf(altUidEnd);
           if (uidEndIndex >= 0) {
             uid = textUidEnd.substring(0, uidEndIndex);
-            String textNameEnd =
-                textUidEnd.substring(uidEndIndex + altUidEnd.length);
+            String textNameEnd = textUidEnd.substring(uidEndIndex + altUidEnd.length);
             int nameEndIndex = textNameEnd.indexOf(altNameEnd);
             if (nameEndIndex >= 0) {
               String name = textNameEnd.substring(0, nameEndIndex);
@@ -160,7 +150,7 @@ class CommentRichTextWidget extends StatelessWidget {
               listData.add(InkWell(
                 onTap: () {
                   if (clickNameListener != null && Common.isAbleClick()) {
-                    clickNameListener(uid, name);
+                    clickNameListener?.call(uid, name);
                   }
                 },
                 child: Text(
@@ -172,8 +162,7 @@ class CommentRichTextWidget extends StatelessWidget {
                       decorationColor: AppColors.color_3674ff),
                 ),
               ));
-              String textProcess =
-                  textNameEnd.substring(nameEndIndex + altNameEnd.length);
+              String textProcess = textNameEnd.substring(nameEndIndex + altNameEnd.length);
               if (ObjectUtil.isNotEmpty(textProcess)) {
                 _userTextConvertToWidget(textProcess, listData: listData);
               }
@@ -192,30 +181,29 @@ class CommentRichTextWidget extends StatelessWidget {
       }
       return listData;
     }
-    return null;
+    return [];
   }
 
-  List<dynamic> _httpTextConvertToWidget(String text,
-      {List<dynamic> listData}) {
+  List<dynamic> _httpTextConvertToWidget(String text, {List<dynamic>? listData}) {
     if (!ObjectUtil.isEmptyString(text)) {
       if (listData == null) {
         listData = [];
       }
-      final match = urlRegex.firstMatch(text);
+      RegExpMatch? match = urlRegex.firstMatch(text);
       if (match == null) {
         listData.add(text);
         return listData;
       } else {
-        String textProcess = text.replaceFirst(match.group(0), '');
-        if (match.group(1).isNotEmpty) {
+        String textProcess = text.replaceFirst(match.group(0) ?? '', '');
+        if (match.group(1)?.isNotEmpty ?? false) {
           listData.add(match.group(1));
         }
-        if (match.group(2).isNotEmpty) {
-          String url = match.group(2);
+        if (match.group(2)?.isNotEmpty ?? false) {
+          String url = match.group(2) ?? '';
           listData.add(InkWell(
             onTap: () {
               if (clickHttpListener != null && Common.isAbleClick()) {
-                clickHttpListener(url);
+                clickHttpListener?.call(url);
               }
             },
             child: Text(
@@ -234,14 +222,11 @@ class CommentRichTextWidget extends StatelessWidget {
       }
       return listData;
     }
-    return null;
+    return [];
   }
 
-  List<dynamic> _emojiTextConvertToWidget(
-      String text, String strRegExp, String emojiCode,
-      {List<dynamic> listData}) {
-    if (!ObjectUtil.isEmptyString(text) &&
-        !ObjectUtil.isEmptyString(strRegExp)) {
+  List<dynamic> _emojiTextConvertToWidget(String text, String strRegExp, String emojiCode, {List<dynamic>? listData}) {
+    if (!ObjectUtil.isEmptyString(text) && !ObjectUtil.isEmptyString(strRegExp)) {
       if (listData == null) {
         listData = [];
       }
@@ -261,13 +246,12 @@ class CommentRichTextWidget extends StatelessWidget {
         ));
         String textProcess = text.substring(startIndex + strRegExp.length);
         if (textProcess.isNotEmpty) {
-          _emojiTextConvertToWidget(textProcess, strRegExp, emojiCode,
-              listData: listData);
+          _emojiTextConvertToWidget(textProcess, strRegExp, emojiCode, listData: listData);
         }
       }
       return listData;
     }
-    return null;
+    return [];
   }
 
   @override

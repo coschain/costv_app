@@ -11,23 +11,24 @@ class AutoPlayProgressBar extends StatefulWidget {
   final String pageKey;
   final bool isFullScreen;
   final double countdownTime;
-  final CountDownFinishCallBack countDownFinishCallBack;
+  final CountDownFinishCallBack? countDownFinishCallBack;
   final double bgWidth;
-  AutoPlayProgressBar(this.pageKey, {Key key, this.isFullScreen = false,
-    this.countdownTime = 5, this.countDownFinishCallBack, this.bgWidth = 168}) : super(key: key);
+
+  AutoPlayProgressBar(this.pageKey, {Key? key, this.isFullScreen = false, this.countdownTime = 5, this.countDownFinishCallBack, this.bgWidth = 168})
+      : super(key: key);
+
   @override
   State<StatefulWidget> createState() {
     return AutoPlayProgressBarState();
   }
 }
 
-class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
-    with SingleTickerProviderStateMixin{
-  AnimationController _controller;
-  Animation<double> _widthAni;
+class AutoPlayProgressBarState extends State<AutoPlayProgressBar> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _widthAni;
   bool _isAnimating = false;
-  Timer _timer;
-  StreamSubscription _eventProgress;
+  Timer? _timer;
+  StreamSubscription? _eventProgress;
 
   @override
   void initState() {
@@ -36,8 +37,8 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
     _initAniController();
     double initWidth = _getInitProgressWidth();
     _widthAni = Tween<double>(begin: initWidth, end: initWidth).animate(_controller)
-    ..addListener(updateState)
-    ..addStatusListener(listenAnimationStatus);
+      ..addListener(updateState)
+      ..addStatusListener(listenAnimationStatus);
     _initTimer();
   }
 
@@ -45,15 +46,10 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
   void dispose() {
     _cancelTimer();
     _cancelListenEvent();
-    if (_controller != null) {
-      _controller.stop(canceled: true);
-      _controller.dispose();
-    }
-    if (_widthAni != null) {
-      _widthAni.removeListener(updateState);
-      _widthAni.removeStatusListener(listenAnimationStatus);
-    }
-
+    _controller.stop(canceled: true);
+    _controller.dispose();
+    _widthAni.removeListener(updateState);
+    _widthAni.removeStatusListener(listenAnimationStatus);
     _cancelTimer();
     super.dispose();
   }
@@ -72,11 +68,11 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
           top: 0,
           left: 0,
           child: Container(
-              color: Common.getColorFromHexString("3674FF", 1.0),
-              height: bgHeight,
-              width: _widthAni.value,
-            ),
+            color: Common.getColorFromHexString("3674FF", 1.0),
+            height: bgHeight,
+            width: _widthAni.value,
           ),
+        ),
       ],
     );
   }
@@ -89,14 +85,11 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
 //      rate = screenHeight/667;
 //    }
 //    return 160*rate;
-  return widget.bgWidth;
+    return widget.bgWidth;
   }
 
   void _initAniController() {
-    if (_controller == null) {
-      _controller = AnimationController(
-          duration: const Duration(seconds: 1), vsync: this);
-    }
+    _controller = AnimationController(duration: const Duration(seconds: 1), vsync: this);
   }
 
   void startAnimate() {
@@ -108,7 +101,7 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
   }
 
   void stopAnimate() {
-    if(_isAnimating) {
+    if (_isAnimating) {
       _cancelTimer();
       setState(() {
         VideoDetailDataMgr.instance.updateCurCountDownValueByKey(widget.pageKey, 0);
@@ -118,10 +111,7 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
   }
 
   _cancelTimer() {
-    if (_timer != null) {
-      _timer.cancel();
-      _timer = null;
-    }
+    _timer?.cancel();
   }
 
   _initTimer() {
@@ -130,19 +120,15 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
         if (mounted) {
           double oldProgress = VideoDetailDataMgr.instance.getCurCountDownValueByKey(widget.pageKey);
           double maxWidth = _getProgressWidth();
-          double oldWidth = oldProgress/widget.countdownTime*maxWidth;
+          double oldWidth = oldProgress / widget.countdownTime * maxWidth;
           oldProgress += 1;
-          double newWidth = oldProgress/widget.countdownTime* maxWidth;
+          double newWidth = oldProgress / widget.countdownTime * maxWidth;
           VideoDetailDataMgr.instance.updateCurCountDownValueByKey(widget.pageKey, oldProgress);
-          if (_controller == null) {
-            _initAniController();
-          }
           if (_widthAni.value > oldWidth) {
             oldWidth = _widthAni.value;
           }
           _controller.reset();
-          _widthAni =
-              Tween<double>(begin: oldWidth, end: newWidth).animate(_controller);
+          _widthAni = Tween<double>(begin: oldWidth, end: newWidth).animate(_controller);
           try {
             _controller.forward();
           } on TickerCanceled {}
@@ -175,9 +161,7 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
       _cancelTimer();
       _isAnimating = false;
       VideoDetailDataMgr.instance.updateCurCountDownValueByKey(widget.pageKey, 0);
-      if (widget.countDownFinishCallBack != null) {
-        widget.countDownFinishCallBack();
-      }
+      widget.countDownFinishCallBack?.call();
       setState(() {
         _controller.reverse();
       });
@@ -186,13 +170,12 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
 
   double _getInitProgressWidth() {
     double oldProgress = VideoDetailDataMgr.instance.getCurCountDownValueByKey(widget.pageKey);
-    if (oldProgress != null && oldProgress < 1) {
+    if (oldProgress < 1) {
       return 0;
     }
     double maxWidth = _getProgressWidth();
-    return oldProgress/widget.countdownTime*maxWidth;
+    return oldProgress / widget.countdownTime * maxWidth;
   }
-
 
   void _listenEvent() {
     if (_eventProgress == null) {
@@ -201,19 +184,14 @@ class AutoPlayProgressBarState extends State<AutoPlayProgressBar>
           return;
         }
         if (event is AutoPlayCountDownStatusEvent) {
-          if (event.isFinish != null) {
-            VideoDetailDataMgr.instance.updateCurCountDownValueByKey(widget.pageKey, 0);
-            _cancelTimer();
-          }
+          VideoDetailDataMgr.instance.updateCurCountDownValueByKey(widget.pageKey, 0);
+          _cancelTimer();
         }
       });
     }
   }
 
   void _cancelListenEvent() {
-    if (_eventProgress != null) {
-      _eventProgress.cancel();
-      _eventProgress = null;
-    }
+    _eventProgress?.cancel();
   }
 }

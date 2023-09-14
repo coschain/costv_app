@@ -13,8 +13,8 @@ String savedLanKey = "appLanKey";
 int curTabIndex = 0;
 bool usrAutoPlaySetting = false; //默认关闭
 String videoDetailPageRouteName = "videoDetailPageRoute";
-RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
+RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
 String aid = '';
 Brightness brightnessModel = Brightness.light;
 bool isSwitchedModeByUser = false;
-BuildContext mainContext; //main page context
+BuildContext? mainContext; //main page context

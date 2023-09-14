@@ -3,7 +3,6 @@ import 'package:costv_android/event/video_small_windows_event.dart';
 import 'package:flutter/material.dart';
 
 class OverlayVideoSmallWindowsUtils {
-
 //  static const channelVideoSmallWindows = 'com.contentos.plugin/video_small_windows';
 //  static const videoSmallWindowsOpenWindows = "open_windows";
 //  static const videoSmallWindowsCloseWindows = "close_windows";
@@ -12,7 +11,7 @@ class OverlayVideoSmallWindowsUtils {
 //  static const platformSdk =
 //      const MethodChannel(channelVideoSmallWindows);
 
-  static OverlayVideoSmallWindowsUtils _instance;
+  static OverlayVideoSmallWindowsUtils? _instance;
 
   factory OverlayVideoSmallWindowsUtils() => _getInstance();
 
@@ -24,28 +23,10 @@ class OverlayVideoSmallWindowsUtils {
     if (_instance == null) {
       _instance = OverlayVideoSmallWindowsUtils._();
     }
-    return _instance;
+    return _instance!;
   }
 
-//  get getPlatformSdk => platformSdk;
-//
-//  openVideoSmallWindows(String data) async {
-//    try {
-//      await platformSdk.invokeMethod(videoSmallWindowsOpenWindows, data);
-//    } on PlatformException catch (e) {
-//      CosLogUtil.log(e.toString());
-//    }
-//  }
-//
-//  closeVideoSmallWindows() async {
-//    try {
-//      await platformSdk.invokeMethod(videoSmallWindowsCloseWindows);
-//    } on PlatformException catch (e) {
-//      CosLogUtil.log(e.toString());
-//    }
-//  }
-
-  OverlayEntry _overlayEntry;
+  OverlayEntry? _overlayEntry;
 
   bool _isShow = false;
 
@@ -54,23 +35,19 @@ class OverlayVideoSmallWindowsUtils {
     _overlayEntry = OverlayEntry(builder: (context) {
       return child;
     });
-    Overlay.of(context).insert(_overlayEntry);
-    EventBusHelp.getInstance()
-        .fire(VideoSmallWindowsEvent(VideoSmallWindowsEvent.statusSmallWindowsShow));
+    Overlay.of(context).insert(_overlayEntry!);
+    EventBusHelp.getInstance().fire(VideoSmallWindowsEvent(VideoSmallWindowsEvent.statusSmallWindowsShow));
   }
 
-  removeVideoSmallWindow(){
-    if(_overlayEntry != null){
-      _overlayEntry.remove();
-      _overlayEntry = null;
-      EventBusHelp.getInstance()
-          .fire(VideoSmallWindowsEvent(VideoSmallWindowsEvent.statusSmallWindowsClose));
+  removeVideoSmallWindow() {
+    if (_isShow) {
+      _overlayEntry?.remove();
     }
+    EventBusHelp.getInstance().fire(VideoSmallWindowsEvent(VideoSmallWindowsEvent.statusSmallWindowsClose));
     _isShow = false;
   }
 
   bool checkIsShowWindow() {
     return _isShow;
   }
-
 }

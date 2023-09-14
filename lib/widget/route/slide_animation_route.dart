@@ -1,5 +1,4 @@
 import 'package:costv_android/constant.dart';
-import 'package:costv_android/utils/cos_log_util.dart';
 import 'package:flutter/material.dart';
 
 class SlideAnimationRoute extends PageRoute {
@@ -8,8 +7,8 @@ class SlideAnimationRoute extends PageRoute {
   static const int animationTypeVertical = 10002;
 
   SlideAnimationRoute({
-    @required this.builder,
-    RouteSettings settings,
+    required this.builder,
+    RouteSettings? settings,
     this.isCheckAnimation = false,
     this.animationType = animationTypeHorizontal,
     this.transitionDuration = const Duration(milliseconds: 300),
@@ -36,17 +35,16 @@ class SlideAnimationRoute extends PageRoute {
   final bool barrierDismissible;
 
   @override
-  final Color barrierColor;
+  final Color? barrierColor;
 
   @override
-  final String barrierLabel;
+  final String? barrierLabel;
 
   @override
   final bool maintainState;
 
   @override
-  Widget buildPage(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation) {
+  Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
     return builder(context);
   }
 
@@ -74,7 +72,7 @@ class SlideAnimationRoute extends PageRoute {
           position: Tween<Offset>(
             begin: const Offset(0.0, 1.0),
             end: const Offset(0.0, 0.0),
-          ).animate(CurvedAnimation(parent: controller, curve: Curves.linear)),
+          ).animate(CurvedAnimation(parent: controller!, curve: Curves.linear)),
           child: child,
         );
       }

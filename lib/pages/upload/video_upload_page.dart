@@ -8,10 +8,7 @@ import 'package:costv_android/bean/video_tags_bean.dart';
 import 'package:costv_android/bean/video_upload_sign_bean.dart';
 import 'package:costv_android/pages/upload/video_upload_form.dart';
 import 'package:costv_android/pages/upload/video_upload_appbar.dart';
-import 'package:costv_android/pages/webview/webview_page.dart';
 import 'package:costv_android/utils/cos_log_util.dart';
-import 'package:costv_android/widget/route/slide_animation_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/constant.dart';
 import 'package:costv_android/event/base/event_bus_help.dart';
@@ -26,13 +23,11 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
-
 class VideoUploadPage extends StatefulWidget {
-  final String uid;
-  final String videoPath;
+  VideoUploadPage({this.uid = '', this.videoPath = '', Key? key}) : super(key: key);
 
-  VideoUploadPage({this.uid, this.videoPath, Key key})
-      : super(key: key);
+  String uid;
+  String videoPath;
 
   @override
   _VideoUploadPageState createState() => _VideoUploadPageState(uid, videoPath);
@@ -49,14 +44,14 @@ enum VideoUploadPageContents {
 class _VideoUploadPageState extends State<VideoUploadPage> {
   static const String tag = '_VideoUploadPageState';
 
-  StreamSubscription _eventSubscription;
+  StreamSubscription? _eventSubscription;
   bool _uploadOK = false;
-  String _uid;
-  String _videoPath;
+  String _uid = '';
+  String _videoPath = '';
   List _sysTags = [];
   List _categories = [];
-  String _tvcSignature;
-  String _coverPath;
+  String _tvcSignature = '';
+  String _coverPath = '';
   bool _initOK = false;
   bool _showLoginLoading = false;
 
@@ -81,7 +76,7 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
   Widget build(BuildContext context) {
     Widget body;
     var contentType = _contents();
-    switch(contentType) {
+    switch (contentType) {
       case VideoUploadPageContents.LoginTips:
         body = _getLoginTipsWidget();
         break;
@@ -108,33 +103,22 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
     return Scaffold(
       appBar: VideoUploadAppbar(
         title: InternationalLocalizations.uploadAppbarBack,
-        onBack: (){
+        onBack: () {
           Navigator.of(context).pop();
         },
         buttonText: "",
         buttonTextColor: Colors.transparent,
-        onButtonTapped: () {
-        },
+        onButtonTapped: () {},
       ),
       body: Stack(
         children: <Widget>[
           PageRemindWidget(
             clickCallBack: () {
-              if (Platform.isAndroid) {
-                WebViewUtil.instance.openWebView(Constant.logInWebViewUrl);
-              } else {
-                Navigator.of(context).push(SlideAnimationRoute(
-                  builder: (_) {
-                    return WebViewPage(
-                      Constant.logInWebViewUrl,
-                    );
-                  },
-                ));
-              }
+              WebViewUtil.instance.openWebView(Constant.logInWebViewUrl, context);
             },
             remindType: RemindType.VideoUploadPageLogIn,
           ),
-          _showLoginLoading? _buildLoading(context) : Container(),
+          _showLoginLoading ? _buildLoading(context) : Container(),
         ],
       ),
     );
@@ -148,11 +132,7 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
         child: new SizedBox(
           height: 70,
           width: 70,
-          child: Container(
-              color: AppColors.color_transparent,
-              child: Padding(
-                  padding: EdgeInsets.all(15),
-                  child: CircularProgressIndicator())),
+          child: Container(color: AppColors.color_transparent, child: Padding(padding: EdgeInsets.all(15), child: CircularProgressIndicator())),
         ),
       ),
     );
@@ -208,7 +188,7 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
         categories: _categories,
         sysTags: _sysTags,
         tvcSignature: _tvcSignature,
-        onSuccess: (){
+        onSuccess: () {
           setState(() {
             _uploadOK = true;
           });
@@ -224,7 +204,7 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
     if (_uploadOK) {
       return VideoUploadPageContents.UploadOK;
     }
-    if (_initOK == null) {
+    if (!_initOK) {
       return VideoUploadPageContents.UploadInit;
     }
     if (_initOK) {
@@ -233,7 +213,7 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
     return VideoUploadPageContents.UploadInitFail;
   }
 
-  void _listenEvent () {
+  void _listenEvent() {
     if (_eventSubscription == null) {
       _eventSubscription = EventBusHelp.getInstance().on().listen((event) async {
         if (event == null) {
@@ -254,8 +234,8 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
     setState(() {
       _showLoginLoading = true;
     });
-    var file = await ImagePicker.pickVideo(source: ImageSource.gallery);
-    String videoPath = file?.path;
+    var file = await ImagePicker().pickVideo(source: ImageSource.gallery);
+    String videoPath = file?.path ?? "";
     if (ObjectUtil.isEmptyString(videoPath)) {
       Navigator.of(context).pop();
     }
@@ -267,37 +247,35 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
 
   void _onLogout() {
     setState(() {
-      _uid = null;
-      _videoPath = null;
+      _uid = '';
+      _videoPath = '';
     });
   }
 
   void _initData() {
-    _initOK = null;
-    _tvcSignature = null;
+    _initOK = false;
+    _tvcSignature = "";
     _categories = [];
     _sysTags = [];
-    _coverPath = null;
+    _coverPath = "";
 
     List<Future<Null>> tasks = [
-      RequestManager.instance.getUploadSign(tag).then((response){
+      RequestManager.instance.getUploadSign(tag).then((response) {
         if (response == null || response.statusCode != 200) {
           return;
         }
-        VideoUploadSignBean bean = VideoUploadSignBean.fromJson(json.decode(response.data));
-        if (bean != null) {
-          _tvcSignature = bean.data.signature;
-        }
+        VideoUploadSignBean? bean = VideoUploadSignBean.fromJson(json.decode(response.data));
+        _tvcSignature = bean.data.signature;
       }),
-      RequestManager.instance.getVideoCategoryList(tag).then((response){
+      RequestManager.instance.getVideoCategoryList(tag).then((response) {
         if (response == null || response.statusCode != 200) {
           return;
         }
-        VideoCategoryBean bean = VideoCategoryBean.fromJson(json.decode(response.data));
-        if (bean != null && bean.data.list.length > 0) {
-          bean.data.list.forEach((c){
+        VideoCategoryBean? bean = VideoCategoryBean.fromJson(json.decode(response.data));
+        if ((bean.data?.list.length ?? 0) > 0) {
+          bean.data?.list.forEach((c) {
             List children = [];
-            c.childrenList.forEach((child){
+            c.childrenList?.forEach((child) {
               children.add([child.id, child.cate_name, []]);
             });
             if (children.length == 0) {
@@ -307,31 +285,31 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
           });
         }
       }),
-      RequestManager.instance.getRecommendTagList(tag).then((response){
+      RequestManager.instance.getRecommendTagList(tag).then((response) {
         if (response == null || response.statusCode != 200) {
           return;
         }
-        VideoTagsBean bean = VideoTagsBean.fromJson(json.decode(response.data));
-        if (bean != null && bean.data.length > 0) {
-          bean.data.forEach((t){
+        VideoTagsBean? bean = VideoTagsBean.fromJson(json.decode(response.data));
+        if (bean.data.length > 0) {
+          bean.data.forEach((t) {
             _sysTags.add([t.id, t.content]);
           });
         }
       }),
       _getVideoCover(),
     ];
-    Future.wait(tasks).then((_){
-      _initOK = !ObjectUtil.isEmptyString(_tvcSignature)
-          && _categories != null && _categories.length > 0
-          && _sysTags != null && _sysTags.length > 0
-          && !ObjectUtil.isEmptyString(_coverPath);
+    Future.wait(tasks).then((_) {
+      _initOK = !ObjectUtil.isEmptyString(_tvcSignature) &&
+          _categories.length > 0 &&
+          _sysTags.length > 0 &&
+          !ObjectUtil.isEmptyString(_coverPath);
 
       setState(() {
         _showLoginLoading = false;
       });
     });
   }
-  
+
   Future<Null> _getVideoCover() async {
     Directory tempDir = await getTemporaryDirectory();
     String coverFilePath = p.join(tempDir.path, "${p.basenameWithoutExtension(_videoPath)}_${DateTime.now().millisecondsSinceEpoch}.jpg");
@@ -341,7 +319,7 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
       imageFormat: ImageFormat.JPEG,
       maxWidth: 512,
       quality: 75,
-    ).then((_) async{
+    ).then((_) async {
       if (await File(coverFilePath).exists()) {
         _coverPath = coverFilePath;
         CosLogUtil.log("Video cover: $_coverPath");
@@ -355,13 +333,13 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
       title: Text(InternationalLocalizations.uploadExitAlertTitle),
       content: Text(InternationalLocalizations.uploadExitAlertContent),
       actions: <Widget>[
-        new FlatButton(
+        new ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop(true);
           },
           child: new Text(InternationalLocalizations.confirm),
         ),
-        new FlatButton(
+        new ElevatedButton(
           onPressed: () {
             Navigator.of(context).pop(false);
           },
@@ -369,10 +347,14 @@ class _VideoUploadPageState extends State<VideoUploadPage> {
         ),
       ],
     );
-    return showDialog(
+    var result = await showDialog<bool>(
         context: context,
         builder: (context) {
           return dialog;
         });
+    if (result != null) {
+      return result;
+    }
+    return false;
   }
 }

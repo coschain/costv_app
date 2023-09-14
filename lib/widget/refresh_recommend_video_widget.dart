@@ -1,18 +1,19 @@
 import 'package:costv_android/language/international_localizations.dart';
 import 'package:costv_android/utils/common_util.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 typedef RefreshRecommendVideoCallBack = Function();
 class RefreshRecommendVideoWidget extends StatelessWidget {
   final bool isPortrait;
   final double maxWidth;
-  final RefreshRecommendVideoCallBack refreshRecommendVideoCallBack;
+  final RefreshRecommendVideoCallBack? refreshRecommendVideoCallBack;
+
   RefreshRecommendVideoWidget({
     this.isPortrait = true,
     this.refreshRecommendVideoCallBack,
     this.maxWidth = 200,
   });
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -28,7 +29,7 @@ class RefreshRecommendVideoWidget extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: () {
           if (this.refreshRecommendVideoCallBack != null) {
-            this.refreshRecommendVideoCallBack();
+            this.refreshRecommendVideoCallBack!();
           }
         },
         child: Row(

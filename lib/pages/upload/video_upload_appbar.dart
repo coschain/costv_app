@@ -1,5 +1,4 @@
 import 'package:common_utils/common_utils.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:costv_android/utils/cos_theme_util.dart';
 import 'package:costv_android/utils/common_util.dart';
@@ -8,11 +7,11 @@ typedef VideoUploadAppbarBackHandler = void Function();
 typedef VideoUploadAppbarButtonHandler = void Function();
 
 class VideoUploadAppbar extends StatefulWidget implements PreferredSizeWidget {
-  final String title;
-  final VideoUploadAppbarBackHandler onBack;
-  final String buttonText;
-  final Color buttonTextColor;
-  final VideoUploadAppbarButtonHandler onButtonTapped;
+  final String? title;
+  final VideoUploadAppbarBackHandler? onBack;
+  final String? buttonText;
+  final Color? buttonTextColor;
+  final VideoUploadAppbarButtonHandler? onButtonTapped;
 
   VideoUploadAppbar({this.title, this.onBack, this.buttonText, this.buttonTextColor, this.onButtonTapped});
 
@@ -23,7 +22,6 @@ class VideoUploadAppbar extends StatefulWidget implements PreferredSizeWidget {
 }
 
 class _VideoUploadAppbarState extends State<VideoUploadAppbar> {
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width, leftWidth = 40;
@@ -46,7 +44,7 @@ class _VideoUploadAppbarState extends State<VideoUploadAppbar> {
               behavior: HitTestBehavior.opaque,
               child: Container(
                 width: leftWidth,
-                padding: EdgeInsets.fromLTRB(16,12,16,10),
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 10),
                 child: Image.asset(
                   AppThemeUtil.getBackIcn(),
                   width: 7,
@@ -54,9 +52,9 @@ class _VideoUploadAppbarState extends State<VideoUploadAppbar> {
                   fit: BoxFit.cover,
                 ),
               ),
-              onTap: (){
+              onTap: () {
                 if (widget.onBack != null) {
-                  widget.onBack();
+                  widget.onBack?.call();
                 } else {
                   Navigator.of(context).maybePop();
                 }
@@ -67,8 +65,7 @@ class _VideoUploadAppbarState extends State<VideoUploadAppbar> {
             Expanded(
               child: Container(
                 margin: EdgeInsets.only(left: 5),
-                child: Text(
-                    widget.title ?? "",
+                child: Text(widget.title ?? "",
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                     style: TextStyle(
@@ -76,30 +73,23 @@ class _VideoUploadAppbarState extends State<VideoUploadAppbar> {
                           lightColor: Colors.black,
                           darkColorStr: DarkModelTextColorUtil.firstLevelBrightnessColorStr,
                         ),
-                        fontSize: 15
-                    )
-                ),
+                        fontSize: 15)),
               ),
             ),
 
-            ObjectUtil.isEmptyString(widget.buttonText)? Container():
-            Container(
-              margin: EdgeInsets.only(left: 16, right: 16),
-              child: GestureDetector(
-                child: Text(
-                    widget.buttonText,
-                    style: TextStyle(
-                        color: widget.buttonTextColor,
-                        fontSize: 15
-                    )
-                ),
-                onTap: (){
-                  if (widget.onButtonTapped != null) {
-                    widget.onButtonTapped();
-                  }
-                },
-              ),
-            ),
+            ObjectUtil.isEmptyString(widget.buttonText)
+                ? Container()
+                : Container(
+                    margin: EdgeInsets.only(left: 16, right: 16),
+                    child: GestureDetector(
+                      child: Text(widget.buttonText ?? "", style: TextStyle(color: widget.buttonTextColor, fontSize: 15)),
+                      onTap: () {
+                        if (widget.onButtonTapped != null) {
+                          widget.onButtonTapped?.call();
+                        }
+                      },
+                    ),
+                  ),
           ],
         ),
       ),
